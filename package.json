@@ -79,7 +79,7 @@
     "docker:run": "docker run -p 3000:3000 smellpin",
     "docker:test": "docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit",
     "pre-commit": "npm run lint && npm run type-check && npm run test:unit:quick",
-    "prepare": "husky install",
+    "prepare": "node -e \"try{require('husky').install()}catch(e){if(e.code!=='MODULE_NOT_FOUND')throw e}\"",
     "security:check": "node scripts/security-check.js",
     "security:audit": "npm audit",
     "security:test": "node security-test.js"
