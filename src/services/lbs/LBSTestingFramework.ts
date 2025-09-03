@@ -144,9 +144,9 @@ export class LocationAccuracyTester extends EventEmitter {
         const result = await this.runAccuracyTestScenario(scenario);
         results.push(result);
 
-        if (result.success && result.results.accuracy) {
-          totalAccuracySum += result.results.accuracy;
-          if (result.results.accuracy <= 20) {
+        if (result.success && result.results['accuracy']) {
+          totalAccuracySum += result.results['accuracy'];
+          if (result.results['accuracy'] <= 20) {
             sub20mCount++;
           }
         }
@@ -325,7 +325,7 @@ export class LocationAccuracyTester extends EventEmitter {
    */
   private async runAccuracyTestScenario(scenario: TestScenario): Promise<TestResult> {
     const startTime = Date.now();
-    const testPoints = scenario.parameters.testPoints as GeoPoint[];
+    const testPoints = scenario.parameters['testPoints'] as GeoPoint[];
     const accuracyMeasurements: number[] = [];
     const validationResults: LocationValidation[] = [];
     const errors: string[] = [];
@@ -334,7 +334,7 @@ export class LocationAccuracyTester extends EventEmitter {
     for (const testPoint of testPoints) {
       try {
         // Add some GPS noise to simulate real conditions
-        const noisyPoint = this.addGPSNoise(testPoint, scenario.parameters.environment);
+        const noisyPoint = this.addGPSNoise(testPoint, scenario.parameters['environment']);
         
         // Test location processing
         const processResult = await this.geographicSystem.processLocationForRewards(
@@ -358,10 +358,10 @@ export class LocationAccuracyTester extends EventEmitter {
           'vincenty'
         );
         
-        if (calculatedDistance.distance <= scenario.expectedResults.accuracy) {
+        if (calculatedDistance.distance <= scenario.expectedResults['accuracy']) {
           // Point is within expected accuracy
         } else {
-          warnings.push(`Point accuracy ${calculatedDistance.distance.toFixed(2)}m exceeds expected ${scenario.expectedResults.accuracy}m`);
+          warnings.push(`Point accuracy ${calculatedDistance.distance.toFixed(2)}m exceeds expected ${scenario.expectedResults['accuracy']}m`);
         }
 
       } catch (error) {
@@ -379,8 +379,8 @@ export class LocationAccuracyTester extends EventEmitter {
 
     const executionTime = Date.now() - startTime;
     const success = errors.length === 0 && 
-                   Math.abs(averageAccuracy - scenario.expectedResults.accuracy) <= scenario.tolerance.accuracy &&
-                   Math.abs(validationRate - scenario.expectedResults.validationRate) <= scenario.tolerance.validationRate;
+                   Math.abs(averageAccuracy - scenario.expectedResults['accuracy']) <= scenario.tolerance['accuracy'] &&
+                   Math.abs(validationRate - scenario.expectedResults['validationRate']) <= scenario.tolerance['validationRate'];
 
     return {
       scenarioId: scenario.id,

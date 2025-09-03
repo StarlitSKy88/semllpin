@@ -860,9 +860,9 @@ export class SystemHealthMonitor extends EventEmitter {
     
     this.healthStatus.performance = {
       concurrentUsers: 0, // Would track actual concurrent users
-      requestsPerSecond: metrics.requests_per_second?.average || 0,
-      averageResponseTime: metrics.response_time?.average || 0,
-      errorRate: metrics.error_rate?.average || 0
+      requestsPerSecond: metrics['requests_per_second']?.average || 0,
+      averageResponseTime: metrics['response_time']?.average || 0,
+      errorRate: metrics['error_rate']?.average || 0
     };
   }
 
@@ -1006,7 +1006,7 @@ export class LBSMasterSystem extends EventEmitter {
     version: '1.0.0',
     maxConcurrentRequests: 10000,
     defaultTimeout: 30000, // 30 seconds
-    enableTesting: process.env.NODE_ENV !== 'production'
+    enableTesting: process.env['NODE_ENV'] !== 'production'
   };
 
   constructor(redis: RedisService) {

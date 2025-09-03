@@ -1159,7 +1159,7 @@ export class RewardDistributionSystem extends EventEmitter {
   /**
    * Process distribution queue in batches
    */
-  private async startDistributionProcessor(): void {
+  private async startDistributionProcessor(): Promise<void> {
     setInterval(async () => {
       if (this.processing || this.distributionQueue.length === 0) return;
       
