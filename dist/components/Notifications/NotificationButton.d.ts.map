@@ -1,1 +1,0 @@
-{"version":3,"file":"NotificationButton.d.ts","sourceRoot":"","sources":["../../../src/components/Notifications/NotificationButton.tsx"],"names":[],"mappings":"AAKA,OAAO,KAA8B,MAAM,OAAO,CAAC;AAKnD,UAAU,uBAAuB;IAC/B,SAAS,CAAC,EAAE,MAAM,CAAC;IACnB,SAAS,CAAC,EAAE,OAAO,CAAC;CACrB;AAED,QAAA,MAAM,kBAAkB,EAAE,KAAK,CAAC,EAAE,CAAC,uBAAuB,CA4EzD,CAAC;AAEF,eAAe,kBAAkB,CAAC"}
