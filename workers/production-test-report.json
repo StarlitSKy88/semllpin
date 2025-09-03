@@ -1,0 +1,188 @@
+{
+  "timestamp": "2025-08-22T16:37:36.793Z",
+  "summary": {
+    "deployment": {
+      "total": 8,
+      "passed": 1,
+      "failed": 7,
+      "successRate": "12.5%"
+    },
+    "configuration": {
+      "total": 3,
+      "passed": 0,
+      "failed": 3,
+      "successRate": "0.0%"
+    },
+    "endToEnd": {
+      "total": 3,
+      "passed": 0,
+      "failed": 3,
+      "successRate": "0.0%"
+    },
+    "performance": {
+      "total": 2,
+      "passed": 1,
+      "failed": 1,
+      "successRate": "50.0%"
+    },
+    "security": {
+      "total": 4,
+      "passed": 2,
+      "failed": 2,
+      "successRate": "50.0%"
+    },
+    "overall": {
+      "total": 20,
+      "passed": 4,
+      "failed": 16,
+      "successRate": "20.0%"
+    }
+  },
+  "details": {
+    "deployment": [
+      {
+        "test": "前端部署检查",
+        "success": true,
+        "message": "腾讯云CloudBase前端部署正常",
+        "timestamp": "2025-08-22T16:34:24.302Z",
+        "responseTime": 865.4192499965429,
+        "status": 200
+      },
+      {
+        "test": "后端部署检查",
+        "success": false,
+        "message": "Cloudflare Workers后端无法访问: Request timeout",
+        "timestamp": "2025-08-22T16:34:34.561Z",
+        "error": "Request timeout"
+      },
+      {
+        "test": "API端点检查: /auth/register",
+        "success": false,
+        "message": "端点无法访问: Request timeout",
+        "timestamp": "2025-08-22T16:34:44.594Z",
+        "error": "Request timeout"
+      },
+      {
+        "test": "API端点检查: /auth/login",
+        "success": false,
+        "message": "端点无法访问: Request timeout",
+        "timestamp": "2025-08-22T16:34:54.603Z",
+        "error": "Request timeout"
+      },
+      {
+        "test": "API端点检查: /annotations",
+        "success": false,
+        "message": "端点无法访问: Request timeout",
+        "timestamp": "2025-08-22T16:35:04.623Z",
+        "error": "Request timeout"
+      },
+      {
+        "test": "API端点检查: /comments",
+        "success": false,
+        "message": "端点无法访问: Request timeout",
+        "timestamp": "2025-08-22T16:35:14.636Z",
+        "error": "Request timeout"
+      },
+      {
+        "test": "API端点检查: /lbs/checkin",
+        "success": false,
+        "message": "端点无法访问: Request timeout",
+        "timestamp": "2025-08-22T16:35:24.662Z",
+        "error": "Request timeout"
+      },
+      {
+        "test": "API端点检查: /payments/create",
+        "success": false,
+        "message": "端点无法访问: Request timeout",
+        "timestamp": "2025-08-22T16:35:34.669Z",
+        "error": "Request timeout"
+      }
+    ],
+    "configuration": [
+      {
+        "test": "CORS配置检查",
+        "success": false,
+        "message": "CORS检查失败: Request timeout",
+        "timestamp": "2025-08-22T16:35:44.694Z"
+      },
+      {
+        "test": "数据库连接检查",
+        "success": false,
+        "message": "数据库连接检查失败: Request timeout",
+        "timestamp": "2025-08-22T16:35:54.702Z"
+      },
+      {
+        "test": "环境变量配置检查",
+        "success": false,
+        "message": "环境变量检查失败: Request timeout",
+        "timestamp": "2025-08-22T16:36:04.710Z"
+      }
+    ],
+    "endToEnd": [
+      {
+        "test": "用户注册",
+        "success": false,
+        "message": "注册请求失败: Request timeout",
+        "timestamp": "2025-08-22T16:36:14.819Z"
+      },
+      {
+        "test": "用户登录",
+        "success": false,
+        "message": "登录请求失败: Request timeout",
+        "timestamp": "2025-08-22T16:36:24.869Z"
+      },
+      {
+        "test": "认证API访问",
+        "success": false,
+        "message": "无法获取认证令牌，跳过认证API测试",
+        "timestamp": "2025-08-22T16:36:24.873Z"
+      }
+    ],
+    "performance": [
+      {
+        "test": "前端加载性能",
+        "success": true,
+        "message": "平均加载时间: 324.43ms",
+        "timestamp": "2025-08-22T16:36:25.853Z",
+        "averageTime": 324.4285000016292,
+        "tests": [
+          473.46879199147224,
+          309.8894160091877,
+          189.92729200422764
+        ]
+      },
+      {
+        "test": "API响应性能",
+        "success": false,
+        "message": "无法测试API响应性能",
+        "timestamp": "2025-08-22T16:37:16.594Z"
+      }
+    ],
+    "security": [
+      {
+        "test": "前端HTTPS检查",
+        "success": true,
+        "message": "前端使用HTTPS",
+        "timestamp": "2025-08-22T16:37:16.632Z"
+      },
+      {
+        "test": "后端HTTPS检查",
+        "success": true,
+        "message": "后端使用HTTPS",
+        "timestamp": "2025-08-22T16:37:16.632Z"
+      },
+      {
+        "test": "安全头部检查",
+        "success": false,
+        "message": "安全头部检查失败: Request timeout",
+        "timestamp": "2025-08-22T16:37:26.699Z"
+      },
+      {
+        "test": "未授权访问保护",
+        "success": false,
+        "message": "未授权访问测试失败: Request timeout",
+        "timestamp": "2025-08-22T16:37:36.764Z"
+      }
+    ]
+  }
+}

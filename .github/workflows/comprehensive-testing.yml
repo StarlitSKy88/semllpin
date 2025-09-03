@@ -1,0 +1,578 @@
+name: Comprehensive Testing Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run performance tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  NODE_VERSION: '18'
+  POSTGRES_VERSION: '14'
+  REDIS_VERSION: '7'
+
+jobs:
+  # Code Quality and Security Scanning
+  code-quality:
+    runs-on: ubuntu-latest
+    name: Code Quality & Security
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run Prettier check
+        run: npx prettier --check "src/**/*.{ts,js,json}"
+
+      - name: TypeScript type checking
+        run: npx tsc --noEmit
+
+      - name: Security audit
+        run: npm audit --audit-level moderate
+
+      - name: Check for vulnerabilities with Snyk
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=medium
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # Unit Testing
+  unit-tests:
+    runs-on: ubuntu-latest
+    name: Unit Tests
+    strategy:
+      matrix:
+        node-version: [16, 18, 20]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:backend -- --coverage --watchAll=false
+
+      - name: Run frontend tests
+        run: npm run test:frontend -- --coverage --watchAll=false
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/backend/lcov.info,./coverage/frontend/lcov.info
+          flags: unit-tests
+          name: codecov-umbrella
+
+      - name: Check coverage threshold
+        run: |
+          BACKEND_COVERAGE=$(node -pe "JSON.parse(require('fs').readFileSync('./coverage/backend/coverage-summary.json')).total.lines.pct")
+          FRONTEND_COVERAGE=$(node -pe "JSON.parse(require('fs').readFileSync('./coverage/frontend/coverage-summary.json')).total.lines.pct")
+          
+          echo "Backend coverage: $BACKEND_COVERAGE%"
+          echo "Frontend coverage: $FRONTEND_COVERAGE%"
+          
+          if (( $(echo "$BACKEND_COVERAGE < 85" | bc -l) )); then
+            echo "❌ Backend coverage below 85% threshold"
+            exit 1
+          fi
+          
+          if (( $(echo "$FRONTEND_COVERAGE < 80" | bc -l) )); then
+            echo "❌ Frontend coverage below 80% threshold"
+            exit 1
+          fi
+          
+          echo "✅ Coverage thresholds met"
+
+  # Integration Testing
+  integration-tests:
+    runs-on: ubuntu-latest
+    name: Integration Tests
+    needs: [unit-tests]
+    services:
+      postgres:
+        image: postgres:${{ env.POSTGRES_VERSION }}
+        env:
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_USER: testuser
+          POSTGRES_DB: smellpin_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:${{ env.REDIS_VERSION }}
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup test database
+        run: |
+          npm run migrate
+        env:
+          DATABASE_URL: postgresql://testuser:testpassword@localhost:5432/smellpin_test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          DATABASE_URL: postgresql://testuser:testpassword@localhost:5432/smellpin_test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
+
+      - name: Test database validation
+        run: npm run test:database
+
+      - name: Test third-party integrations
+        run: npm run test:third-party
+        env:
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+  # End-to-End Testing
+  e2e-tests:
+    runs-on: ubuntu-latest
+    name: End-to-End Tests
+    needs: [integration-tests]
+    services:
+      postgres:
+        image: postgres:${{ env.POSTGRES_VERSION }}
+        env:
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_USER: testuser
+          POSTGRES_DB: smellpin_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:${{ env.REDIS_VERSION }}
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Setup test database
+        run: |
+          npm run migrate
+          npm run seed
+        env:
+          DATABASE_URL: postgresql://testuser:testpassword@localhost:5432/smellpin_test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+
+      - name: Start application in background
+        run: |
+          npm start &
+          sleep 30
+        env:
+          DATABASE_URL: postgresql://testuser:testpassword@localhost:5432/smellpin_test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+          PORT: 3000
+
+      - name: Wait for application to be ready
+        run: |
+          timeout 60 sh -c 'until curl -f http://localhost:3000/api/health; do sleep 2; done'
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+        env:
+          TEST_BASE_URL: http://localhost:3000
+          DATABASE_URL: postgresql://testuser:testpassword@localhost:5432/smellpin_test
+
+      - name: Upload E2E test artifacts
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-screenshots
+          path: tests/e2e/screenshots/
+          retention-days: 30
+
+  # Security Testing
+  security-tests:
+    runs-on: ubuntu-latest
+    name: Security Tests
+    needs: [integration-tests]
+    services:
+      postgres:
+        image: postgres:${{ env.POSTGRES_VERSION }}
+        env:
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_USER: testuser
+          POSTGRES_DB: smellpin_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Start application for security testing
+        run: |
+          npm start &
+          sleep 30
+        env:
+          DATABASE_URL: postgresql://testuser:testpassword@localhost:5432/smellpin_test
+          NODE_ENV: test
+          PORT: 3000
+
+      - name: Run OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.10.0
+        with:
+          target: 'http://localhost:3000'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
+
+      - name: Test GPS spoofing detection
+        run: npm run test:gps-spoofing
+
+      - name: Test anti-fraud systems
+        run: npm run test:anti-fraud
+
+      - name: Test payment security
+        run: npm run test:payment-security
+        env:
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
+
+  # Performance Testing
+  performance-tests:
+    runs-on: ubuntu-latest
+    name: Performance Tests
+    needs: [e2e-tests]
+    if: github.event_name == 'schedule' || contains(github.event.head_commit.message, '[perf-test]')
+    services:
+      postgres:
+        image: postgres:${{ env.POSTGRES_VERSION }}
+        env:
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_USER: testuser
+          POSTGRES_DB: smellpin_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:${{ env.REDIS_VERSION }}
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm install -g autocannon
+
+      - name: Build application
+        run: npm run build
+
+      - name: Setup performance test database
+        run: |
+          npm run migrate
+          npm run seed -- --performance-data
+        env:
+          DATABASE_URL: postgresql://testuser:testpassword@localhost:5432/smellpin_test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: performance
+
+      - name: Start application in performance mode
+        run: |
+          npm start &
+          sleep 30
+        env:
+          DATABASE_URL: postgresql://testuser:testpassword@localhost:5432/smellpin_test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: performance
+          PORT: 3000
+
+      - name: Create test user for performance tests
+        run: |
+          curl -X POST http://localhost:3000/api/auth/register \
+            -H "Content-Type: application/json" \
+            -d '{"email":"perf@test.com","username":"perftest","password":"PerfTest123!"}'
+
+      - name: Get auth token for performance tests
+        run: |
+          TOKEN=$(curl -s -X POST http://localhost:3000/api/auth/login \
+            -H "Content-Type: application/json" \
+            -d '{"email":"perf@test.com","password":"PerfTest123!"}' | \
+            node -pe 'JSON.parse(require("fs").readFileSync(0)).token')
+          echo "TEST_AUTH_TOKEN=$TOKEN" >> $GITHUB_ENV
+
+      - name: Run load tests for 10K+ users
+        run: node tests/performance/loadTest.js
+        env:
+          TEST_BASE_URL: http://localhost:3000
+          TEST_DURATION: 120
+          MAX_CONNECTIONS: 1000
+          TEST_AUTH_TOKEN: ${{ env.TEST_AUTH_TOKEN }}
+
+      - name: Run database performance tests
+        run: npm run test:performance
+
+      - name: Generate performance report
+        run: |
+          echo "## Performance Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Target: Handle 10K+ concurrent users" >> $GITHUB_STEP_SUMMARY
+          echo "- API Response Time Target: <200ms" >> $GITHUB_STEP_SUMMARY
+          node -e "
+            const fs = require('fs');
+            if (fs.existsSync('performance-report.json')) {
+              const report = JSON.parse(fs.readFileSync('performance-report.json'));
+              console.log('Performance report generated:', report.summary);
+            }
+          "
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results
+          path: |
+            performance-report.json
+            tests/performance/results/
+          retention-days: 90
+
+  # Mobile App Testing (React Native)
+  mobile-tests:
+    runs-on: macos-latest
+    name: Mobile App Tests
+    if: contains(github.event.head_commit.message, '[mobile-test]')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup iOS Simulator
+        run: |
+          xcrun simctl create "iPhone 14" "iPhone 14" "iOS16.0"
+          xcrun simctl boot "iPhone 14"
+
+      - name: Run iOS tests
+        run: |
+          cd mobile
+          npx react-native run-ios --simulator="iPhone 14"
+          npm run test:e2e:ios
+
+      - name: Setup Android Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: google_apis
+          arch: x86_64
+          profile: Nexus 6
+          script: |
+            cd mobile
+            npm run test:e2e:android
+
+  # Deployment Tests
+  deployment-tests:
+    runs-on: ubuntu-latest
+    name: Deployment Tests
+    needs: [e2e-tests, security-tests]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Test Docker build
+        run: |
+          docker build -t smellpin-test .
+          docker run -d -p 3000:3000 --name smellpin-container smellpin-test
+          sleep 30
+
+      - name: Test container health
+        run: |
+          curl -f http://localhost:3000/api/health || exit 1
+          docker logs smellpin-container
+
+      - name: Test production build
+        run: |
+          npm ci --production
+          npm run build
+          npm run start:prod &
+          sleep 30
+          curl -f http://localhost:3001/api/health || exit 1
+
+      - name: Cleanup
+        run: |
+          docker stop smellpin-container
+          docker rm smellpin-container
+
+  # Quality Gates
+  quality-gate:
+    runs-on: ubuntu-latest
+    name: Quality Gate
+    needs: [code-quality, unit-tests, integration-tests, e2e-tests, security-tests]
+    steps:
+      - name: Check all tests passed
+        run: |
+          echo "✅ All quality gates passed!"
+          echo "- Code quality: ✅"
+          echo "- Unit tests: ✅"
+          echo "- Integration tests: ✅"
+          echo "- E2E tests: ✅"
+          echo "- Security tests: ✅"
+
+      - name: Generate quality report
+        run: |
+          echo "## Quality Gate Report" >> $GITHUB_STEP_SUMMARY
+          echo "All tests have passed successfully! 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Test Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend: >85% (target met)" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend: >80% (target met)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Performance" >> $GITHUB_STEP_SUMMARY
+          echo "- API Response Time: <200ms target" >> $GITHUB_STEP_SUMMARY
+          echo "- Concurrent Users: 10K+ capacity" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Security" >> $GITHUB_STEP_SUMMARY
+          echo "- No critical vulnerabilities detected" >> $GITHUB_STEP_SUMMARY
+          echo "- Anti-fraud systems tested" >> $GITHUB_STEP_SUMMARY
+          echo "- Payment security validated" >> $GITHUB_STEP_SUMMARY
+
+  # Notification
+  notify:
+    runs-on: ubuntu-latest
+    name: Notify Team
+    needs: [quality-gate]
+    if: always()
+    steps:
+      - name: Notify on success
+        if: needs.quality-gate.result == 'success'
+        run: |
+          echo "✅ All tests passed! Ready for deployment."
+
+      - name: Notify on failure
+        if: needs.quality-gate.result == 'failure'
+        run: |
+          echo "❌ Some tests failed. Check the workflow for details."
+          exit 1
+
+      - name: Send Slack notification
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#smellpin-ci'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

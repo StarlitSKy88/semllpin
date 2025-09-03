@@ -1,0 +1,369 @@
+/* ==========================================================================
+   东方设计美学布局系统 (Eastern Design Aesthetics Layout System)
+   基于传统东方设计原则的现代化布局系统
+   ========================================================================== */
+
+/* ==========================================================================
+   核心设计原则 (Core Design Principles)
+   ========================================================================== */
+
+/* 黄金比例间距系统 (Golden Ratio Spacing System) */
+:root {
+  /* 基于黄金比例 (1.618) 的间距系统 */
+  --eastern-space-xs: 0.382rem;    /* 6px - 黄金比例的倒数 */
+  --eastern-space-sm: 0.618rem;    /* 10px - 黄金比例的小数部分 */
+  --eastern-space-md: 1rem;        /* 16px - 基准单位 */
+  --eastern-space-lg: 1.618rem;    /* 26px - 黄金比例 */
+  --eastern-space-xl: 2.618rem;    /* 42px - 黄金比例 + 1 */
+  --eastern-space-2xl: 4.236rem;   /* 68px - 黄金比例 * 2.618 */
+  --eastern-space-3xl: 6.854rem;   /* 110px - 黄金比例 * 4.236 */
+  --eastern-space-4xl: 11.09rem;   /* 177px - 黄金比例 * 6.854 */
+  --eastern-space-5xl: 17.944rem;  /* 287px - 黄金比例 * 11.09 */
+  
+  /* 垂直节奏系统 (Vertical Rhythm System) */
+  --eastern-rhythm-base: 1.5rem;   /* 24px - 基础行高 */
+  --eastern-rhythm-sm: 1.125rem;   /* 18px - 小节奏 */
+  --eastern-rhythm-lg: 2.25rem;    /* 36px - 大节奏 */
+  --eastern-rhythm-xl: 3rem;       /* 48px - 超大节奏 */
+  
+  /* 容器最大宽度系统 (Container Max Width System) */
+  --eastern-container-sm: 36rem;   /* 576px */
+  --eastern-container-md: 48rem;   /* 768px */
+  --eastern-container-lg: 64rem;   /* 1024px */
+  --eastern-container-xl: 80rem;   /* 1280px */
+  --eastern-container-2xl: 96rem;  /* 1536px */
+  
+  /* 留白比例系统 (Whitespace Ratio System) */
+  --eastern-whitespace-ratio-sm: 0.618;  /* 小留白比例 */
+  --eastern-whitespace-ratio-md: 1;      /* 标准留白比例 */
+  --eastern-whitespace-ratio-lg: 1.618;  /* 大留白比例 */
+  --eastern-whitespace-ratio-xl: 2.618;  /* 超大留白比例 */
+}
+
+/* ==========================================================================
+   东方布局组件类 (Eastern Layout Component Classes)
+   ========================================================================== */
+
+/* 主容器 (Main Container) */
+.eastern-container {
+  max-width: var(--eastern-container-xl);
+  margin: 0 auto;
+  padding-left: var(--eastern-space-lg);
+  padding-right: var(--eastern-space-lg);
+}
+
+.eastern-container-sm {
+  max-width: var(--eastern-container-sm);
+}
+
+.eastern-container-md {
+  max-width: var(--eastern-container-md);
+}
+
+.eastern-container-lg {
+  max-width: var(--eastern-container-lg);
+}
+
+.eastern-container-2xl {
+  max-width: var(--eastern-container-2xl);
+}
+
+/* 垂直间距系统 (Vertical Spacing System) */
+.eastern-section {
+  padding-top: var(--eastern-space-4xl);
+  padding-bottom: var(--eastern-space-4xl);
+}
+
+.eastern-section-sm {
+  padding-top: var(--eastern-space-2xl);
+  padding-bottom: var(--eastern-space-2xl);
+}
+
+.eastern-section-lg {
+  padding-top: var(--eastern-space-5xl);
+  padding-bottom: var(--eastern-space-5xl);
+}
+
+/* 内容区块间距 (Content Block Spacing) */
+.eastern-content-block {
+  margin-bottom: var(--eastern-space-3xl);
+}
+
+.eastern-content-block:last-child {
+  margin-bottom: 0;
+}
+
+.eastern-content-block-sm {
+  margin-bottom: var(--eastern-space-2xl);
+}
+
+.eastern-content-block-lg {
+  margin-bottom: var(--eastern-space-4xl);
+}
+
+/* 标题间距系统 (Heading Spacing System) */
+.eastern-heading {
+  margin-bottom: var(--eastern-space-lg);
+  line-height: var(--eastern-rhythm-base);
+}
+
+.eastern-heading-lg {
+  margin-bottom: var(--eastern-space-xl);
+  line-height: var(--eastern-rhythm-lg);
+}
+
+.eastern-heading-xl {
+  margin-bottom: var(--eastern-space-2xl);
+  line-height: var(--eastern-rhythm-xl);
+}
+
+/* 段落间距系统 (Paragraph Spacing System) */
+.eastern-paragraph {
+  margin-bottom: var(--eastern-space-md);
+  line-height: var(--eastern-rhythm-base);
+}
+
+.eastern-paragraph-lg {
+  margin-bottom: var(--eastern-space-lg);
+  line-height: var(--eastern-rhythm-lg);
+}
+
+/* 网格系统 (Grid System) */
+.eastern-grid {
+  display: grid;
+  gap: var(--eastern-space-xl);
+}
+
+.eastern-grid-sm {
+  gap: var(--eastern-space-lg);
+}
+
+.eastern-grid-lg {
+  gap: var(--eastern-space-2xl);
+}
+
+.eastern-grid-xl {
+  gap: var(--eastern-space-3xl);
+}
+
+/* 卡片间距系统 (Card Spacing System) */
+.eastern-card {
+  padding: var(--eastern-space-xl);
+  margin-bottom: var(--eastern-space-lg);
+}
+
+.eastern-card-sm {
+  padding: var(--eastern-space-lg);
+  margin-bottom: var(--eastern-space-md);
+}
+
+.eastern-card-lg {
+  padding: var(--eastern-space-2xl);
+  margin-bottom: var(--eastern-space-xl);
+}
+
+.eastern-card-xl {
+  padding: var(--eastern-space-3xl);
+  margin-bottom: var(--eastern-space-2xl);
+}
+
+/* 按钮间距系统 (Button Spacing System) */
+.eastern-button-group {
+  display: flex;
+  gap: var(--eastern-space-lg);
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+.eastern-button-group-sm {
+  gap: var(--eastern-space-md);
+}
+
+.eastern-button-group-lg {
+  gap: var(--eastern-space-xl);
+}
+
+/* 统计数据网格 (Statistics Grid) */
+.eastern-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--eastern-space-xl);
+  margin-top: var(--eastern-space-2xl);
+}
+
+/* 功能特性网格 (Features Grid) */
+.eastern-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--eastern-space-2xl);
+  margin-top: var(--eastern-space-3xl);
+}
+
+/* 英雄区域 (Hero Section) */
+.eastern-hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--eastern-space-4xl) var(--eastern-space-lg);
+}
+
+.eastern-hero-content {
+  max-width: var(--eastern-container-lg);
+  margin: 0 auto;
+}
+
+.eastern-hero-title {
+  margin-bottom: var(--eastern-space-2xl);
+  line-height: 1.1;
+}
+
+.eastern-hero-subtitle {
+  margin-bottom: var(--eastern-space-3xl);
+  line-height: var(--eastern-rhythm-lg);
+}
+
+.eastern-hero-actions {
+  margin-top: var(--eastern-space-2xl);
+}
+
+/* 响应式调整 (Responsive Adjustments) */
+@media (max-width: 768px) {
+  .eastern-container {
+    padding-left: var(--eastern-space-md);
+    padding-right: var(--eastern-space-md);
+  }
+  
+  .eastern-section {
+    padding-top: var(--eastern-space-3xl);
+    padding-bottom: var(--eastern-space-3xl);
+  }
+  
+  .eastern-section-lg {
+    padding-top: var(--eastern-space-4xl);
+    padding-bottom: var(--eastern-space-4xl);
+  }
+  
+  .eastern-grid {
+    gap: var(--eastern-space-lg);
+  }
+  
+  .eastern-grid-lg {
+    gap: var(--eastern-space-xl);
+  }
+  
+  .eastern-stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--eastern-space-lg);
+  }
+  
+  .eastern-features-grid {
+    grid-template-columns: 1fr;
+    gap: var(--eastern-space-xl);
+  }
+  
+  .eastern-button-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .eastern-hero {
+    padding: var(--eastern-space-3xl) var(--eastern-space-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .eastern-container {
+    padding-left: var(--eastern-space-sm);
+    padding-right: var(--eastern-space-sm);
+  }
+  
+  .eastern-section {
+    padding-top: var(--eastern-space-2xl);
+    padding-bottom: var(--eastern-space-2xl);
+  }
+  
+  .eastern-card {
+    padding: var(--eastern-space-lg);
+  }
+  
+  .eastern-card-lg {
+    padding: var(--eastern-space-xl);
+  }
+  
+  .eastern-hero {
+    padding: var(--eastern-space-2xl) var(--eastern-space-sm);
+  }
+}
+
+/* ==========================================================================
+   东方设计美学工具类 (Eastern Design Aesthetics Utility Classes)
+   ========================================================================== */
+
+/* 留白工具类 (Whitespace Utilities) */
+.eastern-whitespace-sm { margin: calc(var(--eastern-space-md) * var(--eastern-whitespace-ratio-sm)); }
+.eastern-whitespace-md { margin: calc(var(--eastern-space-md) * var(--eastern-whitespace-ratio-md)); }
+.eastern-whitespace-lg { margin: calc(var(--eastern-space-md) * var(--eastern-whitespace-ratio-lg)); }
+.eastern-whitespace-xl { margin: calc(var(--eastern-space-md) * var(--eastern-whitespace-ratio-xl)); }
+
+/* 垂直节奏工具类 (Vertical Rhythm Utilities) */
+.eastern-rhythm-sm { line-height: var(--eastern-rhythm-sm); }
+.eastern-rhythm-base { line-height: var(--eastern-rhythm-base); }
+.eastern-rhythm-lg { line-height: var(--eastern-rhythm-lg); }
+.eastern-rhythm-xl { line-height: var(--eastern-rhythm-xl); }
+
+/* 对称布局工具类 (Symmetrical Layout Utilities) */
+.eastern-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eastern-center-vertical {
+  display: flex;
+  align-items: center;
+}
+
+.eastern-center-horizontal {
+  display: flex;
+  justify-content: center;
+}
+
+/* 平衡布局工具类 (Balanced Layout Utilities) */
+.eastern-balance {
+  display: grid;
+  place-items: center;
+}
+
+.eastern-balance-content {
+  max-width: 65ch; /* 最佳阅读宽度 */
+  margin: 0 auto;
+}
+
+/* 精致间距工具类 (Refined Spacing Utilities) */
+.eastern-refined-spacing > * + * {
+  margin-top: var(--eastern-space-lg);
+}
+
+.eastern-refined-spacing-sm > * + * {
+  margin-top: var(--eastern-space-md);
+}
+
+.eastern-refined-spacing-lg > * + * {
+  margin-top: var(--eastern-space-xl);
+}
+
+/* 优雅过渡工具类 (Elegant Transition Utilities) */
+.eastern-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.eastern-transition-slow {
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.eastern-transition-fast {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}

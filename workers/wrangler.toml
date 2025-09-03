@@ -1,0 +1,202 @@
+# SmellPin Cloudflare Workers Configuration
+# Production-ready configuration for scalable API deployment
+
+name = "smellpin-api"
+main = "src/index.ts"
+compatibility_date = "2024-09-01"
+compatibility_flags = ["nodejs_compat"]
+minify = true
+node_compat = true
+
+# Global Variables
+[vars]
+NODE_ENV = "development"
+API_VERSION = "v1"
+CORS_ORIGINS = ["http://localhost:3000", "https://smellpin.com"]
+RATE_LIMIT_WINDOW = "900" # 15 minutes
+RATE_LIMIT_MAX_REQUESTS = "1000"
+
+# ==================== DEVELOPMENT ENVIRONMENT ====================
+[env.development]
+name = "smellpin-api-dev"
+routes = [
+  { pattern = "api-dev.smellpin.com/*", zone_name = "smellpin.com" }
+]
+
+[env.development.vars]
+NODE_ENV = "development"
+DATABASE_MAX_CONNECTIONS = "10"
+LOG_LEVEL = "debug"
+ENABLE_ANALYTICS = "false"
+CACHE_TTL = "300" # 5 minutes
+CORS_ORIGINS = ["http://localhost:3000", "https://dev.smellpin.com"]
+
+# Development KV Namespaces
+[[env.development.kv_namespaces]]
+binding = "CACHE"
+id = "your_dev_cache_namespace_id"
+preview_id = "your_dev_cache_preview_id"
+
+[[env.development.kv_namespaces]]
+binding = "SESSIONS"
+id = "your_dev_sessions_namespace_id" 
+preview_id = "your_dev_sessions_preview_id"
+
+[[env.development.kv_namespaces]]
+binding = "RATE_LIMITS"
+id = "your_dev_rate_limits_namespace_id"
+preview_id = "your_dev_rate_limits_preview_id"
+
+# Development D1 Databases
+[[env.development.d1_databases]]
+binding = "DB"
+database_name = "smellpin-dev"
+database_id = "your_dev_database_id"
+
+# Development R2 Buckets
+[[env.development.r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "smellpin-media-dev"
+
+# ==================== STAGING ENVIRONMENT ====================
+[env.staging]
+name = "smellpin-api-staging"
+routes = [
+  { pattern = "api-staging.smellpin.com/*", zone_name = "smellpin.com" }
+]
+
+[env.staging.vars]
+NODE_ENV = "staging"
+DATABASE_MAX_CONNECTIONS = "20"
+LOG_LEVEL = "info"
+ENABLE_ANALYTICS = "true"
+CACHE_TTL = "600" # 10 minutes
+CORS_ORIGINS = ["https://staging.smellpin.com"]
+
+# Staging KV Namespaces
+[[env.staging.kv_namespaces]]
+binding = "CACHE"
+id = "your_staging_cache_namespace_id"
+
+[[env.staging.kv_namespaces]]
+binding = "SESSIONS"
+id = "your_staging_sessions_namespace_id"
+
+[[env.staging.kv_namespaces]]
+binding = "RATE_LIMITS"
+id = "your_staging_rate_limits_namespace_id"
+
+# Staging D1 Databases
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "smellpin-staging"
+database_id = "your_staging_database_id"
+
+# Staging R2 Buckets
+[[env.staging.r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "smellpin-media-staging"
+
+# ==================== PRODUCTION ENVIRONMENT ====================
+[env.production]
+name = "smellpin-api"
+routes = [
+  { pattern = "api.smellpin.com/*", zone_name = "smellpin.com" }
+]
+
+[env.production.vars]
+NODE_ENV = "production"
+DATABASE_MAX_CONNECTIONS = "50"
+LOG_LEVEL = "warn"
+ENABLE_ANALYTICS = "true"
+CACHE_TTL = "1800" # 30 minutes
+CORS_ORIGINS = ["https://smellpin.com", "https://www.smellpin.com"]
+
+# Production KV Namespaces
+[[env.production.kv_namespaces]]
+binding = "CACHE"
+id = "your_prod_cache_namespace_id"
+
+[[env.production.kv_namespaces]]
+binding = "SESSIONS"
+id = "your_prod_sessions_namespace_id"
+
+[[env.production.kv_namespaces]]
+binding = "RATE_LIMITS"
+id = "your_prod_rate_limits_namespace_id"
+
+# Production D1 Databases
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "smellpin-production"
+database_id = "your_prod_database_id"
+
+# Production R2 Buckets
+[[env.production.r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "smellpin-media-production"
+
+# ==================== DURABLE OBJECTS ====================
+[[durable_objects.bindings]]
+name = "LOCATION_TRACKER"
+class_name = "LocationTracker"
+script_name = "smellpin-api"
+
+[[durable_objects.bindings]]
+name = "REWARD_MANAGER"
+class_name = "RewardManager"
+script_name = "smellpin-api"
+
+[[durable_objects.bindings]]
+name = "GEOFENCE_MONITOR"
+class_name = "GeofenceMonitor" 
+script_name = "smellpin-api"
+
+# ==================== ANALYTICS ====================
+[analytics_engine_datasets]
+[[analytics_engine_datasets]]
+binding = "API_ANALYTICS"
+
+# ==================== SECRETS MANAGEMENT ====================
+# Production secrets (set via: wrangler secret put SECRET_NAME --env production)
+# - DATABASE_URL: Neon PostgreSQL connection string
+# - JWT_SECRET: JWT signing secret (min 32 characters)
+# - REFRESH_TOKEN_SECRET: Refresh token signing secret
+# - PAYPAL_CLIENT_ID: PayPal API client ID
+# - PAYPAL_CLIENT_SECRET: PayPal API client secret
+# - STRIPE_SECRET_KEY: Stripe API secret key
+# - STRIPE_WEBHOOK_SECRET: Stripe webhook endpoint secret
+# - MAPBOX_ACCESS_TOKEN: Mapbox API access token for advanced map features
+# - OSM_TILE_SERVER_API_KEY: Custom OSM tile server API key (if using paid service)
+# - AMAP_KEY: 高德地图 API Key (China region backup)
+# - BAIDU_MAP_AK: 百度地图 API Key (China region backup)
+# - REDIS_URL: Redis connection string for caching
+# - SENTRY_DSN: Sentry error tracking DSN
+# - ENCRYPTION_KEY: Data encryption key (32 bytes hex)
+
+# Development secrets (set via: wrangler secret put SECRET_NAME --env development)
+# Same as production but with development values
+
+# Staging secrets (set via: wrangler secret put SECRET_NAME --env staging)
+# Same as production but with staging values
+
+# ==================== RESOURCE LIMITS ====================
+[limits]
+cpu_ms = 30000 # 30 seconds max CPU time
+
+# ==================== CRON TRIGGERS ====================
+[[triggers.crons]]
+cron = "0 */5 * * * *" # Every 5 minutes
+name = "cleanup-expired-sessions"
+
+[[triggers.crons]]
+cron = "0 0 * * * *" # Every hour
+name = "process-reward-distribution"
+
+[[triggers.crons]]
+cron = "0 0 3 * * *" # Every day at 3 AM
+name = "database-maintenance"
+
+# ==================== TAIL WORKERS ====================
+[[tail_consumers]]
+service = "smellpin-logger"

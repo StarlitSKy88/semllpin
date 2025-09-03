@@ -1,0 +1,148 @@
+{
+  "testSummary": {
+    "title": "SmellPin 核心业务功能深度测试",
+    "timestamp": "2025-09-02T04:15:00Z",
+    "version": "1.0.0",
+    "environment": "localhost:3004"
+  },
+  "overallResults": {
+    "totalTests": 13,
+    "passed": 3,
+    "failed": 10,
+    "passRate": "23%",
+    "overallStatus": "NEEDS_URGENT_FIXES"
+  },
+  "coreFeatures": {
+    "authentication": {
+      "status": "✅ WORKING",
+      "score": 95,
+      "details": "用户注册、登录、JWT认证正常"
+    },
+    "annotationCreation": {
+      "status": "❌ BROKEN", 
+      "score": 30,
+      "details": "数据库schema问题，location_point字段缺失"
+    },
+    "annotationQueries": {
+      "status": "🔶 PARTIAL",
+      "score": 60, 
+      "details": "地理查询正常，列表查询SQL错误"
+    },
+    "lbsRewards": {
+      "status": "❌ NOT_IMPLEMENTED",
+      "score": 10,
+      "details": "API路由未注册，功能未实现"
+    },
+    "paymentSystem": {
+      "status": "❌ BROKEN",
+      "score": 40,
+      "details": "支付超时，钱包API缺失"
+    },
+    "performance": {
+      "status": "🔶 ACCEPTABLE",
+      "score": 70,
+      "details": "响应时间良好(228ms)，并发成功率60%"
+    }
+  },
+  "criticalIssues": [
+    {
+      "severity": "CRITICAL",
+      "issue": "PostGIS location_point字段缺失",
+      "impact": "无法创建标注，核心功能不可用",
+      "sqlError": "column \"location_point\" does not exist"
+    },
+    {
+      "severity": "HIGH", 
+      "issue": "SQL GROUP BY语法错误",
+      "impact": "标注列表查询失败",
+      "sqlError": "check_ungrouped_columns_walker"
+    },
+    {
+      "severity": "HIGH",
+      "issue": "LBS奖励系统未实现",
+      "impact": "缺少用户激励机制",
+      "errorCode": "404 - Route not found"
+    },
+    {
+      "severity": "MEDIUM",
+      "issue": "支付系统超时",
+      "impact": "付费功能不可用",
+      "timeout": "15000ms exceeded"
+    }
+  ],
+  "databaseAnalysis": {
+    "connectionStatus": "UNSTABLE",
+    "errors": [
+      "Connection ended unexpectedly",
+      "PostgreSQL error 42703 - column does not exist", 
+      "PostgreSQL error 42803 - GROUP BY violation"
+    ],
+    "postgisStatus": "DESIGN_OK_IMPLEMENTATION_BROKEN",
+    "spatialQueries": "Code logic correct, database schema missing"
+  },
+  "performanceMetrics": {
+    "averageResponseTime": "228ms",
+    "concurrentRequestsSuccess": "60% (3/5)",
+    "apiAvailability": "70%",
+    "databaseStability": "60%"
+  },
+  "businessImpact": {
+    "userAcquisition": "✅ 正常 - 注册系统工作",
+    "coreUserExperience": "❌ 严重 - 无法创建标注", 
+    "userRetention": "❌ 风险 - 缺少奖励机制",
+    "monetization": "❌ 阻塞 - 支付功能异常"
+  },
+  "immediateActions": [
+    {
+      "priority": "P0",
+      "action": "修复PostGIS字段缺失",
+      "sql": "ALTER TABLE annotations ADD COLUMN location_point GEOMETRY(POINT, 4326);",
+      "timeline": "1-2天"
+    },
+    {
+      "priority": "P0", 
+      "action": "修复SQL GROUP BY错误",
+      "focus": "annotations列表查询",
+      "timeline": "1天"
+    },
+    {
+      "priority": "P1",
+      "action": "实现LBS奖励API路由",
+      "scope": "/lbs/* endpoints",
+      "timeline": "3-5天"
+    },
+    {
+      "priority": "P1",
+      "action": "修复支付系统超时",
+      "focus": "Stripe集成和钱包API",
+      "timeline": "5-7天"
+    }
+  ],
+  "testingRecommendations": [
+    "在修复后重新运行完整测试套件",
+    "添加数据库schema一致性测试",
+    "实施自动化回归测试",
+    "进行支付系统安全测试",
+    "性能压力测试(修复后)"
+  ],
+  "technicalDebt": {
+    "level": "MEDIUM",
+    "areas": [
+      "数据库连接池优化",
+      "错误处理标准化", 
+      "API文档完善",
+      "监控告警系统",
+      "缓存策略优化"
+    ]
+  },
+  "nextSteps": {
+    "immediate": "修复关键数据库问题",
+    "shortTerm": "完善核心功能实现",
+    "longTerm": "性能优化和监控完善"
+  },
+  "fileLocations": {
+    "detailedReport": "/Users/xiaoyang/Downloads/臭味/smellpin-comprehensive-test-analysis.md",
+    "testResults": "/Users/xiaoyang/Downloads/臭味/focused-api-test-report.json",
+    "testScript": "/Users/xiaoyang/Downloads/臭味/focused-api-test.js"
+  }
+}

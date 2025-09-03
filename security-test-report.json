@@ -1,0 +1,217 @@
+{
+  "vulnerabilities": [
+    {
+      "type": "AUTH",
+      "title": "JWT密钥强度不足",
+      "description": "JWT密钥长度为24字符，建议至少32字符",
+      "riskLevel": {
+        "level": "HIGH",
+        "color": "magenta",
+        "score": 8
+      },
+      "evidence": {
+        "jwtSecretLength": 24
+      },
+      "recommendation": "使用至少32字符的强随机密钥，包含大小写字母、数字和特殊字符",
+      "timestamp": "2025-09-02T07:34:09.096Z",
+      "testId": "95841225-8529-4eec-83af-ea4b747de4cd"
+    },
+    {
+      "type": "TRANSMISSION",
+      "title": "HTTP协议安全风险",
+      "description": "应用使用HTTP协议传输数据，存在中间人攻击风险",
+      "riskLevel": {
+        "level": "HIGH",
+        "color": "magenta",
+        "score": 8
+      },
+      "evidence": {
+        "currentProtocol": "HTTP"
+      },
+      "recommendation": "在生产环境中强制使用HTTPS，配置SSL/TLS证书",
+      "timestamp": "2025-09-02T07:34:09.216Z",
+      "testId": "c47c79e4-ca3d-4022-a789-fabf726a112b"
+    },
+    {
+      "type": "API",
+      "title": "速率限制缺失",
+      "description": "API端点未实施速率限制，可能遭受暴力攻击",
+      "riskLevel": {
+        "level": "MEDIUM",
+        "color": "yellow",
+        "score": 5
+      },
+      "evidence": {
+        "testEndpoint": "/api/annotations/search?q=test",
+        "totalRequests": 50,
+        "rateLimitedRequests": 0
+      },
+      "recommendation": "为所有API端点实施适当的速率限制",
+      "timestamp": "2025-09-02T07:34:09.479Z",
+      "testId": "9f589e5d-e278-4c0b-a18b-570af52cfac3"
+    }
+  ],
+  "warnings": [],
+  "passed": [
+    {
+      "type": "AUTH",
+      "title": "无法测试会话管理 - 用户注册失败",
+      "description": "",
+      "riskLevel": {
+        "level": "INFO",
+        "color": "cyan",
+        "score": 1
+      },
+      "evidence": null,
+      "recommendation": null,
+      "timestamp": "2025-09-02T07:34:09.216Z",
+      "testId": "40864167-8ca8-4aba-b2bb-5be3530fa474"
+    },
+    {
+      "type": "TRANSMISSION",
+      "title": "无法检查安全头 - 服务器不可达",
+      "description": "",
+      "riskLevel": {
+        "level": "INFO",
+        "color": "cyan",
+        "score": 1
+      },
+      "evidence": null,
+      "recommendation": null,
+      "timestamp": "2025-09-02T07:34:09.220Z",
+      "testId": "77dff384-6c62-4eb4-a5ad-5f3f7d5ea3a2"
+    },
+    {
+      "type": "PRIVACY",
+      "title": "无法测试密码存储安全性",
+      "description": "",
+      "riskLevel": {
+        "level": "INFO",
+        "color": "cyan",
+        "score": 1
+      },
+      "evidence": null,
+      "recommendation": null,
+      "timestamp": "2025-09-02T07:34:09.523Z",
+      "testId": "2438b7b5-b7b1-4588-9c1a-f4f64cb55a71"
+    },
+    {
+      "type": "PRIVACY",
+      "title": "无法测试用户数据访问控制",
+      "description": "",
+      "riskLevel": {
+        "level": "INFO",
+        "color": "cyan",
+        "score": 1
+      },
+      "evidence": null,
+      "recommendation": null,
+      "timestamp": "2025-09-02T07:34:09.530Z",
+      "testId": "0e369330-4490-4842-8f35-f5c192121195"
+    },
+    {
+      "type": "PRIVACY",
+      "title": "无法测试会话管理",
+      "description": "",
+      "riskLevel": {
+        "level": "INFO",
+        "color": "cyan",
+        "score": 1
+      },
+      "evidence": null,
+      "recommendation": null,
+      "timestamp": "2025-09-02T07:34:09.561Z",
+      "testId": "4dc4881b-4aeb-48d7-a45a-392045a7188a"
+    },
+    {
+      "type": "INTEGRATION",
+      "title": "无法测试支付系统安全性",
+      "description": "",
+      "riskLevel": {
+        "level": "INFO",
+        "color": "cyan",
+        "score": 1
+      },
+      "evidence": null,
+      "recommendation": null,
+      "timestamp": "2025-09-02T07:34:09.568Z",
+      "testId": "194613f6-b6c1-4c2d-93a0-50968e821a8e"
+    }
+  ],
+  "metadata": {
+    "startTime": "2025-09-02T07:34:08.928Z",
+    "testConfig": {
+      "baseURL": "http://localhost:3002",
+      "frontendURL": "http://localhost:3000",
+      "timeout": 10000,
+      "testUser": {
+        "username": "security_tester_0zz5",
+        "email": "security_test_1756798448928@example.com",
+        "password": "TestPassword123!"
+      },
+      "adminUser": {
+        "username": "admin_test",
+        "email": "admin@example.com",
+        "password": "AdminPassword123!"
+      }
+    },
+    "endTime": "2025-09-02T07:34:09.575Z",
+    "duration": 647
+  },
+  "summary": {
+    "totalTests": 9,
+    "vulnerabilitiesCount": 3,
+    "warningsCount": 0,
+    "passedCount": 6,
+    "riskScore": 27,
+    "criticalIssues": 0,
+    "highRiskIssues": 2,
+    "mediumRiskIssues": 1,
+    "overallRisk": "HIGH"
+  },
+  "recommendations": [
+    {
+      "priority": "HIGH",
+      "title": "加强身份验证和授权机制",
+      "description": "改进用户身份验证和访问控制系统",
+      "actions": [
+        "实施多因素认证(MFA)",
+        "加强JWT令牌安全性",
+        "定期审查用户权限",
+        "实施会话超时机制"
+      ]
+    },
+    {
+      "priority": "MEDIUM",
+      "title": "安全配置最佳实践",
+      "description": "实施行业标准的安全配置",
+      "actions": [
+        "配置安全HTTP头",
+        "启用HTTPS并配置HSTS",
+        "实施内容安全策略(CSP)",
+        "定期更新依赖包",
+        "配置错误监控和日志记录"
+      ]
+    }
+  ],
+  "compliance": {
+    "owaspTop10": {
+      "A01:2021 - Broken Access Control": false,
+      "A02:2021 - Cryptographic Failures": true,
+      "A03:2021 - Injection": true,
+      "A04:2021 - Insecure Design": true,
+      "A05:2021 - Security Misconfiguration": false,
+      "A06:2021 - Vulnerable Components": true,
+      "A07:2021 - Authentication Failures": false,
+      "A08:2021 - Software Integrity Failures": true,
+      "A09:2021 - Security Logging Failures": true,
+      "A10:2021 - Server-Side Request Forgery": true
+    },
+    "dataPrivacy": {
+      "passwordSecurity": true,
+      "dataEncryption": true,
+      "accessControl": true,
+      "dataMinimization": true
+    }
+  }
+}

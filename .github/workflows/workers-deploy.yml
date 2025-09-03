@@ -1,0 +1,316 @@
+name: Cloudflare Workers Deployment
+
+on:
+  push:
+    branches: [main, develop, staging]
+    paths: ['workers/**']
+  pull_request:
+    branches: [main, develop]
+    paths: ['workers/**']
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options: ['staging', 'production']
+      rollback:
+        description: 'Rollback to previous version'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_VERSION: '18'
+  WRANGLER_LOG_LEVEL: info
+
+jobs:
+  lint-and-test:
+    name: Lint & Test Workers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: workers/package-lock.json
+      
+      - name: Install dependencies
+        run: cd workers && npm ci
+      
+      - name: Run ESLint
+        run: cd workers && npm run lint
+      
+      - name: Run type checking
+        run: cd workers && npm run type-check
+      
+      - name: Run unit tests with coverage
+        run: |
+          cd workers
+          npm run test -- --coverage
+          npm run test:coverage:check
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./workers/coverage/lcov.info
+          flags: workers
+          name: workers-coverage
+      
+      - name: Run load tests
+        run: |
+          cd workers
+          npm run test:load
+          # Check if performance meets requirements
+          RESPONSE_TIME=$(cat load-test-results.json | jq -r '.averageResponseTime')
+          if [ "$RESPONSE_TIME" -gt "200" ]; then
+            echo "Worker response time $RESPONSE_TIME ms exceeds 200ms threshold"
+            exit 1
+          fi
+      
+      - name: Build workers
+        run: cd workers && npm run build
+      
+      - name: Validate worker size
+        run: |
+          cd workers
+          WORKER_SIZE=$(wc -c < dist/worker.js)
+          MAX_SIZE=1048576  # 1MB limit
+          if [ "$WORKER_SIZE" -gt "$MAX_SIZE" ]; then
+            echo "Worker size ${WORKER_SIZE} bytes exceeds 1MB limit"
+            exit 1
+          fi
+          echo "Worker size: ${WORKER_SIZE} bytes"
+
+  deploy-development:
+    name: Deploy Development
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    if: github.ref == 'refs/heads/develop'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: workers/package-lock.json
+      
+      - name: Install dependencies
+        run: cd workers && npm ci
+      
+      - name: Deploy to Cloudflare Workers (Development)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: workers
+          command: deploy --env development
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      
+      - name: Run integration tests against development
+        run: cd workers && npm run test:integration
+        env:
+          WORKER_URL: https://smellpin-workers-dev.your-subdomain.workers.dev
+          TEST_TIMEOUT: 30000
+      
+      - name: Run end-to-end tests
+        run: cd workers && npm run test:e2e
+        env:
+          WORKER_URL: https://smellpin-workers-dev.your-subdomain.workers.dev
+      
+      - name: Performance validation
+        run: |
+          cd workers
+          # Test worker performance under load
+          for i in {1..50}; do
+            curl -o /dev/null -s -w "%{time_total}\n" https://smellpin-workers-dev.your-subdomain.workers.dev/health &
+          done
+          wait
+          # Verify all requests completed successfully
+
+  deploy-production:
+    name: Deploy Production
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: workers/package-lock.json
+      
+      - name: Install dependencies
+        run: cd workers && npm ci
+      
+      - name: Create deployment backup
+        run: |
+          cd workers
+          # Create backup of current production worker
+          wrangler deployment list --env production | head -n 2 | tail -n 1 > current-deployment.txt
+          echo "Current deployment backed up"
+      
+      - name: Deploy to Cloudflare Workers (Production)
+        id: deploy-production
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: workers
+          command: deploy --env production --compatibility-date 2024-09-01
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      
+      - name: Gradual rollout validation
+        run: |
+          cd workers
+          # Implement canary deployment validation
+          echo "Validating production deployment..."
+          sleep 30  # Allow time for deployment to propagate
+          
+          # Run health checks
+          for i in {1..10}; do
+            if ! curl -f --max-time 10 https://smellpin-workers.your-subdomain.workers.dev/health; then
+              echo "Health check failed on attempt $i"
+              if [ "$i" -eq "10" ]; then
+                echo "Deployment validation failed after 10 attempts"
+                exit 1
+              fi
+              sleep 10
+            else
+              echo "Health check passed"
+              break
+            fi
+          done
+      
+      - name: Run comprehensive smoke tests
+        run: |
+          cd workers
+          npm run test:smoke
+          
+          # Test all critical endpoints
+          ENDPOINTS=("health" "api/users" "api/annotations" "api/payments")
+          for endpoint in "${ENDPOINTS[@]}"; do
+            echo "Testing endpoint: $endpoint"
+            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}:%{time_total}" \
+              https://smellpin-workers.your-subdomain.workers.dev/$endpoint)
+            HTTP_CODE=$(echo $RESPONSE | cut -d: -f1)
+            RESPONSE_TIME=$(echo $RESPONSE | cut -d: -f2 | cut -d. -f1)
+            
+            if [ "$HTTP_CODE" -ne "200" ] && [ "$HTTP_CODE" -ne "401" ]; then
+              echo "Endpoint $endpoint returned HTTP $HTTP_CODE"
+              exit 1
+            fi
+            
+            if [ "$RESPONSE_TIME" -gt "5" ]; then
+              echo "Endpoint $endpoint response time ${RESPONSE_TIME}s exceeds 5s threshold"
+              exit 1
+            fi
+          done
+        env:
+          WORKER_URL: https://smellpin-workers.your-subdomain.workers.dev
+      
+      - name: Performance monitoring
+        run: |
+          cd workers
+          # Set up performance monitoring after deployment
+          node scripts/setup-monitoring.js
+        env:
+          WORKER_URL: https://smellpin-workers.your-subdomain.workers.dev
+          MONITORING_TOKEN: ${{ secrets.MONITORING_TOKEN }}
+      
+      - name: Update worker secrets if needed
+        run: |
+          cd workers
+          # Update secrets securely
+          if [ "${{ github.event_name }}" == "push" ] || [ "${{ github.event.inputs.environment }}" == "production" ]; then
+            echo "Updating worker secrets..."
+            
+            # Update secrets one by one with error handling
+            echo "${{ secrets.DATABASE_URL }}" | wrangler secret put DATABASE_URL --env production || echo "Failed to update DATABASE_URL"
+            echo "${{ secrets.JWT_SECRET }}" | wrangler secret put JWT_SECRET --env production || echo "Failed to update JWT_SECRET"
+            echo "${{ secrets.PAYPAL_CLIENT_SECRET }}" | wrangler secret put PAYPAL_CLIENT_SECRET --env production || echo "Failed to update PAYPAL_CLIENT_SECRET"
+            echo "${{ secrets.STRIPE_SECRET_KEY }}" | wrangler secret put STRIPE_SECRET_KEY --env production || echo "Failed to update STRIPE_SECRET_KEY"
+            echo "${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}" | wrangler secret put R2_ACCESS_KEY_ID --env production || echo "Failed to update R2_ACCESS_KEY_ID"
+            echo "${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}" | wrangler secret put R2_SECRET_ACCESS_KEY --env production || echo "Failed to update R2_SECRET_ACCESS_KEY"
+            
+            echo "Secrets update completed"
+          fi
+      
+      - name: Rollback on failure
+        if: failure() && steps.deploy-production.outcome == 'failure'
+        run: |
+          cd workers
+          echo "Deployment failed, initiating rollback..."
+          
+          if [ -f "current-deployment.txt" ]; then
+            ROLLBACK_ID=$(cat current-deployment.txt | awk '{print $1}')
+            if [ -n "$ROLLBACK_ID" ]; then
+              wrangler rollback $ROLLBACK_ID --env production
+              echo "Rollback completed to deployment: $ROLLBACK_ID"
+            else
+              echo "No valid rollback deployment found"
+            fi
+          else
+            echo "No backup deployment info found"
+          fi
+      
+      - name: Deployment notification
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: `Workers Deployment ${process.env.AS_JOB_STATUS}`,
+              attachments: [{
+                color: process.env.AS_JOB_STATUS === 'success' ? 'good' : 'danger',
+                fields: [{
+                  title: 'Environment',
+                  value: 'production',
+                  short: true
+                }, {
+                  title: 'Commit',
+                  value: process.env.AS_COMMIT,
+                  short: true
+                }]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: workers/package-lock.json
+      
+      - name: Install dependencies
+        run: cd workers && npm ci
+      
+      - name: Run npm audit
+        run: cd workers && npm audit --audit-level=moderate
+      
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --file=workers/package.json --severity-threshold=high

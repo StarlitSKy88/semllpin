@@ -1,0 +1,135 @@
+version: '3.8'
+
+services:
+  # Uptime Kuma for external monitoring
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: smellpin-uptime-kuma
+    restart: unless-stopped
+    ports:
+      - "3002:3001"
+    volumes:
+      - uptime_data:/app/data
+    environment:
+      - UPTIME_KUMA_PORT=3001
+    networks:
+      - monitoring-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Blackbox Exporter for external endpoint monitoring
+  blackbox-exporter:
+    image: prom/blackbox-exporter:latest
+    container_name: smellpin-blackbox-exporter
+    restart: unless-stopped
+    ports:
+      - "9115:9115"
+    volumes:
+      - ./blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
+    command:
+      - '--config.file=/etc/blackbox_exporter/config.yml'
+      - '--web.listen-address=:9115'
+    networks:
+      - monitoring-network
+
+  # Node Exporter for system metrics
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: smellpin-node-exporter
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - monitoring-network
+
+  # Postgres Exporter
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter:latest
+    container_name: smellpin-postgres-exporter
+    restart: unless-stopped
+    ports:
+      - "9187:9187"
+    environment:
+      - DATA_SOURCE_NAME=postgresql://smellpin:${DB_PASSWORD}@postgres:5432/smellpin_prod?sslmode=disable
+      - PG_EXPORTER_EXTEND_QUERY_PATH=/etc/postgres_exporter/queries.yaml
+    volumes:
+      - ./postgres/queries.yaml:/etc/postgres_exporter/queries.yaml:ro
+    depends_on:
+      - postgres
+    networks:
+      - monitoring-network
+
+  # Redis Exporter
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: smellpin-redis-exporter
+    restart: unless-stopped
+    ports:
+      - "9121:9121"
+    environment:
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    depends_on:
+      - redis
+    networks:
+      - monitoring-network
+
+  # Custom application metrics endpoint
+  metrics-aggregator:
+    build:
+      context: .
+      dockerfile: monitoring/Dockerfile.metrics
+    container_name: smellpin-metrics-aggregator
+    restart: unless-stopped
+    ports:
+      - "9200:9200"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://smellpin:${DB_PASSWORD}@postgres:5432/smellpin_prod
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
+      - METRICS_PORT=9200
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - monitoring-network
+
+  # Health Check Service
+  health-checker:
+    build:
+      context: .
+      dockerfile: monitoring/Dockerfile.healthcheck
+    container_name: smellpin-health-checker
+    restart: unless-stopped
+    environment:
+      - CHECK_INTERVAL=30
+      - ENDPOINTS=http://backend:3000/health,http://frontend:80/health,https://api.smellpin.com/health,https://smellpin.com
+      - SLACK_WEBHOOK=${SLACK_WEBHOOK_URL}
+      - EMAIL_ALERTS=devops@smellpin.com
+    volumes:
+      - health_logs:/app/logs
+    networks:
+      - monitoring-network
+
+volumes:
+  uptime_data:
+    driver: local
+  health_logs:
+    driver: local
+
+networks:
+  monitoring-network:
+    driver: bridge
+    external: true

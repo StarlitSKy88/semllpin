@@ -1,0 +1,56 @@
+{
+  "testName": "老用户日常使用场景测试",
+  "userProfile": {
+    "name": "李女士",
+    "experience": "2个月",
+    "usage": "每周2-3次",
+    "device": "Android手机"
+  },
+  "startTime": "2025-09-02T03:43:24.174Z",
+  "scenarios": {
+    "login": {
+      "success": false,
+      "score": 3,
+      "details": "登录失败"
+    },
+    "browsing": {
+      "success": false,
+      "score": 0,
+      "details": ""
+    },
+    "interaction": {
+      "success": false,
+      "score": 1,
+      "details": "暂无标注可供交互; 分享功能可用"
+    },
+    "reward": {
+      "success": false,
+      "score": 1,
+      "details": ""
+    },
+    "management": {
+      "success": false,
+      "score": 2,
+      "details": "账户设置功能可访问"
+    }
+  },
+  "summary": {
+    "loginExperience": 3,
+    "browsingExperience": 0,
+    "interactionExperience": 1,
+    "rewardExperience": 1,
+    "managementExperience": 2
+  },
+  "overallScore": 2,
+  "endTime": "2025-09-02T03:43:28.787Z",
+  "userExperienceAnalysis": {
+    "retention": "低",
+    "engagement": "低活跃",
+    "satisfaction": "不满意"
+  },
+  "recommendations": [
+    "优化登录流程，提升用户体验",
+    "完善奖励系统，增加用户粘性",
+    "增强标注交互功能，提高参与度"
+  ]
+}

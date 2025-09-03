@@ -1,0 +1,21 @@
+{
+  "envId": "x1aoyang-1-5gimfr95c320432c",
+  "version": "2.0",
+  "framework": {
+    "name": "react",
+    "plugins": {
+      "client": {
+        "use": "@cloudbase/framework-plugin-website",
+        "inputs": {
+          "buildCommand": "npm run build",
+          "outputPath": "dist",
+          "cloudPath": "/",
+          "envVariables": {
+            "VITE_API_URL": "https://smellpin-workers.dev-small-1.workers.dev",
+            "VITE_PAYPAL_CLIENT_ID": "${VITE_PAYPAL_CLIENT_ID}"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,295 @@
+name: Frontend Deployment (Vercel)
+
+on:
+  push:
+    branches: [main, develop, staging]
+    paths: ['frontend/**', 'vercel.json', 'package.json']
+  pull_request:
+    branches: [main, develop]
+    paths: ['frontend/**', 'vercel.json', 'package.json']
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options: ['staging', 'production']
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  NODE_VERSION: '18'
+  PERFORMANCE_BUDGET: 95
+
+jobs:
+  lint-and-test:
+    name: Lint & Test Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install dependencies
+        run: cd frontend && npm ci
+      
+      - name: Run ESLint
+        run: cd frontend && npm run lint
+      
+      - name: Run type checking
+        run: cd frontend && npm run type-check
+      
+      - name: Run unit tests with coverage
+        run: cd frontend && npm run test:ci
+      
+      - name: Upload test coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./frontend/coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+          fail_ci_if_error: true
+      
+      - name: Check coverage threshold
+        run: |
+          cd frontend
+          COVERAGE=$(npm run test:coverage:check | grep 'All files' | awk '{print $10}' | sed 's/%//')
+          if [ "$COVERAGE" -lt "85" ]; then
+            echo "Coverage $COVERAGE% is below 85% threshold"
+            exit 1
+          fi
+      
+      - name: Run accessibility tests
+        run: cd frontend && npm run test:a11y
+      
+      - name: Build application
+        run: cd frontend && npm run build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL_STAGING }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY_STAGING }}
+      
+      - name: Bundle size analysis
+        run: |
+          cd frontend
+          npm run analyze:bundle
+          BUNDLE_SIZE=$(du -sk dist | cut -f1)
+          if [ "$BUNDLE_SIZE" -gt "2048" ]; then
+            echo "Bundle size ${BUNDLE_SIZE}KB exceeds 2MB limit"
+            exit 1
+          fi
+
+  deploy-preview:
+    name: Deploy Preview (Staging)
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+      
+      - name: Build Project Artifacts
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL_STAGING }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY_STAGING }}
+      
+      - name: Deploy Preview to Vercel
+        id: preview-deploy
+        run: |
+          preview_url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          echo "preview_url=$preview_url" >> $GITHUB_OUTPUT
+      
+      - name: Comment Preview URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🚀 Preview deployed: ${{ steps.preview-deploy.outputs.preview_url }}'
+            })
+
+  deploy-production:
+    name: Deploy Production
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      
+      - name: Build Project Artifacts
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL_PRODUCTION }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY_PRODUCTION }}
+      
+      - name: Deploy Production to Vercel
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+      
+      - name: Run E2E tests against production
+        run: cd frontend && npm run test:e2e
+        env:
+          BASE_URL: https://smellpin.com
+          E2E_HEADLESS: true
+          E2E_TIMEOUT: 30000
+
+  performance-audit:
+    name: Performance Audit
+    runs-on: ubuntu-latest
+    needs: deploy-production
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Wait for deployment to be ready
+        run: |
+          for i in {1..30}; do
+            if curl -f --connect-timeout 5 https://smellpin.com/health; then
+              echo "Site is ready"
+              break
+            fi
+            echo "Waiting for site to be ready... ($i/30)"
+            sleep 10
+          done
+      
+      - name: Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            https://smellpin.com
+            https://smellpin.com/map
+            https://smellpin.com/profile
+          budgetPath: .lighthouserc.js
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+      
+      - name: Performance Budget Check
+        run: |
+          # Check if performance scores meet minimum thresholds
+          PERFORMANCE_SCORE=$(cat lhci_reports/manifest.json | jq -r '.[0].summary.performance')
+          ACCESSIBILITY_SCORE=$(cat lhci_reports/manifest.json | jq -r '.[0].summary.accessibility')
+          
+          if [ "$PERFORMANCE_SCORE" -lt "${{ env.PERFORMANCE_BUDGET }}" ]; then
+            echo "Performance score $PERFORMANCE_SCORE is below threshold ${{ env.PERFORMANCE_BUDGET }}"
+            exit 1
+          fi
+          
+          if [ "$ACCESSIBILITY_SCORE" -lt "95" ]; then
+            echo "Accessibility score $ACCESSIBILITY_SCORE is below threshold 95"
+            exit 1
+          fi
+      
+      - name: Core Web Vitals Check
+        run: |
+          # Implement Core Web Vitals monitoring
+          node -e "
+          const fs = require('fs');
+          const manifest = JSON.parse(fs.readFileSync('lhci_reports/manifest.json'));
+          const report = manifest[0];
+          
+          const lcp = report.jsonPath ? JSON.parse(fs.readFileSync(report.jsonPath)).audits['largest-contentful-paint'].numericValue : 0;
+          const fid = report.jsonPath ? JSON.parse(fs.readFileSync(report.jsonPath)).audits['max-potential-fid'].numericValue : 0;
+          const cls = report.jsonPath ? JSON.parse(fs.readFileSync(report.jsonPath)).audits['cumulative-layout-shift'].numericValue : 0;
+          
+          console.log('LCP:', lcp, 'ms (target: <2500ms)');
+          console.log('FID:', fid, 'ms (target: <100ms)');
+          console.log('CLS:', cls, '(target: <0.1)');
+          
+          if (lcp > 2500 || fid > 100 || cls > 0.1) {
+            console.error('Core Web Vitals thresholds exceeded');
+            process.exit(1);
+          }
+          "
+      
+      - name: Notify performance results
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: `Performance Audit ${github.event_name === 'push' ? 'Complete' : 'Failed'}`,
+              attachments: [{
+                color: '${{ job.status }}' === 'success' ? 'good' : 'danger',
+                fields: [{
+                  title: 'Performance Score',
+                  value: process.env.PERFORMANCE_SCORE || 'N/A',
+                  short: true
+                }]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+  
+  security-scan:
+    name: Frontend Security Scan
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install dependencies
+        run: cd frontend && npm ci
+      
+      - name: Run npm audit
+        run: cd frontend && npm audit --audit-level=moderate
+      
+      - name: Check for known vulnerabilities
+        run: |
+          cd frontend
+          npm audit --json > audit-results.json
+          CRITICAL_VULNS=$(cat audit-results.json | jq '.metadata.vulnerabilities.critical // 0')
+          HIGH_VULNS=$(cat audit-results.json | jq '.metadata.vulnerabilities.high // 0')
+          
+          if [ "$CRITICAL_VULNS" -gt "0" ] || [ "$HIGH_VULNS" -gt "5" ]; then
+            echo "Too many high/critical vulnerabilities found"
+            exit 1
+          fi
+      
+      - name: SAST scan with CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: typescript, javascript
+      
+      - name: CodeQL analysis
+        uses: github/codeql-action/analyze@v3

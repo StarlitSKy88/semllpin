@@ -1,0 +1,68 @@
+{
+  "summary": {
+    "timestamp": "2025-09-01T11:43:54.085Z",
+    "totalTests": 5,
+    "passedTests": 0,
+    "failedTests": 5,
+    "successRate": "0.00%",
+    "totalDatabaseOperations": 0,
+    "validDatabaseOperations": 0,
+    "databaseValidationRate": "0%"
+  },
+  "testResults": [
+    {
+      "name": "数据库连接验证",
+      "success": false,
+      "details": "网络错误: ",
+      "duration": "35ms",
+      "timestamp": "2025-09-01T11:43:54.079Z",
+      "validationData": null
+    },
+    {
+      "name": "用户注册数据验证",
+      "success": false,
+      "details": "网络错误: ",
+      "duration": "2ms",
+      "timestamp": "2025-09-01T11:43:54.082Z",
+      "validationData": null
+    },
+    {
+      "name": "标注创建数据验证",
+      "success": false,
+      "details": "没有可用的认证Token",
+      "duration": "0ms",
+      "timestamp": "2025-09-01T11:43:54.082Z",
+      "validationData": null
+    },
+    {
+      "name": "数据一致性验证",
+      "success": false,
+      "details": "网络错误: ",
+      "duration": "2ms",
+      "timestamp": "2025-09-01T11:43:54.085Z",
+      "validationData": null
+    },
+    {
+      "name": "事务完整性验证",
+      "success": false,
+      "details": "没有可用的认证Token",
+      "duration": "0ms",
+      "timestamp": "2025-09-01T11:43:54.085Z",
+      "validationData": null
+    }
+  ],
+  "databaseValidations": [],
+  "recommendations": [
+    {
+      "type": "test_failures",
+      "message": "有 5 个测试失败，需要检查相关功能",
+      "details": [
+        "数据库连接验证",
+        "用户注册数据验证",
+        "标注创建数据验证",
+        "数据一致性验证",
+        "事务完整性验证"
+      ]
+    }
+  ]
+}

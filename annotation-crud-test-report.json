@@ -1,0 +1,60 @@
+{
+  "timestamp": "2025-08-22T02:59:14.637Z",
+  "summary": {
+    "total": 7,
+    "passed": 2,
+    "failed": 5,
+    "successRate": "28.6%"
+  },
+  "tests": [
+    {
+      "name": "用户注册",
+      "success": true,
+      "details": "状态码: 201, 注册成功",
+      "duration": "3698ms",
+      "timestamp": "2025-08-22T02:59:13.659Z"
+    },
+    {
+      "name": "创建标注",
+      "success": false,
+      "details": "状态码: 500, 错误: {\"error\":\"Internal Server Error\",\"message\":\"Failed to create annotation\"}",
+      "duration": "580ms",
+      "timestamp": "2025-08-22T02:59:14.240Z"
+    },
+    {
+      "name": "读取标注",
+      "success": false,
+      "details": "没有可用的标注ID",
+      "duration": "0ms",
+      "timestamp": "2025-08-22T02:59:14.241Z"
+    },
+    {
+      "name": "更新标注",
+      "success": false,
+      "details": "没有可用的标注ID或认证Token",
+      "duration": "0ms",
+      "timestamp": "2025-08-22T02:59:14.242Z"
+    },
+    {
+      "name": "获取标注列表",
+      "success": true,
+      "details": "状态码: 200, 标注数量: 6",
+      "duration": "392ms",
+      "timestamp": "2025-08-22T02:59:14.635Z"
+    },
+    {
+      "name": "删除标注",
+      "success": false,
+      "details": "没有可用的标注ID或认证Token",
+      "duration": "0ms",
+      "timestamp": "2025-08-22T02:59:14.635Z"
+    },
+    {
+      "name": "验证删除结果",
+      "success": false,
+      "details": "没有可用的标注ID",
+      "duration": "0ms",
+      "timestamp": "2025-08-22T02:59:14.635Z"
+    }
+  ]
+}

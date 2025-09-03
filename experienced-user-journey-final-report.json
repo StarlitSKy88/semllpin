@@ -1,0 +1,79 @@
+{
+  "testName": "老用户日常使用场景测试",
+  "userProfile": {
+    "name": "李女士",
+    "experience": "2个月",
+    "usage": "每周2-3次",
+    "device": "Android手机"
+  },
+  "startTime": "2025-09-02T03:46:24.567Z",
+  "scenarios": {
+    "login": {
+      "success": true,
+      "score": 9,
+      "details": "登录成功，用户体验良好"
+    },
+    "browsing": {
+      "success": false,
+      "score": 2,
+      "details": "个人标注0个"
+    },
+    "interaction": {
+      "success": false,
+      "score": 1,
+      "details": "分享功能可用"
+    },
+    "reward": {
+      "success": false,
+      "score": 1,
+      "details": ""
+    },
+    "management": {
+      "success": true,
+      "score": 4,
+      "details": "个人资料访问正常; 账户设置功能可访问"
+    }
+  },
+  "summary": {
+    "loginExperience": 9,
+    "browsingExperience": 2,
+    "interactionExperience": 1,
+    "rewardExperience": 1,
+    "managementExperience": 4
+  },
+  "overallScore": 6,
+  "endTime": "2025-09-02T03:46:35.161Z",
+  "userExperienceAnalysis": {
+    "retention": "中",
+    "engagement": "一般",
+    "satisfaction": "基本满意"
+  },
+  "detailedAnalysis": {
+    "criticalPath": [
+      "登录体验",
+      "个人数据浏览",
+      "标注交互",
+      "奖励查看"
+    ],
+    "strengths": [
+      "登录体验优秀"
+    ],
+    "weaknesses": [
+      "浏览功能需改进"
+    ],
+    "dropoffRisk": [
+      "标注交互体验差，可能导致用户流失",
+      "奖励体验不足，影响用户粘性"
+    ]
+  },
+  "recommendations": [
+    "改进数据加载速度，优化个人信息展示",
+    "增强标注交互功能，提供更多社交元素",
+    "完善奖励系统，增加用户激励机制"
+  ],
+  "retentionPrediction": {
+    "weeklyUsage": "3-4次",
+    "churnRisk": "中",
+    "lifetimeValue": "中"
+  }
+}

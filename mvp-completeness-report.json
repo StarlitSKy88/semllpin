@@ -1,0 +1,91 @@
+{
+  "timestamp": "2025-09-01T11:15:54.258Z",
+  "summary": {
+    "totalIssues": 14,
+    "blockingIssues": 14,
+    "canDeploy": false
+  },
+  "modules": {
+    "frontend": {
+      "status": "fail",
+      "issues": [
+        "主页页面不存在",
+        "登录页面页面不存在",
+        "注册页面页面不存在",
+        "个人资料页面返回状态undefined",
+        "API文档页面页面不存在"
+      ],
+      "pages": {
+        "主页": "not_found",
+        "登录页面": "not_found",
+        "注册页面": "not_found",
+        "个人资料页面": "warning",
+        "设置页面": "pass",
+        "API文档页面": "not_found"
+      }
+    },
+    "backend": {
+      "status": "fail",
+      "issues": [
+        "Backend-3004 用户注册 状态异常: 400",
+        "Backend-3004 用户登录 状态异常: 400",
+        "Backend-3004 标注列表 API服务器错误",
+        "Backend-3005 用户注册 状态异常: 400",
+        "Backend-3005 用户登录 状态异常: 400",
+        "Backend-3005 标注列表 API服务器错误"
+      ],
+      "apis": {
+        "Backend-3004-健康检查": "pass",
+        "Backend-3004-API文档": "pass",
+        "Backend-3004-用户注册": "warning",
+        "Backend-3004-用户登录": "warning",
+        "Backend-3004-标注列表": "server_error",
+        "Backend-3004-LBS位置查询": "pass",
+        "Backend-3004-支付创建": "auth_required",
+        "Backend-3004-地理编码": "auth_required",
+        "Backend-3004-反地理编码": "auth_required",
+        "Backend-3005-健康检查": "pass",
+        "Backend-3005-API文档": "pass",
+        "Backend-3005-用户注册": "warning",
+        "Backend-3005-用户登录": "warning",
+        "Backend-3005-标注列表": "server_error",
+        "Backend-3005-LBS位置查询": "pass",
+        "Backend-3005-支付创建": "auth_required",
+        "Backend-3005-地理编码": "auth_required",
+        "Backend-3005-反地理编码": "auth_required"
+      }
+    },
+    "database": {
+      "status": "fail",
+      "issues": [
+        "Backend-3004数据库连接失败",
+        "Backend-3005数据库连接失败",
+        "标注查询查询失败"
+      ],
+      "connections": {
+        "Backend-3004": "fail",
+        "Backend-3005": "fail",
+        "PostGIS查询": "pass",
+        "标注查询": "fail"
+      }
+    },
+    "business": {
+      "status": "pass",
+      "issues": [],
+      "flows": {
+        "用户注册": "pass",
+        "用户登录": "pass",
+        "LBS位置查询": "pass",
+        "支付流程": "pass"
+      }
+    },
+    "security": {
+      "status": "pass",
+      "issues": [],
+      "configs": {
+        "Backend-3004": "pass",
+        "Backend-3005": "pass"
+      }
+    }
+  }
+}

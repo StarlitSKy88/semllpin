@@ -1,0 +1,78 @@
+{
+  "summary": {
+    "timestamp": "2025-09-01T07:32:06.143Z",
+    "totalTests": 6,
+    "passedTests": 0,
+    "failedTests": 6,
+    "successRate": "0.00%",
+    "averageIntegrationScore": "0/100",
+    "testType": "Third-Party Integration"
+  },
+  "integrationResults": {},
+  "testResults": [
+    {
+      "name": "Stripe支付服务集成",
+      "success": false,
+      "details": "没有可用的认证Token",
+      "duration": "0ms",
+      "timestamp": "2025-09-01T07:32:06.138Z",
+      "integrationData": null
+    },
+    {
+      "name": "邮件通知服务集成",
+      "success": false,
+      "details": "网络错误: ",
+      "duration": "1ms",
+      "timestamp": "2025-09-01T07:32:06.139Z",
+      "integrationData": null
+    },
+    {
+      "name": "短信通知服务集成",
+      "success": false,
+      "details": "网络错误: ",
+      "duration": "2ms",
+      "timestamp": "2025-09-01T07:32:06.141Z",
+      "integrationData": null
+    },
+    {
+      "name": "文件存储服务集成",
+      "success": false,
+      "details": "没有可用的认证Token",
+      "duration": "0ms",
+      "timestamp": "2025-09-01T07:32:06.141Z",
+      "integrationData": null
+    },
+    {
+      "name": "Redis缓存服务集成",
+      "success": false,
+      "details": "网络错误: ",
+      "duration": "1ms",
+      "timestamp": "2025-09-01T07:32:06.142Z",
+      "integrationData": null
+    },
+    {
+      "name": "地理编码服务集成",
+      "success": false,
+      "details": "网络错误: ",
+      "duration": "0ms",
+      "timestamp": "2025-09-01T07:32:06.143Z",
+      "integrationData": null
+    }
+  ],
+  "recommendations": [
+    {
+      "type": "test_failures",
+      "priority": "medium",
+      "message": "有 6 个第三方服务测试失败",
+      "details": [
+        "Stripe支付服务集成",
+        "邮件通知服务集成",
+        "短信通知服务集成",
+        "文件存储服务集成",
+        "Redis缓存服务集成",
+        "地理编码服务集成"
+      ],
+      "suggestion": "检查相关服务的可用性和配置"
+    }
+  ]
+}

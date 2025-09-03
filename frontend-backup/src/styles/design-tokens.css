@@ -1,0 +1,497 @@
+/* ==========================================================================
+   设计令牌系统 (Design Tokens System)
+   建立完整的设计语言基础
+   ========================================================================== */
+
+:root {
+  /* ==========================================================================
+     色彩系统 (Color System)
+     基于语义化命名和WCAG 2.1 AA级标准
+     ========================================================================== */
+  
+  /* 主色调 (Primary Colors) - 石榴红主题 */
+  --color-primary-50: #fef2f2;
+  --color-primary-100: #fee2e2;
+  --color-primary-200: #fecaca;
+  --color-primary-300: #fca5a5;
+  --color-primary-400: #f87171;
+  --color-primary-500: #dc2626;
+  --color-primary-600: #b91c1c;
+  --color-primary-700: #991b1b;
+  --color-primary-800: #7f1d1d;
+  --color-primary-900: #450a0a;
+  --color-primary-950: #1a0000;
+
+  /* 强调色 (Accent Colors) - 石榴粉主题 */
+  --color-accent-50: #fdf2f8;
+  --color-accent-100: #fce7f3;
+  --color-accent-200: #fbcfe8;
+  --color-accent-300: #f9a8d4;
+  --color-accent-400: #f472b6;
+  --color-accent-500: #ec4899;
+  --color-accent-600: #db2777;
+  --color-accent-700: #be185d;
+  --color-accent-800: #9d174d;
+  --color-accent-900: #831843;
+  --color-accent-950: #500724;
+
+  /* 成功色 (Success Colors) - 石榴叶绿主题 */
+  --color-success-50: #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-200: #bbf7d0;
+  --color-success-300: #86efac;
+  --color-success-400: #4ade80;
+  --color-success-500: #16a34a;
+  --color-success-600: #15803d;
+  --color-success-700: #166534;
+  --color-success-800: #14532d;
+  --color-success-900: #052e16;
+  --color-success-950: #001a05;
+
+  /* 警告色 (Warning Colors) */
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-200: #fde68a;
+  --color-warning-300: #fcd34d;
+  --color-warning-400: #fbbf24;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+  --color-warning-800: #92400e;
+  --color-warning-900: #78350f;
+  --color-warning-950: #451a03;
+
+  /* 错误色 (Error Colors) */
+  --color-error-50: #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-200: #fecaca;
+  --color-error-300: #fca5a5;
+  --color-error-400: #f87171;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+  --color-error-800: #991b1b;
+  --color-error-900: #7f1d1d;
+  --color-error-950: #450a0a;
+
+  /* 中性色 (Neutral Colors) - 深色东方主题 */
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #1a1a1a;
+  --color-neutral-900: #0f0f0f;
+  --color-neutral-950: #050505;
+
+  /* 石榴主题专用色彩 (Pomegranate Theme Colors) */
+  --color-pomegranate-50: #fef7f0;
+  --color-pomegranate-100: #fdeee0;
+  --color-pomegranate-200: #fbd9c0;
+  --color-pomegranate-300: #f7b896;
+  --color-pomegranate-400: #f18b5a;
+  --color-pomegranate-500: #e85d2b;
+  --color-pomegranate-600: #d94821;
+  --color-pomegranate-700: #b5381e;
+  --color-pomegranate-800: #912f20;
+  --color-pomegranate-900: #75291e;
+  --color-pomegranate-950: #3f120e;
+
+  /* 花卉装饰色 (Floral Accent Colors) */
+  --color-floral-pink-50: #fdf2f8;
+  --color-floral-pink-100: #fce7f3;
+  --color-floral-pink-200: #fbcfe8;
+  --color-floral-pink-300: #f9a8d4;
+  --color-floral-pink-400: #f472b6;
+  --color-floral-pink-500: #ec4899;
+  --color-floral-pink-600: #db2777;
+  --color-floral-pink-700: #be185d;
+  --color-floral-pink-800: #9d174d;
+  --color-floral-pink-900: #831843;
+
+  /* 叶片绿色 (Leaf Green Colors) */
+  --color-leaf-50: #f0fdf4;
+  --color-leaf-100: #dcfce7;
+  --color-leaf-200: #bbf7d0;
+  --color-leaf-300: #86efac;
+  --color-leaf-400: #4ade80;
+  --color-leaf-500: #22c55e;
+  --color-leaf-600: #16a34a;
+  --color-leaf-700: #15803d;
+  --color-leaf-800: #166534;
+  --color-leaf-900: #14532d;
+
+  /* ==========================================================================
+     语义化色彩映射 (Semantic Color Mapping)
+     ========================================================================== */
+  
+  /* 背景色 (Background Colors) - 石榴主题 */
+  --bg-primary: var(--color-neutral-950);
+  --bg-secondary: var(--color-neutral-900);
+  --bg-tertiary: var(--color-neutral-800);
+  --bg-elevated: var(--color-neutral-800);
+  --bg-overlay: rgba(5, 5, 5, 0.9);
+  --bg-glass: rgba(26, 26, 26, 0.7);
+  --bg-pomegranate: var(--color-pomegranate-950);
+  --bg-floral: var(--color-floral-pink-950);
+  --bg-accent: linear-gradient(135deg, var(--color-primary-900), var(--color-pomegranate-900));
+  
+  /* 文本色 (Text Colors) */
+  --text-primary: var(--color-neutral-50);
+  --text-secondary: var(--color-neutral-300);
+  --text-tertiary: var(--color-neutral-500);
+  --text-disabled: var(--color-neutral-600);
+  --text-inverse: var(--color-neutral-900);
+  
+  /* 边框色 (Border Colors) */
+  --border-primary: var(--color-neutral-700);
+  --border-secondary: var(--color-neutral-800);
+  --border-focus: var(--color-primary-500);
+  --border-error: var(--color-error-500);
+  --border-success: var(--color-success-500);
+  
+  /* 交互色 (Interactive Colors) - 石榴主题 */
+  --interactive-primary: var(--color-primary-500);
+  --interactive-primary-hover: var(--color-primary-600);
+  --interactive-primary-active: var(--color-primary-700);
+  --interactive-secondary: var(--color-neutral-700);
+  --interactive-secondary-hover: var(--color-neutral-600);
+  --interactive-secondary-active: var(--color-neutral-500);
+  --interactive-pomegranate: var(--color-pomegranate-500);
+  --interactive-pomegranate-hover: var(--color-pomegranate-600);
+  --interactive-floral: var(--color-floral-pink-500);
+  --interactive-floral-hover: var(--color-floral-pink-600);
+  
+  /* ==========================================================================
+     排版系统 (Typography System)
+     基于模块化比例 1.25 (Major Third)
+     ========================================================================== */
+  
+  /* 字体族 (Font Families) */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
+  --font-display: 'Inter', var(--font-sans);
+  
+  /* 字体大小 (Font Sizes) - 基于 1.25 比例 */
+  --text-xs: 0.75rem;     /* 12px */
+  --text-sm: 0.875rem;    /* 14px */
+  --text-base: 1rem;      /* 16px */
+  --text-lg: 1.125rem;    /* 18px */
+  --text-xl: 1.25rem;     /* 20px */
+  --text-2xl: 1.5rem;     /* 24px */
+  --text-3xl: 1.875rem;   /* 30px */
+  --text-4xl: 2.25rem;    /* 36px */
+  --text-5xl: 3rem;       /* 48px */
+  --text-6xl: 3.75rem;    /* 60px */
+  --text-7xl: 4.5rem;     /* 72px */
+  --text-8xl: 6rem;       /* 96px */
+  --text-9xl: 8rem;       /* 128px */
+  
+  /* 行高 (Line Heights) */
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 2;
+  
+  /* 字重 (Font Weights) */
+  --font-thin: 100;
+  --font-extralight: 200;
+  --font-light: 300;
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+  --font-black: 900;
+  
+  /* 字间距 (Letter Spacing) */
+  --tracking-tighter: -0.05em;
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
+  --tracking-widest: 0.1em;
+  
+  /* ==========================================================================
+     间距系统 (Spacing System)
+     基于 8px 网格系统
+     ========================================================================== */
+  
+  --space-0: 0;
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  --space-20: 5rem;     /* 80px */
+  --space-24: 6rem;     /* 96px */
+  --space-32: 8rem;     /* 128px */
+  --space-40: 10rem;    /* 160px */
+  --space-48: 12rem;    /* 192px */
+  --space-56: 14rem;    /* 224px */
+  --space-64: 16rem;    /* 256px */
+  
+  /* ==========================================================================
+     阴影系统 (Shadow System)
+     ========================================================================== */
+  
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+  --shadow-glow: 0 0 20px rgba(217, 70, 239, 0.3);
+  --shadow-glow-lg: 0 0 40px rgba(217, 70, 239, 0.4);
+  
+  /* ==========================================================================
+     圆角系统 (Border Radius System)
+     ========================================================================== */
+  
+  --radius-none: 0;
+  --radius-sm: 0.125rem;   /* 2px */
+  --radius-md: 0.375rem;   /* 6px */
+  --radius-lg: 0.5rem;     /* 8px */
+  --radius-xl: 0.75rem;    /* 12px */
+  --radius-2xl: 1rem;      /* 16px */
+  --radius-3xl: 1.5rem;    /* 24px */
+  --radius-full: 9999px;
+  
+  /* ==========================================================================
+     Z-Index 系统 (Z-Index System)
+     ========================================================================== */
+  
+  --z-auto: auto;
+  --z-0: 0;
+  --z-10: 10;
+  --z-20: 20;
+  --z-30: 30;
+  --z-40: 40;
+  --z-50: 50;
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-toast: 1080;
+  
+  /* ==========================================================================
+     动画系统 (Animation System)
+     ========================================================================== */
+  
+  /* 缓动函数 (Easing Functions) */
+  --ease-linear: linear;
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  /* 动画持续时间 (Animation Duration) */
+  --duration-instant: 50ms;
+  --duration-75: 75ms;
+  --duration-100: 100ms;
+  --duration-150: 150ms;
+  --duration-200: 200ms;
+  --duration-300: 300ms;
+  --duration-500: 500ms;
+  --duration-700: 700ms;
+  --duration-1000: 1000ms;
+  --duration-slowest: 1200ms;
+  
+  /* 动画延迟 (Animation Delay) */
+  --delay-none: 0ms;
+  --delay-short: 100ms;
+  --delay-medium: 200ms;
+  --delay-long: 400ms;
+  
+  /* ==========================================================================
+     断点系统 (Breakpoint System)
+     ========================================================================== */
+  
+  --breakpoint-xs: 320px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+  --breakpoint-3xl: 1920px;
+  
+  /* 容器最大宽度 */
+  --container-xs: 100%;
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1536px;
+  
+  /* ==========================================================================
+     组件令牌 (Component Tokens)
+     ========================================================================== */
+  
+  /* 按钮 */
+  --button-height-sm: 32px;
+  --button-height-md: 40px;
+  --button-height-lg: 48px;
+  --button-padding-x-sm: 12px;
+  --button-padding-x-md: 16px;
+  --button-padding-x-lg: 24px;
+  --button-font-size-sm: 14px;
+  --button-font-size-md: 16px;
+  --button-font-size-lg: 18px;
+  
+  /* 输入框 */
+  --input-height-sm: 32px;
+  --input-height-md: 40px;
+  --input-height-lg: 48px;
+  --input-padding-x: 12px;
+  --input-border-width: 1px;
+  
+  /* 卡片 */
+  --card-padding-sm: 16px;
+  --card-padding-md: 24px;
+  --card-padding-lg: 32px;
+  --card-border-width: 1px;
+  
+  /* 模态框 */
+  --modal-backdrop-opacity: 0.5;
+  --modal-max-width-sm: 400px;
+  --modal-max-width-md: 600px;
+  --modal-max-width-lg: 800px;
+  --modal-max-width-xl: 1200px;
+  
+  /* ==========================================================================
+     交互状态 (Interaction States)
+     ========================================================================== */
+  
+  /* 悬停状态 */
+  --hover-opacity: 0.8;
+  --hover-scale: 1.05;
+  --hover-translate-y: -2px;
+  
+  /* 激活状态 */
+  --active-scale: 0.95;
+  --active-opacity: 0.9;
+  
+  /* 焦点状态 */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --focus-ring-opacity: 0.5;
+  
+  /* 禁用状态 */
+  --disabled-opacity: 0.5;
+  --disabled-cursor: not-allowed;
+
+  /* ==========================================================================
+     石榴主题装饰元素 (Pomegranate Theme Decorative Elements)
+     ========================================================================== */
+
+  /* 装饰性图案 (Decorative Patterns) */
+  --pattern-pomegranate: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="20" fill="%23dc2626" opacity="0.1"/><path d="M45 35 Q50 25 55 35 Q60 45 50 55 Q40 45 45 35" fill="%23ec4899" opacity="0.15"/></svg>');
+  --pattern-floral: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60"><path d="M30 10 Q35 20 30 30 Q25 20 30 10" fill="%23f472b6" opacity="0.1"/><path d="M10 30 Q20 25 30 30 Q20 35 10 30" fill="%23ec4899" opacity="0.1"/><path d="M50 30 Q40 25 30 30 Q40 35 50 30" fill="%23db2777" opacity="0.1"/><path d="M30 50 Q25 40 30 30 Q35 40 30 50" fill="%23be185d" opacity="0.1"/></svg>');
+  --pattern-leaves: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M20 5 Q30 15 20 25 Q15 20 20 5" fill="%2316a34a" opacity="0.12"/><path d="M35 20 Q25 30 15 20 Q20 15 35 20" fill="%2315803d" opacity="0.12"/></svg>');
+
+  /* 渐变背景 (Gradient Backgrounds) */
+  --gradient-pomegranate: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-pomegranate-600) 50%, var(--color-accent-600) 100%);
+  --gradient-floral: linear-gradient(45deg, var(--color-floral-pink-500) 0%, var(--color-accent-500) 100%);
+  --gradient-oriental: radial-gradient(circle at center, var(--color-pomegranate-900) 0%, var(--color-neutral-950) 70%);
+  --gradient-card: linear-gradient(145deg, rgba(220, 38, 38, 0.05) 0%, rgba(236, 72, 153, 0.03) 100%);
+
+  /* 阴影效果 (Shadow Effects) */
+  --shadow-pomegranate: 0 4px 20px rgba(220, 38, 38, 0.15);
+  --shadow-floral: 0 4px 20px rgba(236, 72, 153, 0.15);
+  --shadow-oriental: 0 8px 32px rgba(5, 5, 5, 0.4), 0 2px 8px rgba(220, 38, 38, 0.1);
+  --shadow-glow: 0 0 20px rgba(220, 38, 38, 0.3), 0 0 40px rgba(236, 72, 153, 0.2);
+
+  /* 动画时长 (Animation Durations) */
+  --duration-pomegranate: 0.6s;
+  --duration-floral: 0.4s;
+  --duration-oriental: 0.8s;
+  --duration-glow: 2s;
+
+  /* 缓动函数 (Easing Functions) */
+  --ease-pomegranate: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-floral: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-oriental: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  /* 边框装饰 (Decorative Borders) */
+  --border-pomegranate: 2px solid var(--color-primary-500);
+  --border-floral: 1px solid var(--color-floral-pink-400);
+  --border-oriental: 3px double var(--color-pomegranate-600);
+  --border-gradient: linear-gradient(90deg, var(--color-primary-500), var(--color-accent-500), var(--color-pomegranate-500));
+
+  /* 文字装饰 (Text Decorations) */
+  --text-shadow-pomegranate: 0 2px 4px rgba(220, 38, 38, 0.3);
+  --text-shadow-floral: 0 1px 3px rgba(236, 72, 153, 0.4);
+  --text-shadow-glow: 0 0 10px rgba(220, 38, 38, 0.5), 0 0 20px rgba(236, 72, 153, 0.3);
+
+  /* 滤镜效果 (Filter Effects) */
+  --filter-pomegranate: drop-shadow(0 4px 8px rgba(220, 38, 38, 0.2));
+  --filter-floral: drop-shadow(0 2px 6px rgba(236, 72, 153, 0.25));
+  --filter-glow: drop-shadow(0 0 10px rgba(220, 38, 38, 0.4)) drop-shadow(0 0 20px rgba(236, 72, 153, 0.2));
+  --filter-blur: blur(0.5px);
+
+  /* 变换效果 (Transform Effects) */
+  --transform-float: translateY(-2px);
+  --transform-scale-up: scale(1.05);
+  --transform-scale-down: scale(0.95);
+  --transform-rotate: rotate(1deg);
+  --transform-skew: skew(-1deg, 0deg);
+}
+
+/* ==========================================================================
+   色彩无障碍支持 (Color Accessibility Support)
+   ========================================================================== */
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  :root {
+    --text-primary: #ffffff;
+    --text-secondary: #e5e5e5;
+    --border-primary: #ffffff;
+    --bg-primary: #000000;
+    --bg-secondary: #1a1a1a;
+  }
+}
+
+/* 减少动画偏好支持 */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-75: 0ms;
+    --duration-100: 0ms;
+    --duration-150: 0ms;
+    --duration-200: 0ms;
+    --duration-300: 0ms;
+    --duration-500: 0ms;
+    --duration-700: 0ms;
+    --duration-1000: 0ms;
+  }
+  
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 暗色主题偏好支持 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}

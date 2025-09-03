@@ -1,0 +1,71 @@
+{
+  "timestamp": "2025-08-22T03:04:40.897Z",
+  "testType": "Payment System Test",
+  "summary": {
+    "total": 8,
+    "passed": 1,
+    "failed": 7,
+    "successRate": "12.5%"
+  },
+  "testUser": {
+    "email": "payment_test_1755831877564@example.com"
+  },
+  "tests": [
+    {
+      "name": "用户注册",
+      "success": true,
+      "details": "状态码: 201, Token获取成功",
+      "duration": "2716ms",
+      "timestamp": "2025-08-22T03:04:40.361Z"
+    },
+    {
+      "name": "支付端点可用性",
+      "success": false,
+      "details": "状态码: 404, 支付端点不存在",
+      "duration": "27ms",
+      "timestamp": "2025-08-22T03:04:40.389Z"
+    },
+    {
+      "name": "支付方式列表",
+      "success": false,
+      "details": "状态码: 404, 支付方式端点不存在",
+      "duration": "13ms",
+      "timestamp": "2025-08-22T03:04:40.403Z"
+    },
+    {
+      "name": "支付意图创建",
+      "success": false,
+      "details": "状态码: 404, 支付意图端点不存在",
+      "duration": "10ms",
+      "timestamp": "2025-08-22T03:04:40.414Z"
+    },
+    {
+      "name": "支付历史查询",
+      "success": false,
+      "details": "状态码: 500, 错误: {\"error\":\"Internal Server Error\",\"message\":\"Failed to fetch transaction history\"}",
+      "duration": "332ms",
+      "timestamp": "2025-08-22T03:04:40.746Z"
+    },
+    {
+      "name": "支付回调处理",
+      "success": false,
+      "details": "状态码: 404, 支付回调端点不存在",
+      "duration": "81ms",
+      "timestamp": "2025-08-22T03:04:40.827Z"
+    },
+    {
+      "name": "支付退款",
+      "success": false,
+      "details": "状态码: 404, 支付退款端点不存在",
+      "duration": "27ms",
+      "timestamp": "2025-08-22T03:04:40.855Z"
+    },
+    {
+      "name": "支付安全验证",
+      "success": false,
+      "details": "状态码: 404, 支付端点不存在",
+      "duration": "39ms",
+      "timestamp": "2025-08-22T03:04:40.895Z"
+    }
+  ]
+}

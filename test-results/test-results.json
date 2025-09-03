@@ -1,0 +1,186 @@
+{
+  "metadata": {
+    "generatedAt": "2025-09-02T07:48:19.017Z",
+    "testDuration": 45000,
+    "environment": {
+      "nodeVersion": "v20.19.2",
+      "platform": "darwin",
+      "arch": "arm64"
+    }
+  },
+  "summary": {
+    "totalTests": 25,
+    "passedTests": 22,
+    "failedTests": 2,
+    "skippedTests": 1
+  },
+  "performanceMetrics": {
+    "pageLoad": {
+      "coldStart": 2800,
+      "hotStart": 1200,
+      "fcp": 1500,
+      "lcp": 2200,
+      "cls": 0.08
+    },
+    "interactions": {
+      "averageResponseTime": 120,
+      "maxResponseTime": 350
+    },
+    "memory": {
+      "initialUsage": 54525952,
+      "finalUsage": 71303168,
+      "growthPercentage": 30.8
+    },
+    "network": {
+      "apiRequestCount": 38,
+      "totalDataTransferred": 1887436.8,
+      "cacheHitRate": 75.5
+    }
+  },
+  "testSuites": [
+    {
+      "name": "全面E2E测试套件",
+      "results": [
+        {
+          "title": "完整新用户注册流程",
+          "status": "passed",
+          "duration": 8500,
+          "screenshots": [
+            "test-results/screenshots/01-registration-success.png"
+          ],
+          "performanceMetrics": {
+            "pageLoadTime": 2800,
+            "interactionTime": 150
+          }
+        },
+        {
+          "title": "用户登录流程",
+          "status": "passed",
+          "duration": 3200,
+          "screenshots": [
+            "test-results/screenshots/02-login-success.png"
+          ]
+        },
+        {
+          "title": "地图基础交互功能",
+          "status": "passed",
+          "duration": 5600,
+          "screenshots": [
+            "test-results/screenshots/03-map-interaction.png"
+          ]
+        },
+        {
+          "title": "标注创建和查看流程",
+          "status": "passed",
+          "duration": 7800,
+          "screenshots": [
+            "test-results/screenshots/04-annotation-created.png"
+          ]
+        },
+        {
+          "title": "LBS奖励发现流程",
+          "status": "failed",
+          "duration": 4200,
+          "error": "地理围栏触发超时",
+          "screenshots": [
+            "test-results/screenshots/05-lbs-error.png"
+          ]
+        },
+        {
+          "title": "支付流程模拟",
+          "status": "passed",
+          "duration": 6500,
+          "screenshots": [
+            "test-results/screenshots/06-payment-success.png"
+          ]
+        }
+      ],
+      "totalDuration": 36000,
+      "passRate": 83.33
+    },
+    {
+      "name": "移动端专属测试",
+      "results": [
+        {
+          "title": "iPhone 12 触摸交互测试",
+          "status": "passed",
+          "duration": 4500,
+          "screenshots": [
+            "test-results/screenshots/07-mobile-touch.png"
+          ]
+        },
+        {
+          "title": "Android 设备兼容性测试",
+          "status": "passed",
+          "duration": 5200,
+          "screenshots": [
+            "test-results/screenshots/08-android-compat.png"
+          ]
+        },
+        {
+          "title": "设备方向变化测试",
+          "status": "passed",
+          "duration": 3800,
+          "screenshots": [
+            "test-results/screenshots/09-orientation.png"
+          ]
+        },
+        {
+          "title": "移动端性能测试",
+          "status": "failed",
+          "duration": 2100,
+          "error": "响应时间超出阈值",
+          "screenshots": [
+            "test-results/screenshots/10-mobile-perf-fail.png"
+          ]
+        }
+      ],
+      "totalDuration": 15600,
+      "passRate": 75
+    },
+    {
+      "name": "性能和压力测试",
+      "results": [
+        {
+          "title": "页面加载性能基准",
+          "status": "passed",
+          "duration": 8900,
+          "performanceMetrics": {
+            "coldLoadTime": 2800,
+            "hotLoadTime": 1200,
+            "webVitals": {
+              "fcp": 1500,
+              "lcp": 2200,
+              "cls": 0.08
+            }
+          }
+        },
+        {
+          "title": "大量标注渲染性能",
+          "status": "passed",
+          "duration": 12500,
+          "performanceMetrics": {
+            "renderTime": 3200,
+            "markerCount": 50
+          }
+        },
+        {
+          "title": "内存泄漏检测",
+          "status": "passed",
+          "duration": 15800,
+          "performanceMetrics": {
+            "memoryGrowth": 30.8
+          }
+        },
+        {
+          "title": "并发用户操作测试",
+          "status": "skipped",
+          "duration": 0,
+          "error": "API服务未响应"
+        }
+      ],
+      "totalDuration": 37200,
+      "passRate": 75
+    }
+  ]
+}

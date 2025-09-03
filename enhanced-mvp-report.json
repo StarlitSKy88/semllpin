@@ -1,0 +1,95 @@
+{
+  "timestamp": "2025-09-01T11:20:29.502Z",
+  "overall": {
+    "status": "needs_fixes",
+    "totalIssues": 3,
+    "blockingIssues": 2,
+    "canDeploy": true,
+    "recommendation": "fix_critical"
+  },
+  "frontend": {
+    "status": "fail",
+    "issues": [
+      "关键页面登录页面不存在",
+      "关键页面注册页面不存在"
+    ],
+    "tests": {
+      "主页": "pass",
+      "地图页面": "pass",
+      "登录页面": "not_found",
+      "注册页面": "not_found",
+      "个人资料页面": "pass",
+      "设置页面": "pass",
+      "CSS样式": "pass",
+      "JS脚本": "pass"
+    }
+  },
+  "backend": {
+    "status": "pass",
+    "issues": [],
+    "tests": {
+      "Backend-3004-health": "pass",
+      "Backend-3004-health-format": "pass",
+      "Backend-3004-API文档": "pass",
+      "Backend-3004-用户注册": "pass",
+      "Backend-3004-用户登录": "pass",
+      "Backend-3004-标注列表": "pass",
+      "Backend-3004-LBS查询": "pass",
+      "Backend-3004-支付创建": "pass",
+      "Backend-3004-地理编码": "pass",
+      "Backend-3004-反地理编码": "pass",
+      "Backend-3005-health": "pass",
+      "Backend-3005-health-format": "pass",
+      "Backend-3005-API文档": "pass",
+      "Backend-3005-用户注册": "pass",
+      "Backend-3005-用户登录": "pass",
+      "Backend-3005-标注列表": "pass",
+      "Backend-3005-LBS查询": "pass",
+      "Backend-3005-支付创建": "pass",
+      "Backend-3005-地理编码": "pass",
+      "Backend-3005-反地理编码": "pass"
+    }
+  },
+  "database": {
+    "status": "warning",
+    "issues": [
+      "数据库功能标注数据查询异常"
+    ],
+    "tests": {
+      "PostGIS地理查询": "pass",
+      "PostGIS地理查询-format": "pass",
+      "标注数据查询": "fail",
+      "data-integrity": "warning"
+    }
+  },
+  "business": {
+    "status": "pass",
+    "issues": [],
+    "tests": {
+      "用户注册端点": "pass",
+      "用户登录端点": "pass",
+      "LBS位置服务": "pass",
+      "标注创建端点": "pass",
+      "支付系统": "pass"
+    }
+  },
+  "security": {
+    "status": "pass",
+    "issues": [],
+    "tests": {
+      "Backend-3004-x-frame-options": "pass",
+      "Backend-3004-x-content-type-options": "pass",
+      "Backend-3004-x-xss-protection": "pass",
+      "Backend-3004-strict-transport-security": "missing",
+      "Backend-3004-content-security-policy": "pass",
+      "Backend-3005-x-frame-options": "pass",
+      "Backend-3005-x-content-type-options": "pass",
+      "Backend-3005-x-xss-protection": "pass",
+      "Backend-3005-strict-transport-security": "missing",
+      "Backend-3005-content-security-policy": "pass",
+      "auth-/api/v1/annotations/create": "pass",
+      "auth-/api/v1/payments/create": "pass",
+      "auth-/api/v1/users/profile": "pass"
+    }
+  }
+}

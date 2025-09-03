@@ -1,0 +1,187 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmellPin 安全测试报告</title>
+    <style>
+        body { font-family: 'Microsoft YaHei', Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }
+        .content { padding: 30px; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0; }
+        .stat-card { background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; border-left: 4px solid #007bff; }
+        .stat-number { font-size: 2em; font-weight: bold; color: #333; }
+        .stat-label { color: #666; margin-top: 5px; }
+        .critical { border-left-color: #dc3545; }
+        .high { border-left-color: #fd7e14; }
+        .medium { border-left-color: #ffc107; }
+        .low { border-left-color: #28a745; }
+        .issue { margin: 20px 0; padding: 20px; border-radius: 8px; border-left: 4px solid #ddd; }
+        .issue.critical { border-left-color: #dc3545; background: #fff5f5; }
+        .issue.high { border-left-color: #fd7e14; background: #fff8f0; }
+        .issue.medium { border-left-color: #ffc107; background: #fffdf0; }
+        .issue.low { border-left-color: #17a2b8; background: #f0f9ff; }
+        .issue-title { font-weight: bold; margin-bottom: 10px; }
+        .issue-description { margin-bottom: 10px; }
+        .recommendation { background: #e8f5e8; padding: 15px; border-radius: 5px; margin-top: 10px; }
+        .section { margin: 30px 0; }
+        .section h2 { border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        .compliance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .compliance-item { padding: 15px; border-radius: 8px; }
+        .compliance-pass { background: #d4edda; border: 1px solid #c3e6cb; }
+        .compliance-fail { background: #f8d7da; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 SmellPin 安全测试报告</h1>
+            <p>生成时间: 2025/9/2 15:34:09</p>
+            <p>测试持续时间: 1秒</p>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>📊 测试摘要</h2>
+                <div class="summary">
+                    <div class="stat-card critical">
+                        <div class="stat-number">0</div>
+                        <div class="stat-label">严重漏洞</div>
+                    </div>
+                    <div class="stat-card high">
+                        <div class="stat-number">2</div>
+                        <div class="stat-label">高风险问题</div>
+                    </div>
+                    <div class="stat-card medium">
+                        <div class="stat-number">1</div>
+                        <div class="stat-label">中风险问题</div>
+                    </div>
+                    <div class="stat-card low">
+                        <div class="stat-number">6</div>
+                        <div class="stat-label">通过测试</div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="section">
+                <h2>🚨 发现的安全漏洞</h2>
+                
+                <div class="issue high">
+                    <div class="issue-title">[HIGH] JWT密钥强度不足</div>
+                    <div class="issue-description">JWT密钥长度为24字符，建议至少32字符</div>
+                    <pre>{
+  "jwtSecretLength": 24
+}</pre>
+                    <div class="recommendation"><strong>修复建议:</strong> 使用至少32字符的强随机密钥，包含大小写字母、数字和特殊字符</div>
+                </div>
+                
+                <div class="issue high">
+                    <div class="issue-title">[HIGH] HTTP协议安全风险</div>
+                    <div class="issue-description">应用使用HTTP协议传输数据，存在中间人攻击风险</div>
+                    <pre>{
+  "currentProtocol": "HTTP"
+}</pre>
+                    <div class="recommendation"><strong>修复建议:</strong> 在生产环境中强制使用HTTPS，配置SSL/TLS证书</div>
+                </div>
+                
+                <div class="issue medium">
+                    <div class="issue-title">[MEDIUM] 速率限制缺失</div>
+                    <div class="issue-description">API端点未实施速率限制，可能遭受暴力攻击</div>
+                    <pre>{
+  "testEndpoint": "/api/annotations/search?q=test",
+  "totalRequests": 50,
+  "rateLimitedRequests": 0
+}</pre>
+                    <div class="recommendation"><strong>修复建议:</strong> 为所有API端点实施适当的速率限制</div>
+                </div>
+                
+            </div>
+
+            
+
+            <div class="section">
+                <h2>💡 修复建议</h2>
+                
+                <div class="issue high">
+                    <div class="issue-title">[HIGH] 加强身份验证和授权机制</div>
+                    <div class="issue-description">改进用户身份验证和访问控制系统</div>
+                    <ul>
+                        <li>实施多因素认证(MFA)</li><li>加强JWT令牌安全性</li><li>定期审查用户权限</li><li>实施会话超时机制</li>
+                    </ul>
+                </div>
+                
+                <div class="issue medium">
+                    <div class="issue-title">[MEDIUM] 安全配置最佳实践</div>
+                    <div class="issue-description">实施行业标准的安全配置</div>
+                    <ul>
+                        <li>配置安全HTTP头</li><li>启用HTTPS并配置HSTS</li><li>实施内容安全策略(CSP)</li><li>定期更新依赖包</li><li>配置错误监控和日志记录</li>
+                    </ul>
+                </div>
+                
+            </div>
+
+            <div class="section">
+                <h2>📋 合规性检查</h2>
+                <h3>OWASP Top 10</h3>
+                <div class="compliance-grid">
+                    
+                    <div class="compliance-item compliance-fail">
+                        <strong>A01:2021 - Broken Access Control</strong><br>
+                        状态: ❌ 未通过
+                    </div>
+                    
+                    <div class="compliance-item compliance-pass">
+                        <strong>A02:2021 - Cryptographic Failures</strong><br>
+                        状态: ✅ 通过
+                    </div>
+                    
+                    <div class="compliance-item compliance-pass">
+                        <strong>A03:2021 - Injection</strong><br>
+                        状态: ✅ 通过
+                    </div>
+                    
+                    <div class="compliance-item compliance-pass">
+                        <strong>A04:2021 - Insecure Design</strong><br>
+                        状态: ✅ 通过
+                    </div>
+                    
+                    <div class="compliance-item compliance-fail">
+                        <strong>A05:2021 - Security Misconfiguration</strong><br>
+                        状态: ❌ 未通过
+                    </div>
+                    
+                    <div class="compliance-item compliance-pass">
+                        <strong>A06:2021 - Vulnerable Components</strong><br>
+                        状态: ✅ 通过
+                    </div>
+                    
+                    <div class="compliance-item compliance-fail">
+                        <strong>A07:2021 - Authentication Failures</strong><br>
+                        状态: ❌ 未通过
+                    </div>
+                    
+                    <div class="compliance-item compliance-pass">
+                        <strong>A08:2021 - Software Integrity Failures</strong><br>
+                        状态: ✅ 通过
+                    </div>
+                    
+                    <div class="compliance-item compliance-pass">
+                        <strong>A09:2021 - Security Logging Failures</strong><br>
+                        状态: ✅ 通过
+                    </div>
+                    
+                    <div class="compliance-item compliance-pass">
+                        <strong>A10:2021 - Server-Side Request Forgery</strong><br>
+                        状态: ✅ 通过
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

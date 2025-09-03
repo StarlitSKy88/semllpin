@@ -1,0 +1,48 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/((?!assets/).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "env": {
+    "VITE_API_URL": "https://smellpin-workers.dev-small-1.workers.dev",
+    "VITE_WS_URL": "wss://smellpin-workers.dev-small-1.workers.dev",
+    "VITE_NODE_ENV": "production",
+    "VITE_GOOGLE_MAPS_API_KEY": "",
+    "VITE_VAPID_PUBLIC_KEY": "",
+    "VITE_PAYPAL_CLIENT_ID": ""
+  },
+  "build": {
+    "env": {
+      "VITE_API_URL": "https://smellpin-workers.dev-small-1.workers.dev",
+      "VITE_WS_URL": "wss://smellpin-workers.dev-small-1.workers.dev",
+      "VITE_NODE_ENV": "production",
+       "VITE_GOOGLE_MAPS_API_KEY": "",
+       "VITE_VAPID_PUBLIC_KEY": "",
+       "VITE_PAYPAL_CLIENT_ID": ""
+    }
+  },
+
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "timestamp": "2025-09-02T07:48:56.337Z",
+  "summary": {
+    "totalTests": 0,
+    "totalPassed": 0,
+    "totalFailed": 0,
+    "successRate": 0
+  },
+  "results": {
+    "auth": {
+      "success": true,
+      "totalTests": 0,
+      "passed": 0,
+      "failed": 0,
+      "scripts": [
+        "src/controllers/__tests__/userController.test.ts"
+      ]
+    },
+    "lbs": {
+      "success": true,
+      "totalTests": 0,
+      "passed": 0,
+      "failed": 0,
+      "scripts": [
+        "src/services/__tests__/geofenceService.test.ts",
+        "src/services/__tests__/rewardCalculationService.test.ts"
+      ]
+    },
+    "annotations": {
+      "success": true,
+      "totalTests": 0,
+      "passed": 0,
+      "failed": 0,
+      "scripts": [
+        "src/controllers/__tests__/annotationController.test.ts"
+      ]
+    },
+    "security": {
+      "success": true,
+      "totalTests": 0,
+      "passed": 0,
+      "failed": 0,
+      "scripts": [
+        "src/middleware/__tests__/auth.test.ts"
+      ]
+    },
+    "database": {
+      "success": true,
+      "totalTests": 0,
+      "passed": 0,
+      "failed": 0,
+      "scripts": [
+        "src/__tests__/integration/database.integration.test.ts"
+      ]
+    },
+    "integration": {
+      "success": true,
+      "totalTests": 0,
+      "passed": 0,
+      "failed": 0,
+      "scripts": [
+        "src/__tests__/integration/api.integration.test.ts",
+        "src/__tests__/integration/auth.integration.test.ts"
+      ]
+    },
+    "performance": {
+      "success": true,
+      "totalTests": 0,
+      "passed": 0,
+      "failed": 0,
+      "scripts": [
+        "src/__tests__/performance/load.test.ts"
+      ]
+    }
+  },
+  "environment": {
+    "nodeVersion": "v20.19.2",
+    "platform": "darwin",
+    "cwd": "/Users/xiaoyang/Downloads/臭味"
+  }
+}

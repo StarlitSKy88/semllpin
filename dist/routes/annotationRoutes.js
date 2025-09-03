@@ -1,0 +1,32 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const annotationController_1 = __importDefault(require("@/controllers/annotationController"));
+const express_validator_1 = require("express-validator");
+const auth_1 = require("@/middleware/auth");
+const validation_1 = require("@/middleware/validation");
+const router = (0, express_1.Router)();
+router.get('/list', auth_1.optionalAuthMiddleware, (0, validation_1.validateRequest)(validation_1.annotationSchemas.getList), annotationController_1.default.getAnnotationsList);
+router.get('/map', auth_1.optionalAuthMiddleware, (0, validation_1.validateRequest)(validation_1.annotationSchemas.getMapData), annotationController_1.default.getMapData);
+router.get('/nearby', auth_1.optionalAuthMiddleware, annotationController_1.default.getNearbyAnnotations);
+router.get('/stats', auth_1.optionalAuthMiddleware, annotationController_1.default.getAnnotationStats);
+router.get('/:id/details', auth_1.optionalAuthMiddleware, annotationController_1.default.getAnnotationDetails);
+router.get('/:id', auth_1.optionalAuthMiddleware, (0, validation_1.validateRequest)(validation_1.annotationSchemas.getById), annotationController_1.default.getAnnotationById);
+router.use(auth_1.authMiddleware);
+router.post('/', (0, validation_1.validateRequest)(validation_1.annotationSchemas.create), annotationController_1.default.createAnnotation);
+router.post('/paid-prank', (0, express_validator_1.body)('latitude').isFloat({ min: -90, max: 90 }).withMessage('纬度必须在-90到90之间'), (0, express_validator_1.body)('longitude').isFloat({ min: -180, max: 180 }).withMessage('经度必须在-180到180之间'), (0, express_validator_1.body)('smellIntensity').isInt({ min: 1, max: 10 }).withMessage('臭味强度必须在1-10之间'), (0, express_validator_1.body)('description').optional().isLength({ max: 500 }).withMessage('描述不能超过500字符'), (0, express_validator_1.body)('amount').isFloat({ min: 1, max: 100 }).withMessage('支付金额必须在$1-$100之间'), (0, express_validator_1.body)('currency').optional().isIn(['usd', 'eur', 'gbp', 'cny']).withMessage('不支持的货币类型'), (0, express_validator_1.body)('mediaFiles').optional().isArray().withMessage('媒体文件必须是数组'), (0, express_validator_1.body)('paymentDescription').optional().isLength({ max: 200 }).withMessage('支付描述不能超过200字符'), validation_1.validateRequest, annotationController_1.default.createPaidPrankAnnotation);
+router.post('/paid-success', (0, express_validator_1.body)('sessionId').notEmpty().withMessage('支付会话ID不能为空'), validation_1.validateRequest, annotationController_1.default.handlePaidAnnotationSuccess);
+router.put('/:id', (0, validation_1.validateRequest)(validation_1.annotationSchemas.update), annotationController_1.default.updateAnnotation);
+router.delete('/:id', annotationController_1.default.deleteAnnotation);
+router.post('/:id/like', annotationController_1.default.likeAnnotation);
+router.delete('/:id/like', annotationController_1.default.unlikeAnnotation);
+router.get('/user/me', annotationController_1.default.getUserAnnotations);
+router.put('/:id/moderate', auth_1.requireModerator, (0, validation_1.validateRequest)(validation_1.adminSchemas.moderateAnnotation), annotationController_1.default.moderateAnnotation);
+router.get('/pending', auth_1.requireModerator, annotationController_1.default.getPendingAnnotations);
+router.post('/batch-moderate', auth_1.requireModerator, (0, express_validator_1.body)('annotationIds').isArray().withMessage('标注ID列表必须是数组'), (0, express_validator_1.body)('action').isIn(['approve', 'reject', 'flag']).withMessage('无效的审核操作'), (0, express_validator_1.body)('reason').optional().isLength({ max: 500 }).withMessage('审核原因不能超过500字符'), validation_1.validateRequest, annotationController_1.default.batchModerateAnnotations);
+router.get('/moderation-stats', auth_1.requireModerator, annotationController_1.default.getModerationStats);
+exports.default = router;
+//# sourceMappingURL=annotationRoutes.js.map

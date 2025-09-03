@@ -1,0 +1,281 @@
+{
+  "summary": {
+    "timestamp": "2025-09-01T07:40:59.839Z",
+    "totalTests": 28,
+    "passedTests": 6,
+    "failedTests": 22,
+    "skippedTests": 0,
+    "successRate": "21.4%",
+    "totalDuration": 5280
+  },
+  "modules": {
+    "用户管理系统": {
+      "name": "用户管理系统",
+      "tests": [
+        {
+          "name": "用户注册功能",
+          "status": "failed",
+          "duration": 12,
+          "details": "Expected status 201, got 401",
+          "stack": "Error: Expected status 201, got 401\n    at TestUtils.validateResponse (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:94:13)\n    at Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:241:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:149:7)\n    at async TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:22)\n    at async Object.testUserManagement [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:302:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        },
+        {
+          "name": "用户登录功能",
+          "status": "failed",
+          "duration": 31,
+          "details": "Expected status 200, got 401",
+          "stack": "Error: Expected status 200, got 401\n    at TestUtils.validateResponse (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:94:13)\n    at Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:255:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:149:7)\n    at async TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:22)\n    at async Object.testUserManagement [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:302:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        },
+        {
+          "name": "用户信息获取",
+          "status": "failed",
+          "duration": 10,
+          "details": "Expected status 200, got 401",
+          "stack": "Error: Expected status 200, got 401\n    at TestUtils.validateResponse (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:94:13)\n    at Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:268:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:149:7)\n    at async TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:22)\n    at async Object.testUserManagement [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:302:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        },
+        {
+          "name": "用户信息更新",
+          "status": "failed",
+          "duration": 5,
+          "details": "Expected status 200, got 401",
+          "stack": "Error: Expected status 200, got 401\n    at TestUtils.validateResponse (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:94:13)\n    at Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:283:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:149:7)\n    at async TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:22)\n    at async Object.testUserManagement [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:302:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        },
+        {
+          "name": "权限验证",
+          "status": "failed",
+          "duration": 5,
+          "details": "期望403状态码，得到401",
+          "stack": "Error: 期望403状态码，得到401\n    at Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:298:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:149:7)\n    at async TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:22)\n    at async Object.testUserManagement [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:302:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        }
+      ],
+      "summary": {
+        "total": 5,
+        "passed": 0,
+        "failed": 5,
+        "skipped": 0,
+        "duration": 63
+      }
+    },
+    "LBS奖励系统": {
+      "name": "LBS奖励系统",
+      "tests": [
+        {
+          "name": "准备测试用户",
+          "status": "passed",
+          "duration": 705,
+          "details": null
+        },
+        {
+          "name": "创建奖励标注",
+          "status": "failed",
+          "duration": 28,
+          "details": "Expected status 201, got 400",
+          "stack": "Error: Expected status 201, got 400\n    at TestUtils.validateResponse (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:94:13)\n    at Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:343:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:149:7)\n    at async TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:22)\n    at async Object.testLBSRewardSystem [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:394:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        },
+        {
+          "name": "地理围栏检测",
+          "status": "failed",
+          "duration": 0,
+          "details": "Cannot read properties of null (reading 'id')",
+          "stack": "TypeError: Cannot read properties of null (reading 'id')\n    at Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:349:39)\n    at TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:150:14)\n    at TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:33)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async Object.testLBSRewardSystem [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:394:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        },
+        {
+          "name": "奖励计算验证",
+          "status": "failed",
+          "duration": 4,
+          "details": "Expected status 200, got 404",
+          "stack": "Error: Expected status 200, got 404\n    at TestUtils.validateResponse (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:94:13)\n    at Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:371:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:149:7)\n    at async TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:22)\n    at async Object.testLBSRewardSystem [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:394:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        },
+        {
+          "name": "防作弊验证",
+          "status": "failed",
+          "duration": 0,
+          "details": "Cannot read properties of null (reading 'id')",
+          "stack": "TypeError: Cannot read properties of null (reading 'id')\n    at Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:377:39)\n    at TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:150:14)\n    at TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:33)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async Object.testLBSRewardSystem [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:394:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        }
+      ],
+      "summary": {
+        "total": 5,
+        "passed": 1,
+        "failed": 4,
+        "skipped": 0,
+        "duration": 737
+      }
+    },
+    "GPS防作弊系统": {
+      "name": "GPS防作弊系统",
+      "tests": [
+        {
+          "name": "准备测试用户",
+          "status": "passed",
+          "duration": 324,
+          "details": null
+        },
+        {
+          "name": "异常位置检测",
+          "status": "passed",
+          "duration": 6,
+          "details": null
+        },
+        {
+          "name": "正常位置验证",
+          "status": "failed",
+          "duration": 4,
+          "details": "Expected status 200, got 404",
+          "stack": "Error: Expected status 200, got 404\n    at TestUtils.validateResponse (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:94:13)\n    at Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:446:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:149:7)\n    at async TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:22)\n    at async Object.testGPSAntiCheat [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:459:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        },
+        {
+          "name": "位置历史分析",
+          "status": "failed",
+          "duration": 3,
+          "details": "Expected status 200, got 404",
+          "stack": "Error: Expected status 200, got 404\n    at TestUtils.validateResponse (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:94:13)\n    at Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:456:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:149:7)\n    at async TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:22)\n    at async Object.testGPSAntiCheat [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:459:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        }
+      ],
+      "summary": {
+        "total": 4,
+        "passed": 2,
+        "failed": 2,
+        "skipped": 0,
+        "duration": 337
+      }
+    },
+    "实时奖励分发引擎": {
+      "name": "实时奖励分发引擎",
+      "tests": [
+        {
+          "name": "准备测试用户",
+          "status": "failed",
+          "duration": 2,
+          "details": "Expected status 201, got 429",
+          "stack": "Error: Expected status 201, got 429\n    at TestUtils.validateResponse (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:94:13)\n    at Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:474:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:149:7)\n    at async TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:22)\n    at async Object.testRewardDistribution [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:533:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        },
+        {
+          "name": "奖励发放功能",
+          "status": "failed",
+          "duration": 6,
+          "details": "Expected status 200, got 404",
+          "stack": "Error: Expected status 200, got 404\n    at TestUtils.validateResponse (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:94:13)\n    at Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:491:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:149:7)\n    at async TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:22)\n    at async Object.testRewardDistribution [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:533:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        },
+        {
+          "name": "钱包余额查询",
+          "status": "failed",
+          "duration": 2,
+          "details": "Expected status 200, got 401",
+          "stack": "Error: Expected status 200, got 401\n    at TestUtils.validateResponse (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:94:13)\n    at Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:501:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:149:7)\n    at async TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:22)\n    at async Object.testRewardDistribution [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:533:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        },
+        {
+          "name": "交易记录查询",
+          "status": "failed",
+          "duration": 3,
+          "details": "Expected status 200, got 401",
+          "stack": "Error: Expected status 200, got 401\n    at TestUtils.validateResponse (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:94:13)\n    at Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:511:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:149:7)\n    at async TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:22)\n    at async Object.testRewardDistribution [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:533:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        },
+        {
+          "name": "资金管理功能",
+          "status": "failed",
+          "duration": 5,
+          "details": "Unexpected status: 401",
+          "stack": "Error: Unexpected status: 401\n    at Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:529:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:149:7)\n    at async TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:22)\n    at async Object.testRewardDistribution [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:533:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        }
+      ],
+      "summary": {
+        "total": 5,
+        "passed": 0,
+        "failed": 5,
+        "skipped": 0,
+        "duration": 19
+      }
+    },
+    "社交互动功能": {
+      "name": "社交互动功能",
+      "tests": [
+        {
+          "name": "准备测试用户",
+          "status": "failed",
+          "duration": 2,
+          "details": "Expected status 201, got 429",
+          "stack": "Error: Expected status 201, got 429\n    at TestUtils.validateResponse (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:94:13)\n    at Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:551:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:149:7)\n    at async TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:22)\n    at async Object.testSocialInteraction [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:620:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        },
+        {
+          "name": "关注系统测试",
+          "status": "failed",
+          "duration": 2005,
+          "details": "Cannot read properties of null (reading 'username')",
+          "stack": "TypeError: Cannot read properties of null (reading 'username')\n    at /Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:564:52\n    at TestUtils.retryRequest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:60:30)\n    at async Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:563:24)\n    at async TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:149:7)\n    at async TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:22)\n    at async Object.testSocialInteraction [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:620:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        },
+        {
+          "name": "创建标注用于互动",
+          "status": "failed",
+          "duration": 25,
+          "details": "Expected status 201, got 401",
+          "stack": "Error: Expected status 201, got 401\n    at TestUtils.validateResponse (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:94:13)\n    at Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:581:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:149:7)\n    at async TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:22)\n    at async Object.testSocialInteraction [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:620:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        },
+        {
+          "name": "评论功能测试",
+          "status": "failed",
+          "duration": 1,
+          "details": "Cannot read properties of null (reading 'id')",
+          "stack": "TypeError: Cannot read properties of null (reading 'id')\n    at Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:588:39)\n    at TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:150:14)\n    at TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:33)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async Object.testSocialInteraction [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:620:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        },
+        {
+          "name": "点赞功能测试",
+          "status": "failed",
+          "duration": 2003,
+          "details": "Cannot read properties of null (reading 'id')",
+          "stack": "TypeError: Cannot read properties of null (reading 'id')\n    at /Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:602:59\n    at TestUtils.retryRequest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:60:30)\n    at async Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:601:24)\n    at async TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:149:7)\n    at async TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:22)\n    at async Object.testSocialInteraction [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:620:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        },
+        {
+          "name": "动态流查询",
+          "status": "failed",
+          "duration": 26,
+          "details": "Expected status 200, got 401",
+          "stack": "Error: Expected status 200, got 401\n    at TestUtils.validateResponse (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:94:13)\n    at Object.testFn (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:617:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async TestRunner.runTest (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:149:7)\n    at async TestRunner.run (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:186:22)\n    at async Object.testSocialInteraction [as testFn] (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:620:10)\n    at async runComprehensiveFunctionalTests (/Users/xiaoyang/Downloads/臭味/comprehensive-functional-tests.js:696:9)"
+        }
+      ],
+      "summary": {
+        "total": 6,
+        "passed": 0,
+        "failed": 6,
+        "skipped": 0,
+        "duration": 4063
+      }
+    },
+    "管理后台功能": {
+      "name": "管理后台功能",
+      "tests": [
+        {
+          "name": "内容审核功能",
+          "status": "passed",
+          "duration": 4,
+          "details": null
+        },
+        {
+          "name": "数据统计查询",
+          "status": "passed",
+          "duration": 3,
+          "details": null
+        },
+        {
+          "name": "日志管理功能",
+          "status": "passed",
+          "duration": 3,
+          "details": null
+        }
+      ],
+      "summary": {
+        "total": 3,
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "duration": 10
+      }
+    }
+  },
+  "recommendations": [
+    {
+      "type": "low_success_rate",
+      "message": "测试成功率较低(21.4%)，建议检查失败的测试用例"
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "timestamp": "2025-08-22T10:59:37.677Z",
+  "issues": [
+    {
+      "id": "lbs-tables-missing",
+      "title": "LBS系统表缺失",
+      "description": "checkin_records和reward_records表不存在或结构不正确",
+      "severity": "high",
+      "status": "identified",
+      "solution": {
+        "type": "database_migration",
+        "description": "需要创建LBS系统所需的数据库表",
+        "steps": [
+          "1. 确保PostgreSQL数据库正在运行",
+          "2. 执行create-lbs-tables.sql脚本创建表结构",
+          "3. 验证表结构是否正确创建",
+          "4. 运行LBS系统测试验证功能"
+        ]
+      }
+    },
+    {
+      "id": "uuid-integer-mismatch",
+      "title": "UUID与Integer类型不匹配",
+      "description": "checkin_records和reward_records表的user_id字段类型与代码逻辑不匹配",
+      "severity": "high",
+      "status": "partially_fixed",
+      "solution": {
+        "type": "code_modification",
+        "description": "已修改代码使用哈希转换来兼容integer类型的user_id字段",
+        "implementation": {
+          "file": "src/routes/lbs.ts",
+          "changes": [
+            "添加了UUID到integer的哈希转换函数",
+            "修改了所有涉及user_id的查询和插入操作",
+            "确保哈希值在PostgreSQL integer范围内"
+          ]
+        }
+      }
+    },
+    {
+      "id": "database-connection",
+      "title": "数据库连接问题",
+      "description": "无法连接到PostgreSQL数据库",
+      "severity": "critical",
+      "status": "needs_attention",
+      "solution": {
+        "type": "infrastructure",
+        "description": "需要启动PostgreSQL数据库服务",
+        "options": [
+          {
+            "name": "Docker Compose",
+            "command": "docker-compose up -d postgres",
+            "requirements": [
+              "Docker Desktop已安装并运行"
+            ]
+          },
+          {
+            "name": "本地PostgreSQL",
+            "command": "brew services start postgresql",
+            "requirements": [
+              "已通过Homebrew安装PostgreSQL"
+            ]
+          },
+          {
+            "name": "云数据库",
+            "description": "使用Neon、Supabase或其他云PostgreSQL服务",
+            "requirements": [
+              "配置DATABASE_URL环境变量"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "recommendations": [
+    {
+      "priority": "high",
+      "action": "启动数据库服务",
+      "description": "首先确保PostgreSQL数据库正在运行，这是所有后续操作的前提"
+    },
+    {
+      "priority": "high",
+      "action": "创建LBS表结构",
+      "description": "执行create-lbs-tables.sql脚本创建必需的表结构"
+    },
+    {
+      "priority": "medium",
+      "action": "验证修复效果",
+      "description": "运行LBS系统测试确认所有功能正常工作"
+    },
+    {
+      "priority": "low",
+      "action": "优化数据库设计",
+      "description": "考虑统一使用UUID类型以避免类型转换的复杂性"
+    }
+  ],
+  "next_steps": [
+    "1. 启动PostgreSQL数据库服务",
+    "2. 执行create-lbs-tables.sql脚本",
+    "3. 运行LBS系统测试",
+    "4. 如果测试通过，标记修复完成"
+  ]
+}

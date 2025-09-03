@@ -1,0 +1,67 @@
+{
+  "timestamp": "2025-09-02T11:03:25.896Z",
+  "summary": {
+    "total": 8,
+    "passed": 0,
+    "failed": 8,
+    "successRate": "0.0%"
+  },
+  "tests": [
+    {
+      "name": "数据库连接",
+      "success": false,
+      "details": "网络错误: ",
+      "duration": "17ms",
+      "timestamp": "2025-09-02T11:03:25.878Z"
+    },
+    {
+      "name": "数据库信息查询",
+      "success": false,
+      "details": "网络错误: ",
+      "duration": "3ms",
+      "timestamp": "2025-09-02T11:03:25.882Z"
+    },
+    {
+      "name": "用户注册（数据写入）",
+      "success": false,
+      "details": "网络错误: ",
+      "duration": "1ms",
+      "timestamp": "2025-09-02T11:03:25.883Z"
+    },
+    {
+      "name": "用户数据读取",
+      "success": false,
+      "details": "没有可用的认证Token",
+      "duration": "0ms",
+      "timestamp": "2025-09-02T11:03:25.883Z"
+    },
+    {
+      "name": "标注数据读取",
+      "success": false,
+      "details": "网络错误: ",
+      "duration": "1ms",
+      "timestamp": "2025-09-02T11:03:25.884Z"
+    },
+    {
+      "name": "数据库事务处理",
+      "success": false,
+      "details": "没有可用的认证Token",
+      "duration": "0ms",
+      "timestamp": "2025-09-02T11:03:25.884Z"
+    },
+    {
+      "name": "数据库查询性能",
+      "success": false,
+      "details": "网络错误: ",
+      "duration": "2ms",
+      "timestamp": "2025-09-02T11:03:25.887Z"
+    },
+    {
+      "name": "数据库连接稳定性",
+      "success": false,
+      "details": "0/10次连接成功, 稳定性: 0.0%",
+      "duration": "8ms",
+      "timestamp": "2025-09-02T11:03:25.896Z"
+    }
+  ]
+}

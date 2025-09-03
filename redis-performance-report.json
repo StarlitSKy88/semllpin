@@ -1,0 +1,284 @@
+{
+  "timestamp": "2025-09-02T07:43:53.692Z",
+  "connection": {
+    "averagePingLatency": 0,
+    "minPingLatency": 0,
+    "maxPingLatency": 0,
+    "averageConnectionTime": 10.917458401233272,
+    "successRate": 100,
+    "jitter": 0
+  },
+  "operations": {
+    "set": {
+      "description": "Basic SET operations",
+      "iterations": 100,
+      "successCount": 100,
+      "failureCount": 0,
+      "averageLatency": 1.4948771038784838,
+      "minLatency": 0.5269641255116242,
+      "maxLatency": 2.482963823790533,
+      "p95Latency": 2.42263085234401,
+      "p99Latency": 2.4588909934197787,
+      "throughput": 51124.75226248264,
+      "performance": "Good"
+    },
+    "get": {
+      "description": "Basic GET operations",
+      "iterations": 100,
+      "successCount": 100,
+      "failureCount": 0,
+      "averageLatency": 1.0549725960655905,
+      "minLatency": 0.32418271307059304,
+      "maxLatency": 1.799932435542601,
+      "p95Latency": 1.6566421976783414,
+      "p99Latency": 1.7913558721077998,
+      "throughput": 67762.16757980574,
+      "performance": "Good"
+    },
+    "hset": {
+      "description": "Hash SET operations",
+      "iterations": 100,
+      "successCount": 100,
+      "failureCount": 0,
+      "averageLatency": 2.0322726708525995,
+      "minLatency": 0.8043474567307684,
+      "maxLatency": 3.288013140112808,
+      "p95Latency": 3.2173528408605367,
+      "p99Latency": 3.2661556255888726,
+      "throughput": 40263.06787950169,
+      "performance": "Fair"
+    },
+    "hget": {
+      "description": "Hash GET operations",
+      "iterations": 100,
+      "successCount": 100,
+      "failureCount": 0,
+      "averageLatency": 1.5171141077116599,
+      "minLatency": 0.5517885256754362,
+      "maxLatency": 2.4999723109046132,
+      "p95Latency": 2.403052516276595,
+      "p99Latency": 2.4802331183274777,
+      "throughput": 51329.85951232336,
+      "performance": "Good"
+    },
+    "lpush": {
+      "description": "List PUSH operations",
+      "iterations": 100,
+      "successCount": 100,
+      "failureCount": 0,
+      "averageLatency": 1.5405979280019728,
+      "minLatency": 0.6200476103564009,
+      "maxLatency": 2.5938367720322466,
+      "p95Latency": 2.508755365402331,
+      "p99Latency": 2.589733872208546,
+      "throughput": 50663.972597303655,
+      "performance": "Good"
+    },
+    "lpop": {
+      "description": "List POP operations",
+      "iterations": 100,
+      "successCount": 100,
+      "failureCount": 0,
+      "averageLatency": 1.1392542065543994,
+      "minLatency": 0.4243986966706266,
+      "maxLatency": 1.864616659775416,
+      "p95Latency": 1.8252045773056587,
+      "p99Latency": 1.8499528688279492,
+      "throughput": 69433.93469723308,
+      "performance": "Good"
+    },
+    "sadd": {
+      "description": "Set ADD operations",
+      "iterations": 100,
+      "successCount": 100,
+      "failureCount": 0,
+      "averageLatency": 1.7277162238301933,
+      "minLatency": 0.7358757429827263,
+      "maxLatency": 2.677957354628914,
+      "p95Latency": 2.5192935173591167,
+      "p99Latency": 2.6645906316262877,
+      "throughput": 51491.14197895933,
+      "performance": "Good"
+    },
+    "smembers": {
+      "description": "Set MEMBERS operations",
+      "iterations": 100,
+      "successCount": 100,
+      "failureCount": 0,
+      "averageLatency": 2.4259236801127675,
+      "minLatency": 1.0716618277972707,
+      "maxLatency": 3.9115291909376615,
+      "p95Latency": 3.8348236756457674,
+      "p99Latency": 3.901847466169289,
+      "throughput": 35212.91215848113,
+      "performance": "Fair"
+    },
+    "zadd": {
+      "description": "Sorted set ADD operations",
+      "iterations": 100,
+      "successCount": 100,
+      "failureCount": 0,
+      "averageLatency": 2.248452156382234,
+      "minLatency": 1.0199558747805262,
+      "maxLatency": 3.4958485387632487,
+      "p95Latency": 3.3910108929236724,
+      "p99Latency": 3.4815925891981743,
+      "throughput": 40389.473039247154,
+      "performance": "Fair"
+    },
+    "zrange": {
+      "description": "Sorted set RANGE operations",
+      "iterations": 100,
+      "successCount": 100,
+      "failureCount": 0,
+      "averageLatency": 2.6341397670738593,
+      "minLatency": 1.2177423856674106,
+      "maxLatency": 4.152153726152594,
+      "p95Latency": 3.9666408097710173,
+      "p99Latency": 4.128699199280343,
+      "throughput": 34078.38520126006,
+      "performance": "Fair"
+    }
+  },
+  "memory": {
+    "totalUsed": 73410900,
+    "peakUsed": 247485961,
+    "memoryByType": {
+      "session:*": {
+        "keyCount": 900,
+        "averageKeySize": 572.1,
+        "estimatedTotalSize": 514890,
+        "sampleSize": 10
+      },
+      "user:profile:*": {
+        "keyCount": 122,
+        "averageKeySize": 536.5,
+        "estimatedTotalSize": 65453,
+        "sampleSize": 10
+      },
+      "annotations:nearby:*": {
+        "keyCount": 104,
+        "averageKeySize": 543.3,
+        "estimatedTotalSize": 56503.2,
+        "sampleSize": 10
+      },
+      "map:tiles:*": {
+        "keyCount": 417,
+        "averageKeySize": 566,
+        "estimatedTotalSize": 236022,
+        "sampleSize": 10
+      },
+      "api:response:*": {
+        "keyCount": 50,
+        "averageKeySize": 662.9,
+        "estimatedTotalSize": 33145,
+        "sampleSize": 10
+      }
+    },
+    "fragmentation": 1.1764705882352942,
+    "hitRate": 0.9208502265680897,
+    "evictions": 80,
+    "expires": 443
+  },
+  "cacheAnalysis": {
+    "session:*": {
+      "keyCount": 823,
+      "estimatedHitRate": 0.8094952970377953,
+      "estimatedTTL": 2430.550773659605,
+      "accessPattern": "Warm",
+      "effectiveness": 0.6133644068682036
+    },
+    "user:profile:*": {
+      "keyCount": 495,
+      "estimatedHitRate": 0.9768076982055558,
+      "estimatedTTL": 2939.9537729100452,
+      "accessPattern": "Warm",
+      "effectiveness": 0.8016683785544092
+    },
+    "annotations:nearby:*": {
+      "keyCount": 186,
+      "estimatedHitRate": 0.7157715144852181,
+      "estimatedTTL": 471.0850111974235,
+      "accessPattern": "Sporadic",
+      "effectiveness": 0.6980323205791852
+    },
+    "map:tiles:*": {
+      "keyCount": 710,
+      "estimatedHitRate": 0.9767665125646077,
+      "estimatedTTL": 2944.640684328113,
+      "accessPattern": "Sporadic",
+      "effectiveness": 0.9781119152387242
+    },
+    "api:response:*": {
+      "keyCount": 261,
+      "estimatedHitRate": 0.7378706428322928,
+      "estimatedTTL": 1718.4901031648674,
+      "accessPattern": "Warm",
+      "effectiveness": 0.711306214324599
+    }
+  },
+  "recommendations": [
+    {
+      "category": "Cache Strategy",
+      "priority": "Medium",
+      "issue": "Low cache effectiveness for session:*",
+      "recommendation": "Review caching strategy, adjust TTL, or implement smarter invalidation",
+      "impact": "Medium - Better cache utilization",
+      "effort": "Medium",
+      "pattern": "session:*"
+    },
+    {
+      "category": "Cache Strategy",
+      "priority": "Medium",
+      "issue": "Low cache effectiveness for annotations:nearby:*",
+      "recommendation": "Review caching strategy, adjust TTL, or implement smarter invalidation",
+      "impact": "Medium - Better cache utilization",
+      "effort": "Medium",
+      "pattern": "annotations:nearby:*"
+    },
+    {
+      "category": "Cache Strategy",
+      "priority": "Medium",
+      "issue": "Low cache effectiveness for api:response:*",
+      "recommendation": "Review caching strategy, adjust TTL, or implement smarter invalidation",
+      "impact": "Medium - Better cache utilization",
+      "effort": "Medium",
+      "pattern": "api:response:*"
+    }
+  ],
+  "concurrency": {
+    "10": {
+      "operations": 10,
+      "duration": 2,
+      "throughput": 5000,
+      "averageLatency": 0.2,
+      "success": true,
+      "successfulOps": 10
+    },
+    "50": {
+      "operations": 50,
+      "duration": 9,
+      "throughput": 5555.555555555556,
+      "averageLatency": 0.18,
+      "success": true,
+      "successfulOps": 50
+    },
+    "100": {
+      "operations": 100,
+      "duration": 3,
+      "throughput": 33333.333333333336,
+      "averageLatency": 0.03,
+      "success": true,
+      "successfulOps": 100
+    },
+    "200": {
+      "operations": 200,
+      "duration": 8,
+      "throughput": 25000,
+      "averageLatency": 0.04,
+      "success": true,
+      "successfulOps": 200
+    }
+  },
+  "overallScore": 80
+}

@@ -1,0 +1,234 @@
+# SmellPin Artillery 多Agent压力测试基础配置
+# 自动化测试方案2.0
+
+config:
+  target: 'http://localhost:3001'
+  phases:
+    - duration: 60   # 预热阶段：60秒
+      arrivalRate: 5 # 每秒5个虚拟用户
+      name: "Warm up"
+    - duration: 120  # 负载阶段：2分钟
+      arrivalRate: 10 # 每秒10个虚拟用户
+      rampTo: 50     # 逐步增加到每秒50个
+      name: "Ramp up load"
+    - duration: 300  # 压力阶段：5分钟
+      arrivalRate: 50 # 保持每秒50个虚拟用户
+      name: "Sustained load"
+    - duration: 60   # 降级阶段：1分钟
+      arrivalRate: 50 # 从50开始
+      rampTo: 5      # 降到每秒5个
+      name: "Ramp down"
+
+  # 负载测试配置
+  payload:
+    path: './artillery/test-data.csv'
+    fields:
+      - username
+      - email
+      - password
+
+  # 插件配置
+  plugins:
+    metrics-by-endpoint:
+      useOnlyRequestNames: true
+    expect: {}
+
+  # 环境变量
+  environments:
+    test:
+      target: 'http://localhost:3001'
+      phases:
+        - duration: 30
+          arrivalRate: 2
+          name: "Test run"
+    
+    staging:
+      target: 'https://staging.smellpin.com'
+      phases:
+        - duration: 60
+          arrivalRate: 10
+          rampTo: 30
+          name: "Staging test"
+    
+    production:
+      target: 'https://api.smellpin.com'
+      phases:
+        - duration: 300
+          arrivalRate: 20
+          rampTo: 100
+          name: "Production load test"
+
+  # HTTP配置
+  http:
+    timeout: 30
+    pool: 50  # 连接池大小
+    
+  # 性能阈值
+  ensure:
+    thresholds:
+      - http.response_time.p95: 1000  # 95%请求响应时间 < 1000ms
+      - http.response_time.p99: 2000  # 99%请求响应时间 < 2000ms
+      - http.request_rate: 45         # 最小请求速率
+      - http.codes.200: 0.95          # 95%成功率
+      - http.codes.4xx: 0.02          # 4xx错误率 < 2%
+      - http.codes.5xx: 0.01          # 5xx错误率 < 1%
+
+# 测试场景定义
+scenarios:
+  # 用户注册登录场景
+  - name: "User Authentication Flow"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/v1/users/register"
+          name: "Register User"
+          json:
+            username: "loadtest_{{ $randomString() }}_{{ timestamp }}"
+            email: "loadtest_{{ $randomString() }}@smellpin.test"
+            password: "LoadTest123!"
+            firstName: "负载测试用户"
+            lastName: "{{ $randomInt(1, 1000) }}"
+          capture:
+            - json: "$.data.id"
+              as: "userId"
+            - json: "$.data.username"
+              as: "username"
+          expect:
+            - statusCode: 201
+            - hasProperty: "data.id"
+
+      - think: 2 # 等待2秒
+
+      - post:
+          url: "/api/v1/users/login"
+          name: "Login User"
+          json:
+            email: "loadtest_{{ username }}@smellpin.test"
+            password: "LoadTest123!"
+          capture:
+            - json: "$.data.token"
+              as: "authToken"
+            - json: "$.data.user.id"
+              as: "loggedUserId"
+          expect:
+            - statusCode: 200
+            - hasProperty: "data.token"
+
+  # 标注创建和查询场景  
+  - name: "Annotation Operations"
+    weight: 40
+    flow:
+      # 先登录获取token
+      - post:
+          url: "/api/v1/users/login"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}"
+          capture:
+            - json: "$.data.token"
+              as: "authToken"
+
+      - think: 1
+
+      # 创建标注
+      - post:
+          url: "/api/v1/annotations"
+          name: "Create Annotation"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            title: "压力测试标注_{{ $randomString() }}"
+            description: "这是由Artillery生成的压力测试标注"
+            smellType: "{{ $randomItem(['食物香味', '垃圾异味', '化学品味', '花香', '汽油味']) }}"
+            intensity: "{{ $randomInt(1, 5) }}"
+            latitude: "{{ $randomFloat(39.8, 40.0) }}"
+            longitude: "{{ $randomFloat(116.3, 116.5) }}"
+            locationName: "北京测试区域"
+            tags: ["压力测试", "自动化", "Artillery"]
+          capture:
+            - json: "$.data.id"
+              as: "annotationId"
+          expect:
+            - statusCode: 201
+
+      - think: 2
+
+      # 查询标注详情
+      - get:
+          url: "/api/v1/annotations/{{ annotationId }}"
+          name: "Get Annotation Details"
+          expect:
+            - statusCode: 200
+
+      # 点赞标注
+      - post:
+          url: "/api/v1/annotations/{{ annotationId }}/like"
+          name: "Like Annotation"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+  # 地理查询场景
+  - name: "Geographic Queries"
+    weight: 30
+    flow:
+      # 获取标注列表
+      - get:
+          url: "/api/v1/annotations/list"
+          name: "Get Annotations List"
+          qs:
+            page: "{{ $randomInt(1, 5) }}"
+            limit: 20
+            sortBy: "created_at"
+            sortOrder: "desc"
+          expect:
+            - statusCode: 200
+
+      - think: 1
+
+      # 附近标注查询
+      - get:
+          url: "/api/v1/annotations/nearby"
+          name: "Get Nearby Annotations"
+          qs:
+            latitude: "{{ $randomFloat(39.85, 39.95) }}"
+            longitude: "{{ $randomFloat(116.35, 116.45) }}"
+            radius: "{{ $randomInt(500, 5000) }}"
+            limit: 10
+          expect:
+            - statusCode: 200
+
+      # 地图数据查询
+      - get:
+          url: "/api/v1/annotations/map"
+          name: "Get Map Data"
+          qs:
+            bounds: "39.8,116.3,40.0,116.5"
+            zoom: "{{ $randomInt(10, 16) }}"
+          expect:
+            - statusCode: 200
+
+  # 搜索场景
+  - name: "Search Operations"
+    weight: 10
+    flow:
+      # 搜索标注
+      - get:
+          url: "/api/v1/search"
+          name: "Search Annotations"
+          qs:
+            q: "{{ $randomItem(['食物', '垃圾', '香味', '测试']) }}"
+            type: "annotations"
+            limit: 10
+          expect:
+            - statusCode: 200
+
+before:
+  flow:
+    - log: "Starting SmellPin load test with Artillery"
+    - log: "Target: {{ $target }}"
+
+after:
+  flow:
+    - log: "Load test completed"

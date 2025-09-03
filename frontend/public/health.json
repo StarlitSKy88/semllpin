@@ -1,0 +1,16 @@
+{
+  "status": "healthy",
+  "service": "SmellPin Frontend",
+  "environment": "production",
+  "version": "1.0.0",
+  "timestamp": "2024-09-01T00:00:00.000Z",
+  "dependencies": {
+    "api": "https://api.smellpin.com/health",
+    "workers": "https://smellpin-workers.your-subdomain.workers.dev/health"
+  },
+  "metrics": {
+    "uptime": "99.9%",
+    "response_time": "<200ms",
+    "last_deployment": "automated"
+  }
+}

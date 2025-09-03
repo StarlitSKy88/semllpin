@@ -1,0 +1,384 @@
+/* ==========================================================================
+   石榴主题动画系统 (Pomegranate Theme Animation System)
+   基于东方美学的流畅动画效果
+   ========================================================================== */
+
+/* ==========================================================================
+   关键帧动画 (Keyframe Animations)
+   ========================================================================== */
+
+/* 石榴花绽放动画 */
+@keyframes pomegranate-bloom {
+  0% {
+    transform: scale(0.8) rotate(-5deg);
+    opacity: 0.7;
+    filter: blur(1px);
+  }
+  50% {
+    transform: scale(1.05) rotate(2deg);
+    opacity: 0.9;
+    filter: blur(0.5px);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
+
+/* 花瓣飘落动画 */
+@keyframes petal-fall {
+  0% {
+    transform: translateY(-10px) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(20px) rotate(180deg);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(50px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* 叶片摇摆动画 */
+@keyframes leaf-sway {
+  0%, 100% {
+    transform: rotate(-2deg) translateX(0px);
+  }
+  25% {
+    transform: rotate(1deg) translateX(2px);
+  }
+  75% {
+    transform: rotate(-1deg) translateX(-2px);
+  }
+}
+
+/* 光晕脉动动画 */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 10px rgba(220, 38, 38, 0.3),
+      0 0 20px rgba(236, 72, 153, 0.2),
+      0 0 30px rgba(220, 38, 38, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 0 20px rgba(220, 38, 38, 0.5),
+      0 0 40px rgba(236, 72, 153, 0.3),
+      0 0 60px rgba(220, 38, 38, 0.2);
+  }
+}
+
+/* 渐变流动动画 */
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 东方水墨扩散动画 */
+@keyframes ink-spread {
+  0% {
+    transform: scale(0.1);
+    opacity: 0;
+    filter: blur(10px);
+  }
+  30% {
+    transform: scale(0.6);
+    opacity: 0.8;
+    filter: blur(3px);
+  }
+  70% {
+    transform: scale(1.1);
+    opacity: 0.6;
+    filter: blur(1px);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
+
+/* 悬浮动画 */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* 闪烁动画 */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* 旋转绽放动画 */
+@keyframes rotate-bloom {
+  0% {
+    transform: rotate(0deg) scale(0.9);
+    opacity: 0.8;
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+    opacity: 0.9;
+  }
+}
+
+/* 波纹扩散动画 */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* ==========================================================================
+   动画类 (Animation Classes)
+   ========================================================================== */
+
+/* 石榴主题动画 */
+.animate-pomegranate-bloom {
+  animation: pomegranate-bloom var(--duration-pomegranate) var(--ease-pomegranate) forwards;
+}
+
+.animate-petal-fall {
+  animation: petal-fall 3s var(--ease-floral) infinite;
+}
+
+.animate-leaf-sway {
+  animation: leaf-sway 4s var(--ease-oriental) infinite;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse var(--duration-glow) ease-in-out infinite;
+}
+
+.animate-gradient-flow {
+  background-size: 200% 200%;
+  animation: gradient-flow 3s ease infinite;
+}
+
+.animate-ink-spread {
+  animation: ink-spread var(--duration-oriental) var(--ease-oriental) forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(220, 38, 38, 0.2),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.animate-rotate-bloom {
+  animation: rotate-bloom 2s var(--ease-bounce) infinite;
+}
+
+.animate-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-ripple::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.3);
+  transform: translate(-50%, -50%);
+  animation: ripple 0.6s linear;
+}
+
+/* ==========================================================================
+   悬停动画效果 (Hover Animation Effects)
+   ========================================================================== */
+
+.hover-pomegranate {
+  transition: all var(--duration-floral) var(--ease-pomegranate);
+}
+
+.hover-pomegranate:hover {
+  transform: var(--transform-float) var(--transform-scale-up);
+  box-shadow: var(--shadow-pomegranate);
+  filter: var(--filter-pomegranate);
+}
+
+.hover-floral {
+  transition: all var(--duration-floral) var(--ease-floral);
+}
+
+.hover-floral:hover {
+  transform: var(--transform-scale-up) var(--transform-rotate);
+  box-shadow: var(--shadow-floral);
+  filter: var(--filter-floral);
+}
+
+.hover-glow {
+  transition: all var(--duration-floral) var(--ease-pomegranate);
+}
+
+.hover-glow:hover {
+  box-shadow: var(--shadow-glow);
+  filter: var(--filter-glow);
+  text-shadow: var(--text-shadow-glow);
+}
+
+/* ==========================================================================
+   加载动画 (Loading Animations)
+   ========================================================================== */
+
+.loading-pomegranate {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-primary-200);
+  border-radius: 50%;
+  border-top-color: var(--color-primary-600);
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-petals {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+}
+
+.loading-petals::before,
+.loading-petals::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary-500);
+  animation: petal-bounce 1.4s ease-in-out infinite both;
+}
+
+.loading-petals::before {
+  animation-delay: -0.32s;
+}
+
+.loading-petals::after {
+  animation-delay: -0.16s;
+}
+
+@keyframes petal-bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* ==========================================================================
+   页面过渡动画 (Page Transition Animations)
+   ========================================================================== */
+
+.page-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all var(--duration-oriental) var(--ease-oriental);
+}
+
+.page-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-exit-active {
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: all var(--duration-floral) var(--ease-pomegranate);
+}
+
+/* ==========================================================================
+   响应式动画控制 (Responsive Animation Control)
+   ========================================================================== */
+
+/* 减少动画效果（用户偏好） */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .animate-pomegranate-bloom,
+  .animate-ink-spread,
+  .animate-rotate-bloom {
+    animation-duration: calc(var(--duration-pomegranate) * 0.7);
+  }
+  
+  .animate-glow-pulse {
+    animation: none;
+  }
+  
+  .hover-pomegranate:hover,
+  .hover-floral:hover,
+  .hover-glow:hover {
+    transform: none;
+    filter: none;
+  }
+}
+
+/* 高性能设备增强动画 */
+@media (min-width: 1200px) and (min-resolution: 2dppx) {
+  .animate-gradient-flow {
+    background-size: 400% 400%;
+  }
+  
+  .animate-glow-pulse {
+    animation-duration: calc(var(--duration-glow) * 1.5);
+  }
+}

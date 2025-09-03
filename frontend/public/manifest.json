@@ -1,0 +1,162 @@
+{
+  "name": "SmellPin - Global Smell Annotation Platform",
+  "short_name": "SmellPin",
+  "description": "Share and discover smell experiences worldwide with rewards",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#4ecdc4",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["social", "lifestyle", "navigation"],
+  "screenshots": [
+    {
+      "src": "/screenshots/mobile-1.png",
+      "sizes": "320x640",
+      "type": "image/png",
+      "platform": "mobile",
+      "label": "SmellPin map view on mobile"
+    },
+    {
+      "src": "/screenshots/desktop-1.png", 
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "SmellPin desktop dashboard"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/icons/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Create Annotation",
+      "short_name": "New Pin",
+      "description": "Create a new smell annotation",
+      "url": "/create?shortcut=true",
+      "icons": [
+        {
+          "src": "/icons/shortcut-create.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Nearby Smells",
+      "short_name": "Nearby",
+      "description": "Discover nearby smell annotations",
+      "url": "/map?nearby=true",
+      "icons": [
+        {
+          "src": "/icons/shortcut-nearby.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "My Rewards",
+      "short_name": "Rewards",
+      "description": "Check your rewards and wallet",
+      "url": "/wallet?shortcut=true",
+      "icons": [
+        {
+          "src": "/icons/shortcut-wallet.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "short_name": "Profile",
+      "description": "View your profile and statistics",
+      "url": "/profile?shortcut=true",
+      "icons": [
+        {
+          "src": "/icons/shortcut-profile.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/create",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "geo",
+      "url": "/map?geo=%s"
+    }
+  ],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "file_handlers": [
+    {
+      "action": "/import",
+      "accept": {
+        "application/json": [".json"],
+        "text/csv": [".csv"]
+      }
+    }
+  ],
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  }
+}

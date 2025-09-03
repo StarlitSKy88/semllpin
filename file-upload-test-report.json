@@ -1,0 +1,71 @@
+{
+  "timestamp": "2025-08-22T11:15:43.806Z",
+  "testType": "File Upload Test",
+  "summary": {
+    "total": 8,
+    "passed": 8,
+    "failed": 0,
+    "successRate": "100.0%"
+  },
+  "testUser": {
+    "email": "upload_test_1755861337390@example.com"
+  },
+  "tests": [
+    {
+      "name": "用户注册",
+      "success": true,
+      "details": "状态码: 201, Token获取成功",
+      "duration": "1956ms",
+      "timestamp": "2025-08-22T11:15:39.357Z"
+    },
+    {
+      "name": "上传端点可用性",
+      "success": true,
+      "details": "状态码: 200, 上传端点可访问",
+      "duration": "6ms",
+      "timestamp": "2025-08-22T11:15:39.363Z"
+    },
+    {
+      "name": "图片文件上传",
+      "success": true,
+      "details": "状态码: 201, 图片上传成功",
+      "duration": "829ms",
+      "timestamp": "2025-08-22T11:15:40.193Z"
+    },
+    {
+      "name": "文档文件上传",
+      "success": true,
+      "details": "状态码: 201, 文档上传成功",
+      "duration": "833ms",
+      "timestamp": "2025-08-22T11:15:41.027Z"
+    },
+    {
+      "name": "多文件上传",
+      "success": true,
+      "details": "状态码: 201, 多文件上传成功",
+      "duration": "1502ms",
+      "timestamp": "2025-08-22T11:15:42.529Z"
+    },
+    {
+      "name": "文件列表查询",
+      "success": true,
+      "details": "状态码: 200, 获取0个文件",
+      "duration": "287ms",
+      "timestamp": "2025-08-22T11:15:42.817Z"
+    },
+    {
+      "name": "文件上传安全验证",
+      "success": true,
+      "details": "状态码: 401, 安全验证正常工作",
+      "duration": "13ms",
+      "timestamp": "2025-08-22T11:15:42.830Z"
+    },
+    {
+      "name": "文件上传限制验证",
+      "success": true,
+      "details": "状态码: 201, 大文件上传成功",
+      "duration": "975ms",
+      "timestamp": "2025-08-22T11:15:43.805Z"
+    }
+  ]
+}

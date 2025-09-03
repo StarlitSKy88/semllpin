@@ -1,0 +1,504 @@
+/**
+ * SmellPin无障碍性CSS样式
+ * 提供完整的无障碍性视觉支持
+ */
+
+/* ==========================================================================
+   屏幕阅读器专用类
+   ========================================================================== */
+
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.sr-only.focusable:active,
+.sr-only.focusable:focus {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  padding: inherit !important;
+  margin: inherit !important;
+  overflow: visible !important;
+  clip: auto !important;
+  white-space: inherit !important;
+}
+
+/* ==========================================================================
+   跳转链接
+   ========================================================================== */
+
+.skip-link {
+  position: absolute !important;
+  top: -40px;
+  left: 6px;
+  width: auto;
+  height: auto;
+  padding: 8px 16px;
+  background: #000;
+  color: #fff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 4px;
+  z-index: 9999;
+  transition: top 0.2s ease-in-out;
+}
+
+.skip-link:focus {
+  top: 6px;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   焦点样式
+   ========================================================================== */
+
+/* 默认焦点样式 */
+*:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+/* 键盘焦点可见时的样式 */
+.visible-focus *:focus,
+.using-keyboard *:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+/* 特定组件的焦点样式 */
+.visible-focus button:focus,
+.using-keyboard button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+.visible-focus input:focus,
+.using-keyboard input:focus,
+.visible-focus textarea:focus,
+.using-keyboard textarea:focus,
+.visible-focus select:focus,
+.using-keyboard select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  outline: 2px solid transparent;
+}
+
+.visible-focus a:focus,
+.using-keyboard a:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  text-decoration: underline;
+}
+
+/* 危险操作的焦点样式 */
+.visible-focus [data-danger="true"]:focus,
+.using-keyboard [data-danger="true"]:focus {
+  outline-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
+}
+
+/* ==========================================================================
+   高对比度模式
+   ========================================================================== */
+
+.high-contrast {
+  filter: contrast(150%);
+}
+
+.high-contrast * {
+  border-color: currentColor !important;
+}
+
+.high-contrast button,
+.high-contrast input,
+.high-contrast textarea,
+.high-contrast select {
+  border: 2px solid currentColor !important;
+  background: transparent !important;
+}
+
+.high-contrast button:hover,
+.high-contrast button:focus {
+  background: currentColor !important;
+  color: white !important;
+}
+
+.high-contrast a {
+  text-decoration: underline !important;
+  font-weight: bold !important;
+}
+
+.high-contrast .text-gray-500,
+.high-contrast .text-gray-600,
+.high-contrast .text-gray-400 {
+  color: #000 !important;
+}
+
+@media (prefers-contrast: high) {
+  :root {
+    --color-text: #000;
+    --color-background: #fff;
+    --color-border: #000;
+  }
+}
+
+/* ==========================================================================
+   大字体模式
+   ========================================================================== */
+
+.large-text {
+  font-size: 18px !important;
+}
+
+.large-text h1 { font-size: 2.5rem !important; }
+.large-text h2 { font-size: 2rem !important; }
+.large-text h3 { font-size: 1.75rem !important; }
+.large-text h4 { font-size: 1.5rem !important; }
+.large-text h5 { font-size: 1.25rem !important; }
+.large-text h6 { font-size: 1.125rem !important; }
+
+.large-text .text-sm { font-size: 1rem !important; }
+.large-text .text-xs { font-size: 0.875rem !important; }
+
+.large-text button,
+.large-text input,
+.large-text textarea,
+.large-text select {
+  font-size: 18px !important;
+  min-height: 48px !important;
+  padding: 12px 16px !important;
+}
+
+/* ==========================================================================
+   减少动画模式
+   ========================================================================== */
+
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   键盘导航优化
+   ========================================================================== */
+
+.prefer-keyboard button,
+.prefer-keyboard input,
+.prefer-keyboard textarea,
+.prefer-keyboard select,
+.prefer-keyboard a {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.prefer-keyboard .clickable-area {
+  padding: 12px;
+  margin: 2px;
+}
+
+/* ==========================================================================
+   错误和验证样式
+   ========================================================================== */
+
+.form-field {
+  position: relative;
+}
+
+.form-field.has-error input,
+.form-field.has-error textarea,
+.form-field.has-error select {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+}
+
+.form-field.has-error .form-label {
+  color: #ef4444;
+}
+
+.form-error {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.form-error::before {
+  content: "⚠";
+  font-weight: bold;
+}
+
+.form-field.has-success input,
+.form-field.has-success textarea,
+.form-field.has-success select {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
+}
+
+/* ==========================================================================
+   必填字段标识
+   ========================================================================== */
+
+.required::after {
+  content: " *";
+  color: #ef4444;
+  font-weight: bold;
+}
+
+.required-legend::after {
+  content: " （* 表示必填项）";
+  color: #6b7280;
+  font-weight: normal;
+  font-size: 0.875rem;
+}
+
+/* ==========================================================================
+   实时区域
+   ========================================================================== */
+
+.live-region {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* ==========================================================================
+   加载状态
+   ========================================================================== */
+
+.loading-spinner {
+  border: 2px solid #f3f4f6;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-skeleton {
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ==========================================================================
+   表格无障碍性
+   ========================================================================== */
+
+.accessible-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.accessible-table th,
+.accessible-table td {
+  border: 1px solid #d1d5db;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.accessible-table th {
+  background: #f9fafb;
+  font-weight: 600;
+}
+
+.accessible-table caption {
+  caption-side: top;
+  text-align: left;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+/* ==========================================================================
+   模态框和对话框
+   ========================================================================== */
+
+.modal-backdrop {
+  background: rgba(0, 0, 0, 0.5);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+}
+
+.modal-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  z-index: 51;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* ==========================================================================
+   工具提示
+   ========================================================================== */
+
+.tooltip {
+  position: relative;
+}
+
+.tooltip-content {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  z-index: 40;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.tooltip:hover .tooltip-content,
+.tooltip:focus-within .tooltip-content {
+  opacity: 1;
+}
+
+.tooltip-content::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: #1f2937;
+}
+
+/* ==========================================================================
+   进度条
+   ========================================================================== */
+
+.progress-bar {
+  width: 100%;
+  height: 0.5rem;
+  background: #f3f4f6;
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #3b82f6;
+  transition: width 0.3s ease;
+}
+
+/* ==========================================================================
+   响应式设计
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .large-text button,
+  .large-text input,
+  .large-text textarea,
+  .large-text select {
+    min-height: 52px !important;
+    font-size: 16px !important; /* 防止iOS缩放 */
+  }
+  
+  .skip-link {
+    left: 16px;
+    right: 16px;
+    width: auto;
+  }
+  
+  .modal-content {
+    margin: 1rem;
+    max-width: calc(100vw - 2rem);
+  }
+}
+
+/* ==========================================================================
+   打印样式
+   ========================================================================== */
+
+@media print {
+  .skip-link,
+  .sr-only,
+  .modal-backdrop,
+  [aria-hidden="true"] {
+    display: none !important;
+  }
+  
+  .high-contrast * {
+    color: #000 !important;
+    background: #fff !important;
+  }
+}
+
+/* ==========================================================================
+   深色主题适配
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+  .high-contrast {
+    filter: invert(1) hue-rotate(180deg);
+  }
+  
+  .skip-link {
+    background: #fff;
+    color: #000;
+  }
+  
+  .visible-focus *:focus,
+  .using-keyboard *:focus {
+    outline-color: #60a5fa;
+    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.2);
+  }
+}

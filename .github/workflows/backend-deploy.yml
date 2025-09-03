@@ -1,0 +1,361 @@
+name: Backend Services Deployment
+
+on:
+  push:
+    branches: [main, develop, staging]
+    paths: ['src/**', 'api/**', 'package.json', 'package-lock.json', 'Dockerfile', 'docker-compose*.yml']
+  pull_request:
+    branches: [main, develop]
+    paths: ['src/**', 'api/**', 'package.json', 'package-lock.json', 'Dockerfile', 'docker-compose*.yml']
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options: ['staging', 'production']
+      skip_tests:
+        description: 'Skip tests (emergency deployment only)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  NODE_VERSION: '18'
+  COVERAGE_THRESHOLD: 85
+  PERFORMANCE_THRESHOLD: 200
+
+jobs:
+  test-and-build:
+    name: Test & Build Backend
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_USER: test_user
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run linting
+        run: npm run lint
+      
+      - name: Run type checking
+        run: npx tsc --noEmit
+      
+      - name: Run database migrations (test)
+        run: npm run migrate
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+      
+      - name: Run unit tests with coverage
+        run: |
+          npm run test:backend -- --coverage --coverageReporters=text-lcov > coverage.lcov
+          npm run test:backend -- --coverage
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+          JWT_SECRET: test_jwt_secret_key
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.lcov
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: true
+      
+      - name: Check coverage threshold
+        run: |
+          COVERAGE=$(npm run test:coverage:check | grep -E "All files.*[0-9]+" | awk '{print $NF}' | sed 's/%//')
+          if [ "$COVERAGE" -lt "${{ env.COVERAGE_THRESHOLD }}" ]; then
+            echo "Coverage $COVERAGE% is below ${{ env.COVERAGE_THRESHOLD }}% threshold"
+            exit 1
+          fi
+          echo "Coverage: $COVERAGE% (threshold: ${{ env.COVERAGE_THRESHOLD }}%)"
+      
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+          JWT_SECRET: test_jwt_secret_key
+          TEST_TIMEOUT: 30000
+      
+      - name: Run API contract tests
+        run: npm run test:contract
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+      
+      - name: Run performance tests
+        run: |
+          npm run test:performance
+          # Check if API response time is under threshold
+          RESPONSE_TIME=$(cat performance-results.json | jq -r '.averageResponseTime')
+          if [ "$RESPONSE_TIME" -gt "${{ env.PERFORMANCE_THRESHOLD }}" ]; then
+            echo "Average response time $RESPONSE_TIME ms exceeds ${{ env.PERFORMANCE_THRESHOLD }}ms threshold"
+            exit 1
+          fi
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379
+      
+      - name: Database migration test
+        run: |
+          # Test migrations up and down
+          npm run migrate:latest
+          npm run migrate:rollback
+          npm run migrate:latest
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+      
+      - name: Build application
+        run: npm run build
+      
+      - name: Build Docker image
+        run: docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+      
+      - name: Test Docker image
+        run: |
+          docker run -d --name test-container \
+            -p 3000:3000 \
+            -e NODE_ENV=test \
+            -e PORT=3000 \
+            -e DATABASE_URL=postgresql://test_user:test_password@host.docker.internal:5432/test_db \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          
+          # Wait for container to be ready
+          timeout 60 bash -c 'until curl -f http://localhost:3000/health; do sleep 2; done'
+          
+          # Run smoke tests against container
+          curl -f http://localhost:3000/api/health || exit 1
+          curl -f http://localhost:3000/api/version || exit 1
+          
+          # Test API endpoints
+          docker exec test-container npm run test:smoke
+          
+          # Check container logs for errors
+          if docker logs test-container 2>&1 | grep -i error; then
+            echo "Errors found in container logs"
+            exit 1
+          fi
+          
+          docker stop test-container
+
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    needs: test-and-build
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+      
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --json
+      
+      - name: SAST Code Analysis
+        uses: github/codeql-action/init@v3
+        with:
+          languages: typescript, javascript
+      
+      - name: CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+      
+      - name: Container Security Scan
+        run: |
+          # Scan for container vulnerabilities
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:latest image --exit-code 1 --severity HIGH,CRITICAL \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  deploy-staging:
+    name: Deploy Staging
+    runs-on: ubuntu-latest
+    needs: [test-and-build, security-scan]
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:staging-latest
+      
+      - name: Deploy to staging server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USERNAME }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            cd /opt/smellpin-staging
+            docker-compose -f docker-compose.staging.yml pull
+            docker-compose -f docker-compose.staging.yml up -d --no-deps backend
+            
+            # Wait for health check
+            timeout 60 bash -c 'until curl -f http://localhost:3001/health; do sleep 2; done'
+      
+      - name: Run E2E tests against staging
+        run: npm run test:e2e
+        env:
+          API_BASE_URL: https://staging-api.smellpin.com
+
+  deploy-production:
+    name: Deploy Production
+    runs-on: ubuntu-latest
+    needs: [test-and-build, security-scan]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+      
+      - name: Deploy to production server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USERNAME }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          script: |
+            cd /opt/smellpin
+            
+            # Backup current deployment
+            docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:backup-$(date +%Y%m%d-%H%M%S)
+            
+            # Pull new image
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            
+            # Blue-Green deployment strategy
+            # Start new instance (green)
+            docker-compose -f docker-compose.prod.yml up -d --no-deps --scale backend=2 backend-green
+            
+            # Wait for green instance to be healthy
+            timeout 120 bash -c 'until curl -f http://localhost:3001/health; do sleep 5; done'
+            
+            # Run health checks on green instance
+            for endpoint in health api/health api/version; do
+              curl -f http://localhost:3001/$endpoint || exit 1
+            done
+            
+            # Switch traffic to green instance
+            docker-compose -f docker-compose.prod.yml stop backend-blue
+            docker-compose -f docker-compose.prod.yml up -d --no-deps backend
+            
+            # Final health check
+            timeout 60 bash -c 'until curl -f http://localhost:3000/health; do sleep 2; done'
+            
+            # Clean up old instance
+            docker-compose -f docker-compose.prod.yml rm -f backend-blue
+      
+      - name: Run smoke tests
+        run: npm run test:smoke
+        env:
+          API_BASE_URL: https://api.smellpin.com
+      
+      - name: Notify deployment success
+        uses: 8398a7/action-slack@v3
+        if: success()
+        with:
+          status: success
+          text: "🚀 Production deployment successful! Version: ${{ github.sha }}"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      
+      - name: Rollback on failure
+        if: failure()
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USERNAME }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          script: |
+            cd /opt/smellpin
+            # Rollback to previous version
+            BACKUP_IMAGE=$(docker images --format "table {{.Repository}}:{{.Tag}}" | grep backup- | head -n1)
+            if [ -n "$BACKUP_IMAGE" ]; then
+              docker tag "$BACKUP_IMAGE" ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+              docker-compose -f docker-compose.prod.yml up -d --no-deps backend
+              echo "Rolled back to: $BACKUP_IMAGE"
+            fi

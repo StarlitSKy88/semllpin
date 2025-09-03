@@ -1,0 +1,203 @@
+{
+  "timestamp": "2025-09-01T08:47:12.141Z",
+  "config": {
+    "baseURL": "http://localhost:3000",
+    "backendURL": "http://localhost:3003",
+    "testTimeout": 30000,
+    "webVitals": {
+      "LCP": 2500,
+      "FID": 100,
+      "CLS": 0.1,
+      "FCP": 1800,
+      "TTI": 3800
+    }
+  },
+  "tests": [
+    {
+      "name": "Static Resource Loading Performance",
+      "category": "Resource Loading",
+      "resources": [
+        {
+          "name": "favicon",
+          "path": "/favicon.ico",
+          "type": "icon",
+          "loadTime": 2093.159208,
+          "status": 404,
+          "size": "982",
+          "passed": false
+        },
+        {
+          "name": "robots",
+          "path": "/robots.txt",
+          "type": "text",
+          "loadTime": 1641.6608340000002,
+          "status": 404,
+          "size": "980",
+          "passed": false
+        },
+        {
+          "name": "sitemap",
+          "path": "/sitemap.xml",
+          "type": "xml",
+          "loadTime": 11.262709000000541,
+          "status": 404,
+          "size": "982",
+          "passed": false
+        }
+      ],
+      "totalLoadTime": 3746.082751000001,
+      "passed": false
+    },
+    {
+      "name": "Frontend API Call Performance",
+      "category": "API Performance",
+      "apiCalls": [
+        {
+          "name": "Health Check",
+          "path": "/health",
+          "method": "GET",
+          "responseTime": 16.706750000001193,
+          "status": 200,
+          "dataSize": 166,
+          "passed": true
+        },
+        {
+          "name": "Annotations List",
+          "path": "/api/v1/annotations/list?page=1&limit=10",
+          "method": "GET",
+          "responseTime": 302.49341599999934,
+          "status": 200,
+          "dataSize": 97,
+          "passed": true
+        },
+        {
+          "name": "API Documentation",
+          "path": "/api/v1/docs",
+          "method": "GET",
+          "responseTime": 304.36479099999997,
+          "status": 0,
+          "error": "Request failed with status code 401",
+          "passed": false
+        },
+        {
+          "name": "Nearby Search",
+          "path": "/api/v1/annotations/nearby?lat=39.9042&lng=116.4074&radius=5000",
+          "method": "GET",
+          "responseTime": 344.2917089999992,
+          "status": 0,
+          "error": "Request failed with status code 400",
+          "passed": false
+        }
+      ],
+      "averageResponseTime": 159.60008300000027,
+      "passed": false
+    },
+    {
+      "name": "Web Vitals Simulation",
+      "category": "User Experience",
+      "metrics": {
+        "LCP": 3500,
+        "FCP": 56.752833000000464,
+        "TTI": 4800,
+        "FID": 812.9394590000011,
+        "CLS": 0.05
+      },
+      "passed": false,
+      "score": 40
+    },
+    {
+      "name": "Compression & Caching Efficiency",
+      "category": "Optimization",
+      "compressionTests": [
+        {
+          "endpoint": "/api/v1/annotations/list",
+          "hasCompression": false,
+          "contentLength": "97",
+          "uncompressedSize": 97,
+          "compressionRatio": 1
+        }
+      ],
+      "cachingTests": [
+        {
+          "endpoint": "/health",
+          "shouldCache": false,
+          "hasCacheControl": false,
+          "hasETag": true,
+          "hasLastModified": false,
+          "appropriate": true
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "webVitals": {
+    "name": "Web Vitals Simulation",
+    "category": "User Experience",
+    "metrics": {
+      "LCP": 3500,
+      "FCP": 56.752833000000464,
+      "TTI": 4800,
+      "FID": 812.9394590000011,
+      "CLS": 0.05
+    },
+    "passed": false,
+    "score": 40
+  },
+  "summary": {
+    "overallScore": 16.000000000000004,
+    "passedTests": 0,
+    "totalTests": 4,
+    "webVitalsScore": 40,
+    "performanceGrade": "F - 差"
+  },
+  "recommendations": [
+    {
+      "priority": "High",
+      "category": "资源优化",
+      "title": "优化静态资源加载",
+      "description": "部分静态资源加载缓慢或失败",
+      "actions": [
+        "启用HTTP/2服务器推送",
+        "实施CDN加速",
+        "优化图片格式和大小",
+        "启用资源预加载"
+      ]
+    },
+    {
+      "priority": "High",
+      "category": "API优化",
+      "title": "优化前端API调用",
+      "description": "API调用响应时间过慢",
+      "actions": [
+        "实施API响应缓存",
+        "优化数据库查询",
+        "减少API响应数据大小",
+        "使用GraphQL减少过度获取"
+      ]
+    },
+    {
+      "priority": "Medium",
+      "category": "用户体验",
+      "title": "改善Web Vitals指标",
+      "description": "关键用户体验指标需要优化",
+      "actions": [
+        "优化LCP - 减少关键资源加载时间",
+        "改善FID - 减少JavaScript执行时间",
+        "优化CLS - 避免布局偏移",
+        "实施服务端渲染(SSR)"
+      ]
+    },
+    {
+      "priority": "Medium",
+      "category": "前端优化",
+      "title": "前端性能最佳实践",
+      "description": "实施现代前端优化技术",
+      "actions": [
+        "启用代码分割和懒加载",
+        "优化Web字体加载策略",
+        "实施Critical CSS",
+        "使用现代JavaScript特性"
+      ]
+    }
+  ]
+}

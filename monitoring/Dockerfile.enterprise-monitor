@@ -1,0 +1,50 @@
+FROM node:18-alpine
+
+LABEL maintainer="SmellPin DevOps <devops@smellpin.com>"
+LABEL description="SmellPin Enterprise Monitoring Service"
+LABEL version="1.0.0"
+
+# Install system dependencies
+RUN apk add --no-cache \
+    curl \
+    ca-certificates \
+    tzdata \
+    && update-ca-certificates
+
+# Set timezone
+ENV TZ=UTC
+
+# Create app directory
+WORKDIR /app
+
+# Create non-root user
+RUN addgroup -g 1001 -S monitor && \
+    adduser -S -D -H -u 1001 -s /sbin/nologin -G monitor monitor
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production && \
+    npm cache clean --force
+
+# Copy application code
+COPY enterprise-monitoring.js ./
+COPY package.json ./
+
+# Create required directories
+RUN mkdir -p /app/logs /app/data && \
+    chown -R monitor:monitor /app
+
+# Switch to non-root user
+USER monitor
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:9300/health || exit 1
+
+# Expose port
+EXPOSE 9300
+
+# Start the application
+CMD ["node", "enterprise-monitoring.js"]

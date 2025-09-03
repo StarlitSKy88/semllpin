@@ -1,0 +1,64 @@
+{
+  "meta": {
+    "title": "SmellPin 移动端和跨设备兼容性测试报告",
+    "version": "1.0.0",
+    "date": "2025-09-02",
+    "environment": "test",
+    "generatedAt": "2025-09-02T03:49:58.048Z"
+  },
+  "summary": {
+    "totalTests": 0,
+    "passedTests": 0,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "devicesCovered": [],
+    "browsersCovered": [],
+    "networkConditions": [],
+    "performanceMetrics": {
+      "averageLoadTime": 0,
+      "maxLoadTime": 0,
+      "averageInteractionDelay": 0,
+      "loadTimeCompliance": 100,
+      "interactionCompliance": 100
+    },
+    "compatibilityIssues": [
+      {
+        "type": "coverage",
+        "severity": "low",
+        "title": "设备覆盖率不足",
+        "description": "设备覆盖率 0.0% 低于标准 95%",
+        "category": "coverage"
+      }
+    ],
+    "recommendations": [
+      {
+        "category": "coverage",
+        "priority": "medium",
+        "title": "扩展设备测试覆盖",
+        "description": "增加更多设备和浏览器的测试覆盖",
+        "actions": [
+          "添加更多iOS设备测试",
+          "增加Android设备变体",
+          "测试低端设备性能",
+          "验证新版本浏览器兼容性"
+        ]
+      }
+    ],
+    "analysis": {
+      "overallStatus": "PASS",
+      "successRate": "NaN",
+      "deviceCoverage": 0,
+      "browserCoverage": 0,
+      "networkCoverage": 0,
+      "testCategorization": {
+        "responsive": 0,
+        "touchGestures": 0,
+        "deviceFeatures": 0,
+        "performance": 0,
+        "crossBrowser": 0,
+        "network": 0
+      }
+    }
+  },
+  "results": {}
+}

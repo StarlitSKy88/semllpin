@@ -1,0 +1,173 @@
+global:
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'alerts@smellpin.com'
+  smtp_auth_username: 'alerts@smellpin.com'
+  smtp_auth_password: 'your-email-password'
+  smtp_require_tls: true
+
+# 告警路由配置
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'default'
+  routes:
+    # 严重告警立即通知
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 0s
+      repeat_interval: 5m
+    
+    # 业务告警
+    - match:
+        service: business
+      receiver: 'business-alerts'
+      group_interval: 5m
+    
+    # 安全告警
+    - match:
+        service: security
+      receiver: 'security-alerts'
+      group_wait: 0s
+      repeat_interval: 15m
+    
+    # 数据库告警
+    - match:
+        service: database
+      receiver: 'database-alerts'
+      repeat_interval: 30m
+
+# 告警接收器配置
+receivers:
+  # 默认接收器
+  - name: 'default'
+    email_configs:
+      - to: 'admin@smellpin.com'
+        subject: '[SmellPin] {{ .GroupLabels.alertname }} 告警'
+        body: |
+          {{ range .Alerts }}
+          告警名称: {{ .Annotations.summary }}
+          告警描述: {{ .Annotations.description }}
+          告警级别: {{ .Labels.severity }}
+          服务名称: {{ .Labels.service }}
+          开始时间: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ if .EndsAt }}结束时间: {{ .EndsAt.Format "2006-01-02 15:04:05" }}{{ end }}
+          
+          标签信息:
+          {{ range .Labels.SortedPairs }}
+          - {{ .Name }}: {{ .Value }}
+          {{ end }}
+          {{ end }}
+    
+    # Slack 通知 (可选)
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#alerts'
+        title: 'SmellPin 系统告警'
+        text: |
+          {{ range .Alerts }}
+          *{{ .Annotations.summary }}*
+          {{ .Annotations.description }}
+          级别: {{ .Labels.severity }} | 服务: {{ .Labels.service }}
+          {{ end }}
+
+  # 严重告警接收器
+  - name: 'critical-alerts'
+    email_configs:
+      - to: 'admin@smellpin.com,ops@smellpin.com'
+        subject: '[CRITICAL] SmellPin 严重告警 - {{ .GroupLabels.alertname }}'
+        body: |
+          🚨 严重告警通知 🚨
+          
+          {{ range .Alerts }}
+          告警名称: {{ .Annotations.summary }}
+          告警描述: {{ .Annotations.description }}
+          服务名称: {{ .Labels.service }}
+          开始时间: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          
+          请立即处理此告警！
+          {{ end }}
+    
+    # 短信通知 (需要配置短信服务)
+    webhook_configs:
+      - url: 'http://localhost:3000/api/alerts/sms'
+        send_resolved: true
+        http_config:
+          basic_auth:
+            username: 'alert_user'
+            password: 'alert_password'
+
+  # 业务告警接收器
+  - name: 'business-alerts'
+    email_configs:
+      - to: 'business@smellpin.com,product@smellpin.com'
+        subject: '[Business] SmellPin 业务告警 - {{ .GroupLabels.alertname }}'
+        body: |
+          📊 业务指标告警
+          
+          {{ range .Alerts }}
+          告警名称: {{ .Annotations.summary }}
+          告警描述: {{ .Annotations.description }}
+          开始时间: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          
+          建议检查相关业务指标和用户行为数据。
+          {{ end }}
+
+  # 安全告警接收器
+  - name: 'security-alerts'
+    email_configs:
+      - to: 'security@smellpin.com,admin@smellpin.com'
+        subject: '[SECURITY] SmellPin 安全告警 - {{ .GroupLabels.alertname }}'
+        body: |
+          🔒 安全告警通知
+          
+          {{ range .Alerts }}
+          告警名称: {{ .Annotations.summary }}
+          告警描述: {{ .Annotations.description }}
+          开始时间: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          
+          请立即检查系统安全状态！
+          {{ end }}
+    
+    # 钉钉通知 (可选)
+    webhook_configs:
+      - url: 'https://oapi.dingtalk.com/robot/send?access_token=YOUR_DINGTALK_TOKEN'
+        send_resolved: true
+
+  # 数据库告警接收器
+  - name: 'database-alerts'
+    email_configs:
+      - to: 'dba@smellpin.com,ops@smellpin.com'
+        subject: '[Database] SmellPin 数据库告警 - {{ .GroupLabels.alertname }}'
+        body: |
+          🗄️ 数据库告警通知
+          
+          {{ range .Alerts }}
+          告警名称: {{ .Annotations.summary }}
+          告警描述: {{ .Annotations.description }}
+          开始时间: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          
+          请检查数据库连接和性能状态。
+          {{ end }}
+
+# 告警抑制规则
+inhibit_rules:
+  # 如果服务宕机，抑制其他相关告警
+  - source_match:
+      alertname: 'ServiceDown'
+    target_match:
+      service: 'smellpin-api'
+    equal: ['service']
+  
+  # 如果数据库连接失败，抑制相关业务告警
+  - source_match:
+      alertname: 'DatabaseConnectionFailed'
+    target_match:
+      service: 'business'
+    equal: ['cluster']
+
+# 模板配置
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'

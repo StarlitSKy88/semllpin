@@ -1,0 +1,851 @@
+{
+  "timestamp": "2025-09-01T08:39:16.688Z",
+  "config": {
+    "baseURL": "http://localhost:3003",
+    "testTimeout": 30000,
+    "retryAttempts": 3,
+    "thresholds": {
+      "uptime": 99.5,
+      "errorRecovery": 5000,
+      "dataIntegrity": 100,
+      "responseConsistency": 95
+    }
+  },
+  "tests": [
+    {
+      "name": "Service Uptime & Availability Test",
+      "category": "Availability",
+      "duration": 60388,
+      "totalChecks": 30,
+      "successfulChecks": 30,
+      "failedChecks": 0,
+      "uptimePercentage": 100,
+      "averageResponseTime": 9.133333333333333,
+      "downtimeEvents": [],
+      "passed": true
+    },
+    {
+      "name": "Error Handling & Recovery Test",
+      "category": "Error Handling",
+      "tests": [
+        {
+          "scenario": "404 Not Found",
+          "method": "GET",
+          "url": "/api/v1/nonexistent-endpoint",
+          "expectedStatus": 404,
+          "actualStatus": 401,
+          "hasErrorStructure": {
+            "code": "UNAUTHORIZED",
+            "message": "访问令牌缺失",
+            "stack": "Error: 访问令牌缺失\n    at createAuthError (/Users/xiaoyang/Downloads/臭味/src/middleware/errorHandler.ts:223:10)\n    at authMiddleware (/Users/xiaoyang/Downloads/臭味/src/middleware/auth.ts:68:28)\n    at Layer.handle [as handle_request] (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:328:13)\n    at /Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:286:9\n    at Function.process_params (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:346:12)\n    at next (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:280:10)\n    at Function.handle (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:175:3)\n    at router (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:47:12)\n    at Layer.handle [as handle_request] (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/layer.js:95:5)"
+          },
+          "passed": false
+        },
+        {
+          "scenario": "400 Bad Request",
+          "method": "POST",
+          "url": "/api/v1/users/login",
+          "expectedStatus": 400,
+          "actualStatus": 400,
+          "hasErrorStructure": {
+            "code": "VALIDATION_ERROR",
+            "message": "数据验证失败: Body: \"email\" is required",
+            "stack": "Error: 数据验证失败: Body: \"email\" is required\n    at /Users/xiaoyang/Downloads/臭味/src/middleware/validation.ts:39:13\n    at Layer.handle [as handle_request] (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/layer.js:95:5)\n    at next (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/route.js:149:13)\n    at Route.dispatch (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/route.js:119:3)\n    at Layer.handle [as handle_request] (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/layer.js:95:5)\n    at /Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:284:15\n    at Function.process_params (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:346:12)\n    at next (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:280:10)\n    at Function.handle (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:175:3)\n    at router (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:47:12)"
+          },
+          "passed": true
+        },
+        {
+          "scenario": "401 Unauthorized",
+          "method": "GET",
+          "url": "/api/v1/users/profile/me",
+          "expectedStatus": 401,
+          "actualStatus": 401,
+          "hasErrorStructure": {
+            "code": "UNAUTHORIZED",
+            "message": "访问令牌缺失",
+            "stack": "Error: 访问令牌缺失\n    at createAuthError (/Users/xiaoyang/Downloads/臭味/src/middleware/errorHandler.ts:223:10)\n    at authMiddleware (/Users/xiaoyang/Downloads/臭味/src/middleware/auth.ts:68:28)\n    at Layer.handle [as handle_request] (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:328:13)\n    at /Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:286:9\n    at Function.process_params (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:346:12)\n    at next (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:280:10)\n    at Function.handle (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:175:3)\n    at router (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:47:12)\n    at Layer.handle [as handle_request] (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/layer.js:95:5)"
+          },
+          "passed": true
+        },
+        {
+          "scenario": "413 Payload Too Large",
+          "method": "POST",
+          "url": "/api/v1/annotations",
+          "expectedStatus": 413,
+          "actualStatus": 401,
+          "hasErrorStructure": {
+            "code": "UNAUTHORIZED",
+            "message": "访问令牌缺失",
+            "stack": "Error: 访问令牌缺失\n    at createAuthError (/Users/xiaoyang/Downloads/臭味/src/middleware/errorHandler.ts:223:10)\n    at authMiddleware (/Users/xiaoyang/Downloads/臭味/src/middleware/auth.ts:68:28)\n    at Layer.handle [as handle_request] (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:328:13)\n    at /Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:286:9\n    at Function.process_params (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:346:12)\n    at next (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:280:10)\n    at Function.handle (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:175:3)\n    at router (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:47:12)\n    at Layer.handle [as handle_request] (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/layer.js:95:5)"
+          },
+          "passed": false
+        },
+        {
+          "scenario": "429 Too Many Requests",
+          "method": "POST",
+          "url": "/api/v1/users/login",
+          "expectedStatus": 429,
+          "actualStatus": 401,
+          "hasErrorStructure": {
+            "code": "UNAUTHORIZED",
+            "message": "邮箱或密码错误",
+            "stack": "Error: 邮箱或密码错误\n    at createAuthError (/Users/xiaoyang/Downloads/臭味/src/middleware/errorHandler.ts:223:10)\n    at /Users/xiaoyang/Downloads/臭味/src/controllers/userController.ts:126:26"
+          },
+          "passed": false
+        }
+      ],
+      "totalTests": 5,
+      "passedTests": 2,
+      "issues": [
+        {
+          "scenario": "404 Not Found",
+          "expected": 404,
+          "actual": 401,
+          "hasValidErrorStructure": {
+            "code": "UNAUTHORIZED",
+            "message": "访问令牌缺失",
+            "stack": "Error: 访问令牌缺失\n    at createAuthError (/Users/xiaoyang/Downloads/臭味/src/middleware/errorHandler.ts:223:10)\n    at authMiddleware (/Users/xiaoyang/Downloads/臭味/src/middleware/auth.ts:68:28)\n    at Layer.handle [as handle_request] (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:328:13)\n    at /Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:286:9\n    at Function.process_params (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:346:12)\n    at next (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:280:10)\n    at Function.handle (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:175:3)\n    at router (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:47:12)\n    at Layer.handle [as handle_request] (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/layer.js:95:5)"
+          }
+        },
+        {
+          "scenario": "413 Payload Too Large",
+          "expected": 413,
+          "actual": 401,
+          "hasValidErrorStructure": {
+            "code": "UNAUTHORIZED",
+            "message": "访问令牌缺失",
+            "stack": "Error: 访问令牌缺失\n    at createAuthError (/Users/xiaoyang/Downloads/臭味/src/middleware/errorHandler.ts:223:10)\n    at authMiddleware (/Users/xiaoyang/Downloads/臭味/src/middleware/auth.ts:68:28)\n    at Layer.handle [as handle_request] (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:328:13)\n    at /Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:286:9\n    at Function.process_params (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:346:12)\n    at next (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:280:10)\n    at Function.handle (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:175:3)\n    at router (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:47:12)\n    at Layer.handle [as handle_request] (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/layer.js:95:5)"
+          }
+        },
+        {
+          "scenario": "429 Too Many Requests",
+          "expected": 429,
+          "actual": 401,
+          "hasValidErrorStructure": {
+            "code": "UNAUTHORIZED",
+            "message": "邮箱或密码错误",
+            "stack": "Error: 邮箱或密码错误\n    at createAuthError (/Users/xiaoyang/Downloads/臭味/src/middleware/errorHandler.ts:223:10)\n    at /Users/xiaoyang/Downloads/臭味/src/controllers/userController.ts:126:26"
+          }
+        }
+      ],
+      "passed": false
+    },
+    {
+      "name": "Data Integrity & Consistency Test",
+      "category": "Data Integrity",
+      "tests": [
+        {
+          "operation": "Read Annotations List",
+          "iterations": 5,
+          "results": [
+            {
+              "success": true,
+              "dataCount": 0,
+              "hasExpectedStructure": true
+            },
+            {
+              "success": true,
+              "dataCount": 0,
+              "hasExpectedStructure": true
+            },
+            {
+              "success": true,
+              "dataCount": 0,
+              "hasExpectedStructure": true
+            },
+            {
+              "success": true,
+              "dataCount": 0,
+              "hasExpectedStructure": true
+            },
+            {
+              "success": true,
+              "dataCount": 0,
+              "hasExpectedStructure": true
+            }
+          ],
+          "consistency": {
+            "isConsistent": true,
+            "successRate": 100,
+            "structureValidationRate": 100,
+            "reason": "All operations successful"
+          },
+          "passed": true
+        },
+        {
+          "operation": "Read Health Check",
+          "iterations": 5,
+          "results": [
+            {
+              "success": true,
+              "hasExpectedStructure": true
+            },
+            {
+              "success": true,
+              "hasExpectedStructure": true
+            },
+            {
+              "success": true,
+              "hasExpectedStructure": true
+            },
+            {
+              "success": true,
+              "hasExpectedStructure": true
+            },
+            {
+              "success": true,
+              "hasExpectedStructure": true
+            }
+          ],
+          "consistency": {
+            "isConsistent": true,
+            "successRate": 100,
+            "structureValidationRate": 100,
+            "reason": "All operations successful"
+          },
+          "passed": true
+        },
+        {
+          "operation": "Read API Documentation",
+          "iterations": 5,
+          "results": [
+            {
+              "success": false,
+              "error": "Request failed with status code 401"
+            },
+            {
+              "success": false,
+              "error": "Request failed with status code 401"
+            },
+            {
+              "success": false,
+              "error": "Request failed with status code 401"
+            },
+            {
+              "success": false,
+              "error": "Request failed with status code 401"
+            },
+            {
+              "success": false,
+              "error": "Request failed with status code 401"
+            }
+          ],
+          "consistency": {
+            "isConsistent": false,
+            "successRate": 0,
+            "structureValidationRate": 0,
+            "reason": "Some operations failed"
+          },
+          "passed": false
+        }
+      ],
+      "totalOperations": 15,
+      "successfulOperations": 10,
+      "dataInconsistencies": [
+        {
+          "operation": "Read API Documentation",
+          "issue": "Data inconsistency",
+          "details": {
+            "isConsistent": false,
+            "successRate": 0,
+            "structureValidationRate": 0,
+            "reason": "Some operations failed"
+          }
+        }
+      ],
+      "passed": false,
+      "integrityPercentage": 66.66666666666666
+    },
+    {
+      "name": "System Stability Under Load Test",
+      "category": "Load Stability",
+      "duration": 30006,
+      "totalRequests": 49255,
+      "successfulRequests": 16520,
+      "failedRequests": 32735,
+      "averageResponseTime": 1.659443099273613,
+      "maxResponseTime": 365,
+      "memoryUsage": [
+        {
+          "timestamp": 1756716023198,
+          "heapUsed": 32772760,
+          "heapTotal": 65011712,
+          "external": 3466615,
+          "rss": 98254848
+        },
+        {
+          "timestamp": 1756716028198,
+          "heapUsed": 27569496,
+          "heapTotal": 63438848,
+          "external": 3453498,
+          "rss": 94765056
+        },
+        {
+          "timestamp": 1756716033198,
+          "heapUsed": 23284744,
+          "heapTotal": 62390272,
+          "external": 3394280,
+          "rss": 95780864
+        },
+        {
+          "timestamp": 1756716038200,
+          "heapUsed": 20552768,
+          "heapTotal": 63438848,
+          "external": 3360173,
+          "rss": 95518720
+        },
+        {
+          "timestamp": 1756716043201,
+          "heapUsed": 23850808,
+          "heapTotal": 65273856,
+          "external": 3405589,
+          "rss": 92340224
+        },
+        {
+          "timestamp": 1756716048202,
+          "heapUsed": 47024128,
+          "heapTotal": 72351744,
+          "external": 3617314,
+          "rss": 94699520
+        }
+      ],
+      "performanceDegradation": [
+        {
+          "timestamp": 1756716048202,
+          "heapGrowthPercent": 97.15947568736455,
+          "heapUsed": 47024128
+        }
+      ],
+      "passed": false,
+      "successRate": 33.539742158156535
+    },
+    {
+      "name": "Database & Redis Connection Pool Test",
+      "category": "Connection Management",
+      "dbTests": [
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048212
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048212
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048212
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048212
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048212
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048213
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048213
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048213
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048213
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048213
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048213
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048213
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048214
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048215
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048215
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048215
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048215
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048215
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048215
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048216
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048216
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048217
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048217
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048218
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048219
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048218
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048219
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048219
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048219
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048220
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048220
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048220
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048220
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048220
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048220
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048222
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048222
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048222
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048222
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048222
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048223
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048223
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048223
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048223
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048223
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048223
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048223
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048223
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048223
+        },
+        {
+          "success": false,
+          "error": "Request failed with status code 429",
+          "timestamp": 1756716048224
+        }
+      ],
+      "redisTests": [
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048226
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048226
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048226
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048226
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048227
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048227
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048227
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048227
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048227
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048227
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048227
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048228
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048228
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048228
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048228
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048228
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048228
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048228
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048229
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048229
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048229
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048229
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048229
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048229
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048230
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048230
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048230
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048230
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048230
+        },
+        {
+          "success": true,
+          "responseTime": 0,
+          "timestamp": 1756716048230
+        }
+      ],
+      "connectionLeaks": [],
+      "passed": false,
+      "dbSuccessRate": 0,
+      "redisSuccessRate": 100
+    }
+  ],
+  "summary": {
+    "reliabilityScore": 40,
+    "passedTests": 1,
+    "totalTests": 5,
+    "totalIssues": 4,
+    "riskLevel": "High"
+  },
+  "issues": [
+    {
+      "type": "Inadequate Error Handling",
+      "severity": "Medium",
+      "description": "错误处理测试通过率 2/5",
+      "evidence": [
+        {
+          "scenario": "404 Not Found",
+          "expected": 404,
+          "actual": 401,
+          "hasValidErrorStructure": {
+            "code": "UNAUTHORIZED",
+            "message": "访问令牌缺失",
+            "stack": "Error: 访问令牌缺失\n    at createAuthError (/Users/xiaoyang/Downloads/臭味/src/middleware/errorHandler.ts:223:10)\n    at authMiddleware (/Users/xiaoyang/Downloads/臭味/src/middleware/auth.ts:68:28)\n    at Layer.handle [as handle_request] (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:328:13)\n    at /Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:286:9\n    at Function.process_params (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:346:12)\n    at next (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:280:10)\n    at Function.handle (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:175:3)\n    at router (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:47:12)\n    at Layer.handle [as handle_request] (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/layer.js:95:5)"
+          }
+        },
+        {
+          "scenario": "413 Payload Too Large",
+          "expected": 413,
+          "actual": 401,
+          "hasValidErrorStructure": {
+            "code": "UNAUTHORIZED",
+            "message": "访问令牌缺失",
+            "stack": "Error: 访问令牌缺失\n    at createAuthError (/Users/xiaoyang/Downloads/臭味/src/middleware/errorHandler.ts:223:10)\n    at authMiddleware (/Users/xiaoyang/Downloads/臭味/src/middleware/auth.ts:68:28)\n    at Layer.handle [as handle_request] (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:328:13)\n    at /Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:286:9\n    at Function.process_params (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:346:12)\n    at next (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:280:10)\n    at Function.handle (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:175:3)\n    at router (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:47:12)\n    at Layer.handle [as handle_request] (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/layer.js:95:5)"
+          }
+        },
+        {
+          "scenario": "429 Too Many Requests",
+          "expected": 429,
+          "actual": 401,
+          "hasValidErrorStructure": {
+            "code": "UNAUTHORIZED",
+            "message": "邮箱或密码错误",
+            "stack": "Error: 邮箱或密码错误\n    at createAuthError (/Users/xiaoyang/Downloads/臭味/src/middleware/errorHandler.ts:223:10)\n    at /Users/xiaoyang/Downloads/臭味/src/controllers/userController.ts:126:26"
+          }
+        }
+      ]
+    },
+    {
+      "type": "Data Integrity Issues",
+      "severity": "High",
+      "description": "数据完整性 66.67% 或存在一致性问题",
+      "evidence": {
+        "integrityPercentage": 66.66666666666666,
+        "inconsistencies": 1,
+        "totalOperations": 15
+      }
+    },
+    {
+      "type": "System Instability Under Load",
+      "severity": "High",
+      "description": "负载测试中成功率 33.54% 或响应时间过慢",
+      "evidence": {
+        "successRate": 33.539742158156535,
+        "averageResponseTime": 1.659443099273613,
+        "maxResponseTime": 365,
+        "totalRequests": 49255
+      }
+    },
+    {
+      "type": "Connection Pool Issues",
+      "severity": "High",
+      "description": "数据库或Redis连接池存在稳定性问题",
+      "evidence": {
+        "dbSuccessRate": 0,
+        "redisSuccessRate": 100,
+        "dbFailures": 50,
+        "redisFailures": 0
+      }
+    }
+  ],
+  "recommendations": [
+    {
+      "priority": "Medium",
+      "category": "错误处理",
+      "title": "改善错误处理机制",
+      "description": "标准化错误响应格式和处理流程",
+      "actions": [
+        "统一错误响应格式",
+        "实施全局错误处理器",
+        "添加详细的错误日志",
+        "改善用户友好的错误消息"
+      ]
+    },
+    {
+      "priority": "High",
+      "category": "数据完整性",
+      "title": "确保数据一致性",
+      "description": "实施数据验证和事务管理",
+      "actions": [
+        "添加数据验证规则",
+        "实施数据库事务",
+        "配置数据备份策略",
+        "实施数据完整性检查"
+      ]
+    },
+    {
+      "priority": "Medium",
+      "category": "监控和维护",
+      "title": "增强系统监控",
+      "description": "实施全面的系统监控和性能追踪",
+      "actions": [
+        "配置应用性能监控(APM)",
+        "实施日志聚合和分析",
+        "设置关键指标告警",
+        "建立运维手册和流程"
+      ]
+    }
+  ]
+}
