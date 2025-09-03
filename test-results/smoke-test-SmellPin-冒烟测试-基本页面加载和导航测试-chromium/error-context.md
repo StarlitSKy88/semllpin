@@ -1,5 +1,0 @@
-# Page snapshot
-
-```yaml
-- generic [ref=e2]: "{\"success\":false,\"error\":{\"code\":\"ROUTE_NOT_FOUND\",\"message\":\"路由 / 不存在\",\"stack\":\"Error: 路由 / 不存在\\n at notFoundHandler (/Users/xiaoyang/Downloads/臭味/src/middleware/notFoundHandler.ts:10:17)\\n at Layer.handle [as handle_request] (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/layer.js:95:5)\\n at trim_prefix (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:328:13)\\n at /Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:286:9\\n at Function.process_params (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:346:12)\\n at Immediate.next (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:280:10)\\n at Immediate._onImmediate (/Users/xiaoyang/Downloads/臭味/node_modules/express/lib/router/index.js:646:15)\\n at processImmediate (node:internal/timers:485:21)\"},\"timestamp\":\"2025-09-01T08:03:49.994Z\"}"
-```
