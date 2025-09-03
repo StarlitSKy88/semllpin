@@ -4,7 +4,7 @@ export interface Payment {
     annotation_id?: string;
     amount: number;
     currency: string;
-    payment_method: 'stripe' | 'paypal' | 'alipay' | 'wechat';
+    payment_method: 'paypal' | 'alipay' | 'wechat';
     payment_intent_id?: string;
     session_id?: string;
     transaction_id?: string;
@@ -20,14 +20,23 @@ export interface Payment {
     updated_at: Date;
 }
 export interface CreatePaymentData {
-    user_id: string;
+    userId?: string;
+    user_id?: string;
+    annotationId?: string;
     annotation_id?: string;
     amount: number;
     currency: string;
-    payment_method: 'stripe' | 'paypal' | 'alipay' | 'wechat';
+    method?: 'paypal' | 'alipay' | 'wechat';
+    payment_method?: 'paypal' | 'alipay' | 'wechat';
+    paymentIntentId?: string;
     payment_intent_id?: string;
+    sessionId?: string;
     session_id?: string;
+    paypalOrderId?: string;
+    stripeSessionId?: string;
+    stripePaymentIntentId?: string;
     description?: string;
+    status?: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled' | 'refunded';
     metadata?: Record<string, any>;
 }
 export interface UpdatePaymentData {
@@ -63,6 +72,7 @@ export declare class PaymentModel {
     static findById(id: string): Promise<Payment | null>;
     static findByStripeSessionId(sessionId: string): Promise<Payment | null>;
     static findByStripePaymentIntentId(paymentIntentId: string): Promise<Payment | null>;
+    static findByPayPalOrderId(orderId: string): Promise<Payment | null>;
     static updateStatus(id: string, updateData: UpdatePaymentData): Promise<Payment | null>;
     static getUserPayments(userId: string, options?: {
         page?: number;

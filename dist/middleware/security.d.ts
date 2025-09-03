@@ -1,146 +1,33 @@
 import { Request, Response, NextFunction } from 'express';
-export declare const securityConfig: {
-    rateLimit: {
-        windowMs: number;
-        max: number;
-        message: {
-            success: boolean;
-            error: {
-                code: string;
-                message: string;
-            };
-        };
-        standardHeaders: boolean;
-        legacyHeaders: boolean;
-    };
-    helmet: {
-        contentSecurityPolicy: {
-            directives: {
-                defaultSrc: string[];
-                styleSrc: string[];
-                fontSrc: string[];
-                imgSrc: string[];
-                scriptSrc: string[];
-                connectSrc: string[];
-                frameSrc: string[];
-                objectSrc: string[];
-                mediaSrc: string[];
-                workerSrc: string[];
-            };
-        };
-        crossOriginEmbedderPolicy: boolean;
-    };
-    xss: {
-        whiteList: {
-            a: string[];
-            abbr: string[];
-            address: never[];
-            area: string[];
-            article: never[];
-            aside: never[];
-            audio: string[];
-            b: never[];
-            bdi: string[];
-            bdo: string[];
-            big: never[];
-            blockquote: string[];
-            br: never[];
-            caption: never[];
-            center: never[];
-            cite: never[];
-            code: never[];
-            col: string[];
-            colgroup: string[];
-            dd: never[];
-            del: string[];
-            details: string[];
-            div: never[];
-            dl: never[];
-            dt: never[];
-            em: never[];
-            font: string[];
-            footer: never[];
-            h1: never[];
-            h2: never[];
-            h3: never[];
-            h4: never[];
-            h5: never[];
-            h6: never[];
-            header: never[];
-            hr: never[];
-            i: never[];
-            img: string[];
-            ins: string[];
-            li: never[];
-            mark: never[];
-            nav: never[];
-            ol: never[];
-            p: never[];
-            pre: never[];
-            s: never[];
-            section: never[];
-            small: never[];
-            span: never[];
-            sub: never[];
-            sup: never[];
-            strong: never[];
-            table: string[];
-            tbody: string[];
-            td: string[];
-            tfoot: string[];
-            th: string[];
-            thead: string[];
-            tr: string[];
-            tt: never[];
-            u: never[];
-            ul: never[];
-            video: string[];
-        };
-        stripIgnoreTag: boolean;
-        stripIgnoreTagBody: string[];
-    };
-};
-export declare const basicRateLimit: import("express-rate-limit").RateLimitRequestHandler;
-export declare const strictRateLimit: import("express-rate-limit").RateLimitRequestHandler;
-export declare const loginRateLimit: import("express-rate-limit").RateLimitRequestHandler;
 export declare const securityHeaders: (req: import("http").IncomingMessage, res: import("http").ServerResponse, next: (err?: unknown) => void) => void;
-export declare const xssProtection: (req: Request, _res: Response, next: NextFunction) => void;
-export declare const sqlInjectionProtection: import("express-validator").ValidationChain[];
-export declare const handleValidationErrors: (req: Request, res: Response, next: NextFunction) => Response | void;
-export declare const ipWhitelist: (allowedIPs: string[]) => (req: Request, res: Response, next: NextFunction) => Response | void;
-export declare const suspiciousActivityDetection: (req: Request, res: Response, next: NextFunction) => Promise<Response | void>;
-export declare const csrfProtection: (req: Request, res: Response, next: NextFunction) => Response | void;
-export declare const generateCSRFToken: () => string;
-export declare const fileUploadSecurity: {
-    allowedMimeTypes: string[];
-    maxFileSize: number;
-    checkFileType: (mimetype: string) => boolean;
-    checkFileSize: (size: number) => boolean;
-    generateSafeFilename: (originalName: string) => string;
+export declare const apiRateLimit: import("express-rate-limit").RateLimitRequestHandler;
+export declare const strictRateLimit: import("express-rate-limit").RateLimitRequestHandler;
+export declare const fileUploadRateLimit: import("express-rate-limit").RateLimitRequestHandler;
+export declare const validateInput: (req: Request, res: Response, next: NextFunction) => Response<any, Record<string, any>> | undefined;
+export declare const corsConfig: {
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => void;
+    credentials: boolean;
+    optionsSuccessStatus: number;
+    methods: string[];
+    allowedHeaders: string[];
+    exposedHeaders: string[];
 };
-export declare const validateFileUpload: (req: Request, res: Response, next: NextFunction) => Response | void;
 export declare const securityLogger: (req: Request, res: Response, next: NextFunction) => void;
-export declare const securityMiddleware: {
-    basicRateLimit: import("express-rate-limit").RateLimitRequestHandler;
-    strictRateLimit: import("express-rate-limit").RateLimitRequestHandler;
-    loginRateLimit: import("express-rate-limit").RateLimitRequestHandler;
+declare const _default: {
     securityHeaders: (req: import("http").IncomingMessage, res: import("http").ServerResponse, next: (err?: unknown) => void) => void;
-    xssProtection: (req: Request, _res: Response, next: NextFunction) => void;
-    sqlInjectionProtection: import("express-validator").ValidationChain[];
-    handleValidationErrors: (req: Request, res: Response, next: NextFunction) => Response | void;
-    ipWhitelist: (allowedIPs: string[]) => (req: Request, res: Response, next: NextFunction) => Response | void;
-    suspiciousActivityDetection: (req: Request, res: Response, next: NextFunction) => Promise<Response | void>;
-    csrfProtection: (req: Request, res: Response, next: NextFunction) => Response | void;
-    generateCSRFToken: () => string;
-    fileUploadSecurity: {
-        allowedMimeTypes: string[];
-        maxFileSize: number;
-        checkFileType: (mimetype: string) => boolean;
-        checkFileSize: (size: number) => boolean;
-        generateSafeFilename: (originalName: string) => string;
+    apiRateLimit: import("express-rate-limit").RateLimitRequestHandler;
+    strictRateLimit: import("express-rate-limit").RateLimitRequestHandler;
+    fileUploadRateLimit: import("express-rate-limit").RateLimitRequestHandler;
+    validateInput: (req: Request, res: Response, next: NextFunction) => Response<any, Record<string, any>> | undefined;
+    corsConfig: {
+        origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => void;
+        credentials: boolean;
+        optionsSuccessStatus: number;
+        methods: string[];
+        allowedHeaders: string[];
+        exposedHeaders: string[];
     };
-    validateFileUpload: (req: Request, res: Response, next: NextFunction) => Response | void;
     securityLogger: (req: Request, res: Response, next: NextFunction) => void;
 };
-export default securityMiddleware;
+export default _default;
 //# sourceMappingURL=security.d.ts.map

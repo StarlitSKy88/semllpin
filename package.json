@@ -190,6 +190,7 @@
     "sinon": "^21.0.0",
     "snyk": "^1.1293.1",
     "supertest": "^6.3.4",
+    "testcontainers": "^11.5.1",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",

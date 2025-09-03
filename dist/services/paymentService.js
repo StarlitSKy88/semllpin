@@ -9,11 +9,8 @@ class PaymentService {
     static async findById(id) {
         return await Payment_1.PaymentModel.findById(id);
     }
-    static async findByStripeSessionId(sessionId) {
-        return await Payment_1.PaymentModel.findByStripeSessionId(sessionId);
-    }
-    static async findByStripePaymentIntentId(paymentIntentId) {
-        return await Payment_1.PaymentModel.findByStripePaymentIntentId(paymentIntentId);
+    static async findByPayPalOrderId(orderId) {
+        return await Payment_1.PaymentModel.findByPayPalOrderId(orderId);
     }
     static async updateStatus(id, status, metadata) {
         return await Payment_1.PaymentModel.updateStatus(id, { status, metadata });

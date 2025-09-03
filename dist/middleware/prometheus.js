@@ -7,6 +7,7 @@ exports.recordBusinessMetrics = exports.metrics = exports.metricsHandler = expor
 const prom_client_1 = __importDefault(require("prom-client"));
 const logger_1 = require("../utils/logger");
 const os_1 = __importDefault(require("os"));
+const isTestEnv = (process.env['NODE_ENV'] === 'test') || (typeof process.env['JEST_WORKER_ID'] !== 'undefined');
 const register = new prom_client_1.default.Registry();
 prom_client_1.default.collectDefaultMetrics({
     register,
@@ -78,24 +79,27 @@ const systemResources = new prom_client_1.default.Gauge({
     labelNames: ['resource_type'],
     registers: [register],
 });
-setInterval(() => {
-    try {
-        const memUsage = process.memoryUsage();
-        const cpuUsage = process.cpuUsage();
-        const loadAvg = os_1.default.loadavg();
-        systemResources.set({ resource_type: 'memory_heap_used' }, memUsage['heapUsed'] / 1024 / 1024);
-        systemResources.set({ resource_type: 'memory_heap_total' }, memUsage['heapTotal'] / 1024 / 1024);
-        systemResources.set({ resource_type: 'memory_rss' }, memUsage['rss'] / 1024 / 1024);
-        systemResources.set({ resource_type: 'cpu_user' }, cpuUsage['user'] / 1000000);
-        systemResources.set({ resource_type: 'cpu_system' }, cpuUsage['system'] / 1000000);
-        systemResources.set({ resource_type: 'load_avg_1m' }, loadAvg[0] || 0);
-        systemResources.set({ resource_type: 'load_avg_5m' }, loadAvg[1] || 0);
-        systemResources.set({ resource_type: 'load_avg_15m' }, loadAvg[2] || 0);
-    }
-    catch (error) {
-        logger_1.logger.error('更新系统资源指标失败:', error);
-    }
-}, 30000);
+if (!isTestEnv) {
+    const interval = setInterval(() => {
+        try {
+            const memUsage = process.memoryUsage();
+            const cpuUsage = process.cpuUsage();
+            const loadAvg = os_1.default.loadavg();
+            systemResources.set({ resource_type: 'memory_heap_used' }, memUsage['heapUsed'] / 1024 / 1024);
+            systemResources.set({ resource_type: 'memory_heap_total' }, memUsage['heapTotal'] / 1024 / 1024);
+            systemResources.set({ resource_type: 'memory_rss' }, memUsage['rss'] / 1024 / 1024);
+            systemResources.set({ resource_type: 'cpu_user' }, cpuUsage['user'] / 1000000);
+            systemResources.set({ resource_type: 'cpu_system' }, cpuUsage['system'] / 1000000);
+            systemResources.set({ resource_type: 'load_avg_1m' }, loadAvg[0] || 0);
+            systemResources.set({ resource_type: 'load_avg_5m' }, loadAvg[1] || 0);
+            systemResources.set({ resource_type: 'load_avg_15m' }, loadAvg[2] || 0);
+        }
+        catch (error) {
+            logger_1.logger.error('更新系统资源指标失败:', error);
+        }
+    }, 30000);
+    interval.unref && interval.unref();
+}
 const prometheusMiddleware = (req, res, next) => {
     const startTime = Date.now();
     res.locals['startTime'] = startTime;

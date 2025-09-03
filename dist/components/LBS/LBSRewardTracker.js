@@ -6,7 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
 const lucide_react_1 = require("lucide-react");
-const sonner_1 = require("sonner");
+const toast = {
+    error: (message) => console.error('Toast error:', message),
+    success: (message) => console.log('Toast success:', message),
+    info: (message) => console.info('Toast info:', message),
+};
 const notificationStore_1 = __importDefault(require("../../stores/notificationStore"));
 const NotificationButton_1 = __importDefault(require("../Notifications/NotificationButton"));
 const authStore_1 = require("../../stores/authStore");
@@ -34,7 +38,7 @@ const LBSRewardTracker = () => {
     const pendingReportsRef = (0, react_1.useRef)([]);
     const checkLocationPermission = (0, react_1.useCallback)(async () => {
         if (!navigator.geolocation) {
-            sonner_1.toast.error('您的设备不支持位置服务');
+            toast.error('您的设备不支持位置服务');
             return false;
         }
         try {
@@ -66,10 +70,10 @@ const LBSRewardTracker = () => {
                     latitude: position.coords.latitude,
                     longitude: position.coords.longitude,
                     accuracy: position.coords.accuracy,
-                    altitude: position.coords.altitude || undefined,
-                    heading: position.coords.heading || undefined,
-                    speed: position.coords.speed || undefined,
-                    timestamp: Date.now()
+                    altitude: position.coords.altitude ?? undefined,
+                    heading: position.coords.heading ?? undefined,
+                    speed: position.coords.speed ?? undefined,
+                    timestamp: new Date().toISOString()
                 };
                 setAccuracy(position.coords.accuracy);
                 resolve(locationData);
@@ -118,7 +122,7 @@ const LBSRewardTracker = () => {
                     altitude: undefined,
                     heading: undefined,
                     speed: undefined,
-                    timestamp: locationData.timestamp || Date.now()
+                    timestamp: typeof locationData.timestamp === 'string' ? new Date(locationData.timestamp).getTime() : Date.now()
                 });
                 if (result.data.reward?.earned) {
                     addReward({
@@ -148,10 +152,10 @@ const LBSRewardTracker = () => {
             console.error('位置上报错误:', error);
             if (!isOnline) {
                 pendingReportsRef.current.push(locationData);
-                sonner_1.toast.info('网络离线，位置数据已缓存');
+                toast.info('网络离线，位置数据已缓存');
             }
             else {
-                sonner_1.toast.error(`位置上报失败: ${error instanceof Error ? error.message : '未知错误'}`);
+                toast.error(`位置上报失败: ${error instanceof Error ? error.message : '未知错误'}`);
             }
             return null;
         }
@@ -176,30 +180,30 @@ const LBSRewardTracker = () => {
             }
         }
         if (pendingReportsRef.current.length > 0) {
-            sonner_1.toast.info(`还有 ${pendingReportsRef.current.length} 条位置数据待上报`);
+            toast.info(`还有 ${pendingReportsRef.current.length} 条位置数据待上报`);
         }
         else {
-            sonner_1.toast.success('所有缓存的位置数据已上报完成');
+            toast.success('所有缓存的位置数据已上报完成');
         }
     }, [isOnline, reportLocation]);
     const startTracking = (0, react_1.useCallback)(async () => {
         try {
             const hasPermission = await checkLocationPermission();
             if (!hasPermission) {
-                sonner_1.toast.error('需要位置权限才能开始追踪');
+                toast.error('需要位置权限才能开始追踪');
                 return;
             }
             const initialLocation = await getCurrentLocation();
             const reportResult = await reportLocation(initialLocation);
             if (reportResult?.data.reward?.earned) {
-                sonner_1.toast.success(`获得奖励: ${reportResult.data.reward.amount} 分！`);
+                toast.success(`获得奖励: ${reportResult.data.reward.amount} 分！`);
             }
             reportTimerRef.current = setInterval(async () => {
                 try {
                     const location = await getCurrentLocation();
                     const result = await reportLocation(location);
                     if (result?.data.reward?.earned) {
-                        sonner_1.toast.success(`获得奖励: ${result.data.reward.amount} 分！`);
+                        toast.success(`获得奖励: ${result.data.reward.amount} 分！`);
                     }
                 }
                 catch (error) {
@@ -217,7 +221,7 @@ const LBSRewardTracker = () => {
                     updateLocation({
                         latitude: position.coords.latitude,
                         longitude: position.coords.longitude,
-                        accuracy: position.coords.accuracy || 0,
+                        accuracy: position.coords.accuracy,
                         altitude: position.coords.altitude || undefined,
                         heading: position.coords.heading || undefined,
                         speed: position.coords.speed || undefined,
@@ -228,7 +232,7 @@ const LBSRewardTracker = () => {
                 }, options);
             }
             setTracking(true);
-            sonner_1.toast.success('位置追踪已开始');
+            toast.success('位置追踪已开始');
             fetchNearbyGeofences({
                 latitude: initialLocation.latitude,
                 longitude: initialLocation.longitude,
@@ -241,7 +245,7 @@ const LBSRewardTracker = () => {
         }
         catch (error) {
             console.error('开始追踪失败:', error);
-            sonner_1.toast.error(`开始追踪失败: ${error instanceof Error ? error.message : '未知错误'}`);
+            toast.error(`开始追踪失败: ${error instanceof Error ? error.message : '未知错误'}`);
         }
     }, [checkLocationPermission, getCurrentLocation, reportLocation, reportInterval, setTracking, updateLocation, fetchNearbyGeofences]);
     const stopTracking = (0, react_1.useCallback)(() => {
@@ -254,7 +258,7 @@ const LBSRewardTracker = () => {
             reportTimerRef.current = null;
         }
         setTracking(false);
-        sonner_1.toast.info('位置追踪已停止');
+        toast.info('位置追踪已停止');
     }, [setTracking]);
     const initializeWebSocket = (0, react_1.useCallback)(async () => {
         try {
@@ -269,13 +273,13 @@ const LBSRewardTracker = () => {
     (0, react_1.useEffect)(() => {
         const handleOnline = () => {
             setIsOnline(true);
-            sonner_1.toast.success('网络已连接');
+            toast.success('网络已连接');
             processPendingReports();
             initializeWebSocket();
         };
         const handleOffline = () => {
             setIsOnline(false);
-            sonner_1.toast.warning('网络已断开，位置数据将缓存');
+            toast.warning('网络已断开，位置数据将缓存');
         };
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);

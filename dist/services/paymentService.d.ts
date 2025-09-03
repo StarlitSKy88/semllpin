@@ -2,8 +2,7 @@ import { Payment, CreatePaymentData, PaymentStats, PaymentMethodStats } from '@/
 export declare class PaymentService {
     static create(paymentData: CreatePaymentData): Promise<Payment>;
     static findById(id: string): Promise<Payment | null>;
-    static findByStripeSessionId(sessionId: string): Promise<Payment | null>;
-    static findByStripePaymentIntentId(paymentIntentId: string): Promise<Payment | null>;
+    static findByPayPalOrderId(orderId: string): Promise<Payment | null>;
     static updateStatus(id: string, status: Payment['status'], metadata?: any): Promise<Payment | null>;
     static getUserPayments(userId: string, options?: {
         page?: number;

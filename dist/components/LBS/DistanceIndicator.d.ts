@@ -16,7 +16,7 @@ interface DistanceTarget {
 interface DistanceIndicatorProps {
     userLocation: Location;
     targets: DistanceTarget[];
-    selectedTargetId?: string;
+    selectedTargetId?: string | undefined;
     className?: string;
     onTargetSelect?: (target: DistanceTarget) => void;
     showNavigation?: boolean;

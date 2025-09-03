@@ -27,7 +27,7 @@ class AnnotationModel {
             }
             else if (dbConfig.client === 'postgresql' || dbConfig.client === 'pg') {
                 const locationPoint = `POINT(${annotationData.longitude} ${annotationData.latitude})`;
-                insertData.location_point = database_1.db.raw(`ST_GeomFromText('${locationPoint}', 4326)`);
+                insertData.location_point = database_1.db.raw("ST_GeomFromText(?, 4326)", [locationPoint]);
             }
             let annotation;
             if (dbConfig.client === 'sqlite3') {
@@ -132,7 +132,7 @@ class AnnotationModel {
             if (filters.latitude && filters.longitude && filters.radius) {
                 const dbConfig = database_1.db.client.config;
                 if (dbConfig.client === 'postgresql' || dbConfig.client === 'pg') {
-                    query = query.whereRaw('ST_DWithin(location_point, ST_GeomFromText(?, 4326), ?)', [`POINT(${filters.longitude} ${filters.latitude})`, filters.radius]);
+                    query = query.whereRaw('ST_DWithin(location_point, ST_GeomFromText(?, 4326), ?)', [`POINT(? ?)`, filters.radius]);
                 }
                 else {
                     const latDelta = filters.radius / 111000;

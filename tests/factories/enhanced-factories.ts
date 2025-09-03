@@ -1,1 +1,404 @@
-/**\n * SmellPin 测试数据工厂 - Phase 2 \n * 可重复随机种子 + 生产级数据生成\n * 支持地理热区数据 + 业务真实场景\n */\nimport { faker } from '@faker-js/faker';\nimport { testUtils } from '../setup/jest-setup';\n\n// 设置可重复的随机种子\nfaker.seed(42);\n\n// 真实的北京地理热区数据\nconst BEIJING_HOTSPOTS = [\n  { name: '三里屯', lat: 39.9369, lng: 116.4462, category: 'commercial' },\n  { name: '中关村', lat: 39.9788, lng: 116.3014, category: 'tech' },\n  { name: '国贸CBD', lat: 39.9090, lng: 116.4587, category: 'business' },\n  { name: '故宫', lat: 39.9163, lng: 116.3972, category: 'tourist' },\n  { name: '天坛', lat: 39.8812, lng: 116.4068, category: 'tourist' },\n  { name: '亦庄', lat: 39.7987, lng: 116.5267, category: 'industrial' },\n  { name: '望京', lat: 39.9963, lng: 116.4723, category: 'residential' },\n  { name: '西单', lat: 39.9069, lng: 116.3760, category: 'commercial' }\n];\n\n// 气味类型真实数据\nconst SMELL_CATEGORIES = {\n  industrial: {\n    types: ['chemical', 'paint', 'plastic', 'metal', 'rubber'],\n    intensities: [6, 7, 8, 9, 10],\n    descriptions: ['刺鼻的化学气味', '浓烈的油漆味', '塑料燃烧味', '金属加工异味']\n  },\n  sewage: {\n    types: ['sewer', 'waste', 'drainage'],\n    intensities: [4, 5, 6, 7, 8],\n    descriptions: ['下水道臭味', '污水处理异味', '排水管道气味']\n  },\n  garbage: {\n    types: ['rotting', 'organic', 'compost'],\n    intensities: [3, 4, 5, 6, 7],\n    descriptions: ['腐烂垃圾味', '有机物发酵味', '堆肥发酵气味']\n  },\n  food: {\n    types: ['cooking', 'frying', 'fermentation'],\n    intensities: [2, 3, 4, 5],\n    descriptions: ['油烟味', '煎炸食物气味', '发酵食品味']\n  }\n};\n\n// 用户行为模式数据\nconst USER_PATTERNS = {\n  NewUser: {\n    sessionDuration: { min: 5, max: 15 }, // 分钟\n    actionsPerSession: { min: 3, max: 8 },\n    errorProbability: 0.15,\n    helpSeekingProbability: 0.3\n  },\n  ActiveUser: {\n    sessionDuration: { min: 10, max: 30 },\n    actionsPerSession: { min: 8, max: 20 },\n    errorProbability: 0.05,\n    helpSeekingProbability: 0.1\n  },\n  PowerUser: {\n    sessionDuration: { min: 20, max: 60 },\n    actionsPerSession: { min: 15, max: 40 },\n    errorProbability: 0.02,\n    helpSeekingProbability: 0.05\n  },\n  MobileUser: {\n    sessionDuration: { min: 3, max: 12 },\n    actionsPerSession: { min: 2, max: 10 },\n    errorProbability: 0.08,\n    locationChangeProbability: 0.7\n  },\n  StressUser: {\n    sessionDuration: { min: 1, max: 3 },\n    actionsPerSession: { min: 10, max: 100 },\n    errorProbability: 0.3,\n    maliciousProbability: 0.1\n  }\n};\n\n/**\n * 用户数据工厂\n */\nexport class UserFactory {\n  static create(overrides: Partial<any> = {}) {\n    const baseUser = {\n      id: faker.string.uuid(),\n      username: faker.internet.userName(),\n      email: faker.internet.email(),\n      password: faker.internet.password({ length: 12 }),\n      nickname: faker.person.fullName(),\n      avatar: faker.image.avatar(),\n      phoneNumber: faker.phone.number('13#########'),\n      location: testUtils.generateBeijingCoordinate(),\n      isVerified: faker.datatype.boolean({ probability: 0.7 }),\n      level: faker.helpers.arrayElement([1, 2, 3, 4, 5]),\n      points: faker.number.int({ min: 0, max: 10000 }),\n      joinedAt: faker.date.past({ years: 2 }),\n      lastActiveAt: faker.date.recent({ days: 7 }),\n      preferences: {\n        notifications: faker.datatype.boolean({ probability: 0.8 }),\n        privacyLevel: faker.helpers.arrayElement(['public', 'friends', 'private']),\n        language: faker.helpers.arrayElement(['zh-CN', 'en-US'])\n      },\n      stats: {\n        annotationsCreated: faker.number.int({ min: 0, max: 100 }),\n        likesReceived: faker.number.int({ min: 0, max: 500 }),\n        commentsReceived: faker.number.int({ min: 0, max: 200 })\n      }\n    };\n\n    return { ...baseUser, ...overrides };\n  }\n\n  static createBatch(count: number, overrides: Partial<any> = {}) {\n    return Array.from({ length: count }, () => this.create(overrides));\n  }\n\n  static createByType(userType: keyof typeof USER_PATTERNS, overrides: Partial<any> = {}) {\n    const pattern = USER_PATTERNS[userType];\n    const typeSpecificData = {\n      userType,\n      sessionPattern: pattern,\n      // 根据用户类型调整属性\n      level: userType === 'NewUser' ? 1 : \n             userType === 'PowerUser' ? faker.number.int({ min: 4, max: 5 }) : \n             faker.number.int({ min: 2, max: 4 }),\n      isVerified: userType === 'StressUser' ? false : faker.datatype.boolean({ probability: 0.8 })\n    };\n\n    return this.create({ ...typeSpecificData, ...overrides });\n  }\n}\n\n/**\n * 标注数据工厂\n */\nexport class AnnotationFactory {\n  static create(overrides: Partial<any> = {}) {\n    // 随机选择一个热区\n    const hotspot = faker.helpers.arrayElement(BEIJING_HOTSPOTS);\n    const category = faker.helpers.arrayElement(Object.keys(SMELL_CATEGORIES));\n    const smellData = SMELL_CATEGORIES[category as keyof typeof SMELL_CATEGORIES];\n    \n    // 在热区附近生成位置（500米范围内）\n    const location = {\n      lat: hotspot.lat + faker.number.float({ min: -0.005, max: 0.005 }),\n      lng: hotspot.lng + faker.number.float({ min: -0.005, max: 0.005 })\n    };\n\n    const baseAnnotation = {\n      id: faker.string.uuid(),\n      title: faker.lorem.sentence({ min: 3, max: 8 }),\n      description: faker.helpers.arrayElement(smellData.descriptions) + '。' + faker.lorem.sentences(2),\n      location,\n      category,\n      smellType: faker.helpers.arrayElement(smellData.types),\n      intensity: faker.helpers.arrayElement(smellData.intensities),\n      tags: faker.helpers.arrayElements(\n        ['异味', '污染', '环境', '举报', '监测', hotspot.name],\n        { min: 2, max: 4 }\n      ),\n      userId: faker.string.uuid(),\n      media: faker.datatype.boolean({ probability: 0.6 }) ? [\n        {\n          id: faker.string.uuid(),\n          type: 'image',\n          url: faker.image.url({ width: 800, height: 600 }),\n          thumbnailUrl: faker.image.url({ width: 200, height: 150 })\n        }\n      ] : [],\n      status: faker.helpers.arrayElement(['active', 'verified', 'flagged', 'resolved']),\n      visibility: faker.helpers.arrayElement(['public', 'friends', 'private']),\n      likesCount: faker.number.int({ min: 0, max: 100 }),\n      commentsCount: faker.number.int({ min: 0, max: 50 }),\n      reportsCount: faker.number.int({ min: 0, max: 5 }),\n      createdAt: faker.date.recent({ days: 30 }),\n      updatedAt: faker.date.recent({ days: 7 }),\n      expiresAt: faker.date.future({ years: 1 }),\n      // PostGIS 相关字段\n      geohash: generateGeoHash(location.lat, location.lng),\n      nearbyHotspot: hotspot.name,\n      distanceFromCenter: calculateDistanceFromCenter(location)\n    };\n\n    return { ...baseAnnotation, ...overrides };\n  }\n\n  static createBatch(count: number, overrides: Partial<any> = {}) {\n    return Array.from({ length: count }, () => this.create(overrides));\n  }\n\n  static createForHotspot(hotspotName: string, count: number = 1) {\n    const hotspot = BEIJING_HOTSPOTS.find(h => h.name === hotspotName);\n    if (!hotspot) throw new Error(`Unknown hotspot: ${hotspotName}`);\n\n    return this.createBatch(count, {\n      location: {\n        lat: hotspot.lat + faker.number.float({ min: -0.002, max: 0.002 }),\n        lng: hotspot.lng + faker.number.float({ min: -0.002, max: 0.002 })\n      },\n      nearbyHotspot: hotspot.name\n    });\n  }\n}\n\n/**\n * 支付数据工厂\n */\nexport class PaymentFactory {\n  static create(overrides: Partial<any> = {}) {\n    const paymentMethods = ['alipay', 'wechat', 'stripe', 'paypal'];\n    const currencies = ['CNY', 'USD'];\n    const statuses = ['pending', 'processing', 'completed', 'failed', 'refunded'];\n\n    const basePayment = {\n      id: faker.string.uuid(),\n      userId: faker.string.uuid(),\n      annotationId: faker.string.uuid(),\n      amount: faker.number.int({ min: 100, max: 5000 }), // 分为单位\n      currency: faker.helpers.arrayElement(currencies),\n      method: faker.helpers.arrayElement(paymentMethods),\n      status: faker.helpers.arrayElement(statuses),\n      transactionId: faker.string.alphanumeric(20),\n      platformTransactionId: `${faker.helpers.arrayElement(['pi_', 'ch_', 'tr_'])}${faker.string.alphanumeric(24)}`,\n      description: '标注费用支付',\n      metadata: {\n        annotationType: faker.helpers.arrayElement(['basic', 'premium', 'emergency']),\n        userLevel: faker.number.int({ min: 1, max: 5 }),\n        discount: faker.datatype.boolean({ probability: 0.2 }) ? faker.number.float({ min: 0.1, max: 0.3 }) : 0\n      },\n      createdAt: faker.date.recent({ days: 30 }),\n      updatedAt: faker.date.recent({ days: 1 }),\n      completedAt: faker.date.recent({ days: 1 })\n    };\n\n    return { ...basePayment, ...overrides };\n  }\n\n  static createBatch(count: number, overrides: Partial<any> = {}) {\n    return Array.from({ length: count }, () => this.create(overrides));\n  }\n}\n\n/**\n * 地理测试数据工厂\n */\nexport class GeoFactory {\n  // 创建地理围栏测试数据\n  static createGeofence(center?: { lat: number; lng: number }, radius: number = 1000) {\n    const fenceCenter = center || testUtils.generateBeijingCoordinate();\n    \n    return {\n      id: faker.string.uuid(),\n      name: faker.location.city() + '围栏区域',\n      center: fenceCenter,\n      radius,\n      type: faker.helpers.arrayElement(['circle', 'polygon']),\n      isActive: faker.datatype.boolean({ probability: 0.8 }),\n      createdAt: faker.date.recent({ days: 30 })\n    };\n  }\n\n  // 创建路径轨迹数据\n  static createTrajectory(startPoint?: { lat: number; lng: number }, pointsCount: number = 10) {\n    const start = startPoint || testUtils.generateBeijingCoordinate();\n    const points = [start];\n\n    for (let i = 1; i < pointsCount; i++) {\n      const lastPoint = points[i - 1];\n      // 每次移动 50-200 米\n      const nextPoint = {\n        lat: lastPoint.lat + faker.number.float({ min: -0.002, max: 0.002 }),\n        lng: lastPoint.lng + faker.number.float({ min: -0.002, max: 0.002 }),\n        timestamp: new Date(Date.now() + i * 60000), // 每分钟一个点\n        speed: faker.number.float({ min: 1, max: 15 }), // km/h\n        accuracy: faker.number.int({ min: 5, max: 20 }) // 米\n      };\n      points.push(nextPoint);\n    }\n\n    return {\n      id: faker.string.uuid(),\n      userId: faker.string.uuid(),\n      points,\n      totalDistance: calculateTrajectoryDistance(points),\n      duration: pointsCount * 60, // 秒\n      createdAt: faker.date.recent({ days: 1 })\n    };\n  }\n\n  // 创建 PostGIS 查询测试数据\n  static createSpatialQuery() {\n    const queryTypes = ['nearest', 'within', 'intersects', 'contains'];\n    const center = testUtils.generateBeijingCoordinate();\n    \n    return {\n      type: faker.helpers.arrayElement(queryTypes),\n      center,\n      radius: faker.number.int({ min: 500, max: 5000 }),\n      bbox: {\n        north: center.lat + 0.01,\n        south: center.lat - 0.01,\n        east: center.lng + 0.01,\n        west: center.lng - 0.01\n      },\n      expectedResultCount: faker.number.int({ min: 0, max: 50 })\n    };\n  }\n}\n\n// 辅助函数\nfunction generateGeoHash(lat: number, lng: number): string {\n  // 简化的 geohash 生成（实际应使用专业库）\n  return faker.string.alphanumeric(12);\n}\n\nfunction calculateDistanceFromCenter(location: { lat: number; lng: number }): number {\n  // 以天安门为中心点\n  const CENTER = { lat: 39.9042, lng: 116.4074 };\n  return calculateDistance(location, CENTER);\n}\n\nfunction calculateDistance(p1: { lat: number; lng: number }, p2: { lat: number; lng: number }): number {\n  const R = 6371000; // 地球半径（米）\n  const φ1 = (p1.lat * Math.PI) / 180;\n  const φ2 = (p2.lat * Math.PI) / 180;\n  const Δφ = ((p2.lat - p1.lat) * Math.PI) / 180;\n  const Δλ = ((p2.lng - p1.lng) * Math.PI) / 180;\n\n  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +\n    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);\n  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));\n\n  return R * c;\n}\n\nfunction calculateTrajectoryDistance(points: any[]): number {\n  let totalDistance = 0;\n  for (let i = 1; i < points.length; i++) {\n    totalDistance += calculateDistance(points[i - 1], points[i]);\n  }\n  return totalDistance;\n}\n\n// 批量数据生成器\nexport class DataGenerator {\n  static async seedTestDatabase() {\n    console.log('🌱 开始生成测试数据...');\n    \n    const users = UserFactory.createBatch(100);\n    const annotations = AnnotationFactory.createBatch(500);\n    const payments = PaymentFactory.createBatch(200);\n    \n    // 这里应该插入到数据库中\n    // 具体实现根据你的数据库层而定\n    \n    console.log(`✅ 生成完成: ${users.length} 用户, ${annotations.length} 标注, ${payments.length} 支付记录`);\n    \n    return { users, annotations, payments };\n  }\n\n  static createRealisticScenario() {\n    // 创建一个真实的业务场景\n    const scenario = {\n      name: '工业园区污染事件',\n      location: BEIJING_HOTSPOTS.find(h => h.category === 'industrial')!,\n      users: [\n        UserFactory.createByType('NewUser'),\n        ...UserFactory.createBatch(3, { userType: 'ActiveUser' }),\n        UserFactory.createByType('PowerUser')\n      ],\n      annotations: [],\n      timespan: {\n        start: faker.date.recent({ days: 7 }),\n        end: faker.date.recent({ days: 1 })\n      }\n    };\n\n    // 在该位置附近创建多个相关标注\n    scenario.annotations = AnnotationFactory.createForHotspot(scenario.location.name, 10)\n      .map(annotation => ({\n        ...annotation,\n        category: 'industrial',\n        intensity: faker.number.int({ min: 6, max: 10 }),\n        createdAt: faker.date.between({ \n          from: scenario.timespan.start, \n          to: scenario.timespan.end \n        })\n      }));\n\n    return scenario;\n  }\n}\n\n// 重置随机种子的工具函数\nexport function resetSeed(seed: number = 42) {\n  faker.seed(seed);\n  console.log(`🎲 重置随机种子为: ${seed}`);\n}\n\n// 导出热区数据供测试使用\nexport { BEIJING_HOTSPOTS, SMELL_CATEGORIES, USER_PATTERNS };
+/**
+ * SmellPin 测试数据工厂 - Phase 2
+ * 可重复随机种子 + 生产级数据生成
+ * 支持地理热区数据 + 业务真实场景
+ */
+import { faker } from '@faker-js/faker';
+import { testUtils } from '../setup/jest-setup';
+
+// 设置可重复的随机种子
+faker.seed(42);
+
+// 真实的北京地理热区数据
+const BEIJING_HOTSPOTS = [
+  { name: '三里屯', lat: 39.9369, lng: 116.4462, category: 'commercial' },
+  { name: '中关村', lat: 39.9788, lng: 116.3014, category: 'tech' },
+  { name: '国贸CBD', lat: 39.9090, lng: 116.4587, category: 'business' },
+  { name: '故宫', lat: 39.9163, lng: 116.3972, category: 'tourist' },
+  { name: '天坛', lat: 39.8812, lng: 116.4068, category: 'tourist' },
+  { name: '亦庄', lat: 39.7987, lng: 116.5267, category: 'industrial' },
+  { name: '望京', lat: 39.9963, lng: 116.4723, category: 'residential' },
+  { name: '西单', lat: 39.9069, lng: 116.3760, category: 'commercial' }
+];
+
+// 气味类型真实数据
+const SMELL_CATEGORIES = {
+  industrial: {
+    types: ['chemical', 'paint', 'plastic', 'metal', 'rubber'],
+    intensities: [6, 7, 8, 9, 10],
+    descriptions: ['刺鼻的化学气味', '浓烈的油漆味', '塑料燃烧味', '金属加工异味']
+  },
+  sewage: {
+    types: ['sewer', 'waste', 'drainage'],
+    intensities: [4, 5, 6, 7, 8],
+    descriptions: ['下水道臭味', '污水处理异味', '排水管道气味']
+  },
+  garbage: {
+    types: ['rotting', 'organic', 'compost'],
+    intensities: [3, 4, 5, 6, 7],
+    descriptions: ['腐烂垃圾味', '有机物发酵味', '堆肥发酵气味']
+  },
+  food: {
+    types: ['cooking', 'frying', 'fermentation'],
+    intensities: [2, 3, 4, 5],
+    descriptions: ['油烟味', '煎炸食物气味', '发酵食品味']
+  }
+};
+
+// 用户行为模式数据
+const USER_PATTERNS = {
+  NewUser: {
+    sessionDuration: { min: 5, max: 15 }, // 分钟
+    actionsPerSession: { min: 3, max: 8 },
+    errorProbability: 0.15,
+    helpSeekingProbability: 0.3
+  },
+  ActiveUser: {
+    sessionDuration: { min: 10, max: 30 },
+    actionsPerSession: { min: 8, max: 20 },
+    errorProbability: 0.05,
+    helpSeekingProbability: 0.1
+  },
+  PowerUser: {
+    sessionDuration: { min: 20, max: 60 },
+    actionsPerSession: { min: 15, max: 40 },
+    errorProbability: 0.02,
+    helpSeekingProbability: 0.05
+  },
+  MobileUser: {
+    sessionDuration: { min: 3, max: 12 },
+    actionsPerSession: { min: 2, max: 10 },
+    errorProbability: 0.08,
+    locationChangeProbability: 0.7
+  },
+  StressUser: {
+    sessionDuration: { min: 1, max: 3 },
+    actionsPerSession: { min: 10, max: 100 },
+    errorProbability: 0.3,
+    maliciousProbability: 0.1
+  }
+};
+
+/**
+ * 用户数据工厂
+ */
+export class UserFactory {
+  static create(overrides: Partial<any> = {}) {
+    const baseUser = {
+      id: faker.string.uuid(),
+      username: faker.internet.userName(),
+      email: faker.internet.email(),
+      password: faker.internet.password({ length: 12 }),
+      nickname: faker.person.fullName(),
+      avatar: faker.image.avatar(),
+      phoneNumber: faker.phone.number({ style: 'national' }),
+      location: testUtils.generateBeijingCoordinate(),
+      isVerified: faker.datatype.boolean({ probability: 0.7 }),
+      level: faker.helpers.arrayElement([1, 2, 3, 4, 5]),
+      points: faker.number.int({ min: 0, max: 10000 }),
+      joinedAt: faker.date.past({ years: 2 }),
+      lastActiveAt: faker.date.recent({ days: 7 }),
+      preferences: {
+        notifications: faker.datatype.boolean({ probability: 0.8 }),
+        privacyLevel: faker.helpers.arrayElement(['public', 'friends', 'private']),
+        language: faker.helpers.arrayElement(['zh-CN', 'en-US'])
+      },
+      stats: {
+        annotationsCreated: faker.number.int({ min: 0, max: 100 }),
+        likesReceived: faker.number.int({ min: 0, max: 500 }),
+        commentsReceived: faker.number.int({ min: 0, max: 200 })
+      }
+    };
+
+    return { ...baseUser, ...overrides };
+  }
+
+  static createBatch(count: number, overrides: Partial<any> = {}) {
+    return Array.from({ length: count }, () => this.create(overrides));
+  }
+
+  static createByType(userType: keyof typeof USER_PATTERNS, overrides: Partial<any> = {}) {
+    const pattern = USER_PATTERNS[userType];
+    const typeSpecificData = {
+      userType,
+      sessionPattern: pattern,
+      // 根据用户类型调整属性
+      level: userType === 'NewUser' ? 1 : 
+             userType === 'PowerUser' ? faker.number.int({ min: 4, max: 5 }) : 
+             faker.number.int({ min: 2, max: 4 }),
+      isVerified: userType === 'StressUser' ? false : faker.datatype.boolean({ probability: 0.8 })
+    };
+
+    return this.create({ ...typeSpecificData, ...overrides });
+  }
+}
+
+/**
+ * 标注数据工厂
+ */
+export class AnnotationFactory {
+  static create(overrides: Partial<any> = {}) {
+    // 随机选择一个热区
+    const hotspot = faker.helpers.arrayElement(BEIJING_HOTSPOTS);
+    const category = faker.helpers.arrayElement(Object.keys(SMELL_CATEGORIES));
+    const smellData = SMELL_CATEGORIES[category as keyof typeof SMELL_CATEGORIES];
+    
+    // 在热区附近生成位置（500米范围内）
+    const location = {
+      lat: hotspot.lat + faker.number.float({ min: -0.005, max: 0.005 }),
+      lng: hotspot.lng + faker.number.float({ min: -0.005, max: 0.005 })
+    };
+
+    const baseAnnotation = {
+      id: faker.string.uuid(),
+      title: faker.lorem.sentence({ min: 3, max: 8 }),
+      description: faker.helpers.arrayElement(smellData.descriptions) + '。' + faker.lorem.sentences(2),
+      location,
+      category,
+      smellType: faker.helpers.arrayElement(smellData.types),
+      intensity: faker.helpers.arrayElement(smellData.intensities),
+      tags: faker.helpers.arrayElements(
+        ['异味', '污染', '环境', '举报', '监测', hotspot.name],
+        { min: 2, max: 4 }
+      ),
+      userId: faker.string.uuid(),
+      media: faker.datatype.boolean({ probability: 0.6 }) ? [
+        {
+          id: faker.string.uuid(),
+          type: 'image',
+          url: faker.image.url({ width: 800, height: 600 }),
+          thumbnailUrl: faker.image.url({ width: 200, height: 150 })
+        }
+      ] : [],
+      status: faker.helpers.arrayElement(['active', 'verified', 'flagged', 'resolved']),
+      visibility: faker.helpers.arrayElement(['public', 'friends', 'private']),
+      likesCount: faker.number.int({ min: 0, max: 100 }),
+      commentsCount: faker.number.int({ min: 0, max: 50 }),
+      reportsCount: faker.number.int({ min: 0, max: 5 }),
+      createdAt: faker.date.recent({ days: 30 }),
+      updatedAt: faker.date.recent({ days: 7 }),
+      expiresAt: faker.date.future({ years: 1 }),
+      // PostGIS 相关字段
+      geohash: generateGeoHash(location.lat, location.lng),
+      nearbyHotspot: hotspot.name,
+      distanceFromCenter: calculateDistanceFromCenter(location)
+    };
+
+    return { ...baseAnnotation, ...overrides };
+  }
+
+  static createBatch(count: number, overrides: Partial<any> = {}) {
+    return Array.from({ length: count }, () => this.create(overrides));
+  }
+
+  static createForHotspot(hotspotName: string, count: number = 1) {
+    const hotspot = BEIJING_HOTSPOTS.find(h => h.name === hotspotName);
+    if (!hotspot) throw new Error(`Unknown hotspot: ${hotspotName}`);
+
+    return this.createBatch(count, {
+      location: {
+        lat: hotspot.lat + faker.number.float({ min: -0.002, max: 0.002 }),
+        lng: hotspot.lng + faker.number.float({ min: -0.002, max: 0.002 })
+      },
+      nearbyHotspot: hotspot.name
+    });
+  }
+}
+
+/**
+ * 支付数据工厂
+ */
+export class PaymentFactory {
+  static create(overrides: Partial<any> = {}) {
+    const paymentMethods = ['alipay', 'wechat', 'stripe', 'paypal'];
+    const currencies = ['CNY', 'USD'];
+    const statuses = ['pending', 'processing', 'completed', 'failed', 'refunded'];
+
+    const basePayment = {
+      id: faker.string.uuid(),
+      userId: faker.string.uuid(),
+      annotationId: faker.string.uuid(),
+      amount: faker.number.int({ min: 100, max: 5000 }), // 分为单位
+      currency: faker.helpers.arrayElement(currencies),
+      method: faker.helpers.arrayElement(paymentMethods),
+      status: faker.helpers.arrayElement(statuses),
+      transactionId: faker.string.alphanumeric(20),
+      platformTransactionId: `${faker.helpers.arrayElement(['pi_', 'ch_', 'tr_'])}${faker.string.alphanumeric(24)}`,
+      description: '标注费用支付',
+      metadata: {
+        annotationType: faker.helpers.arrayElement(['basic', 'premium', 'emergency']),
+        userLevel: faker.number.int({ min: 1, max: 5 }),
+        discount: faker.datatype.boolean({ probability: 0.2 }) ? faker.number.float({ min: 0.1, max: 0.3 }) : 0
+      },
+      createdAt: faker.date.recent({ days: 30 }),
+      updatedAt: faker.date.recent({ days: 1 }),
+      completedAt: faker.date.recent({ days: 1 })
+    };
+
+    return { ...basePayment, ...overrides };
+  }
+
+  static createBatch(count: number, overrides: Partial<any> = {}) {
+    return Array.from({ length: count }, () => this.create(overrides));
+  }
+}
+
+/**
+ * 地理测试数据工厂
+ */
+export class GeoFactory {
+  // 创建地理围栏测试数据
+  static createGeofence(center?: { lat: number; lng: number }, radius: number = 1000) {
+    const fenceCenter = center || testUtils.generateBeijingCoordinate();
+    
+    return {
+      id: faker.string.uuid(),
+      name: faker.location.city() + '围栏区域',
+      center: fenceCenter,
+      radius,
+      type: faker.helpers.arrayElement(['circle', 'polygon']),
+      isActive: faker.datatype.boolean({ probability: 0.8 }),
+      createdAt: faker.date.recent({ days: 30 })
+    };
+  }
+
+  // 创建路径轨迹数据
+  static createTrajectory(startPoint?: { lat: number; lng: number }, pointsCount: number = 10) {
+    const start = startPoint || testUtils.generateBeijingCoordinate();
+    const points = [start];
+
+    for (let i = 1; i < pointsCount; i++) {
+      const lastPoint = points[i - 1];
+      // 每次移动 50-200 米
+      const nextPoint = {
+        lat: lastPoint.lat + faker.number.float({ min: -0.002, max: 0.002 }),
+        lng: lastPoint.lng + faker.number.float({ min: -0.002, max: 0.002 }),
+        timestamp: new Date(Date.now() + i * 60000), // 每分钟一个点
+        speed: faker.number.float({ min: 1, max: 15 }), // km/h
+        accuracy: faker.number.int({ min: 5, max: 20 }) // 米
+      };
+      points.push(nextPoint);
+    }
+
+    return {
+      id: faker.string.uuid(),
+      userId: faker.string.uuid(),
+      points,
+      totalDistance: calculateTrajectoryDistance(points),
+      duration: pointsCount * 60, // 秒
+      createdAt: faker.date.recent({ days: 1 })
+    };
+  }
+
+  // 创建 PostGIS 查询测试数据
+  static createSpatialQuery() {
+    const queryTypes = ['nearest', 'within', 'intersects', 'contains'];
+    const center = testUtils.generateBeijingCoordinate();
+    
+    return {
+      type: faker.helpers.arrayElement(queryTypes),
+      center,
+      radius: faker.number.int({ min: 500, max: 5000 }),
+      bbox: {
+        north: center.lat + 0.01,
+        south: center.lat - 0.01,
+        east: center.lng + 0.01,
+        west: center.lng - 0.01
+      },
+      expectedResultCount: faker.number.int({ min: 0, max: 50 })
+    };
+  }
+}
+
+// 辅助函数
+function generateGeoHash(lat: number, lng: number): string {
+  // 简化的 geohash 生成（实际应使用专业库）
+  return faker.string.alphanumeric(12);
+}
+
+function calculateDistanceFromCenter(location: { lat: number; lng: number }): number {
+  // 以天安门为中心点
+  const CENTER = { lat: 39.9042, lng: 116.4074 };
+  return calculateDistance(location, CENTER);
+}
+
+function calculateDistance(p1: { lat: number; lng: number }, p2: { lat: number; lng: number }): number {
+  const R = 6371000; // 地球半径（米）
+  const φ1 = (p1.lat * Math.PI) / 180;
+  const φ2 = (p2.lat * Math.PI) / 180;
+  const Δφ = ((p2.lat - p1.lat) * Math.PI) / 180;
+  const Δλ = ((p2.lng - p1.lng) * Math.PI) / 180;
+
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
+
+function calculateTrajectoryDistance(points: any[]): number {
+  let totalDistance = 0;
+  for (let i = 1; i < points.length; i++) {
+    totalDistance += calculateDistance(points[i - 1], points[i]);
+  }
+  return totalDistance;
+}
+
+// 批量数据生成器
+export class DataGenerator {
+  static async seedTestDatabase() {
+    console.log('🌱 开始生成测试数据...');
+    
+    const users = UserFactory.createBatch(100);
+    const annotations = AnnotationFactory.createBatch(500);
+    const payments = PaymentFactory.createBatch(200);
+    
+    // 这里应该插入到数据库中
+    // 具体实现根据你的数据库层而定
+    
+    console.log(`✅ 生成完成: ${users.length} 用户, ${annotations.length} 标注, ${payments.length} 支付记录`);
+    
+    return { users, annotations, payments };
+  }
+
+  static createRealisticScenario() {
+    // 创建一个真实的业务场景
+    const scenario = {
+      name: '工业园区污染事件',
+      location: BEIJING_HOTSPOTS.find(h => h.category === 'industrial')!,
+      users: [
+        UserFactory.createByType('NewUser'),
+        ...UserFactory.createBatch(3, { userType: 'ActiveUser' }),
+        UserFactory.createByType('PowerUser')
+      ],
+      annotations: [],
+      timespan: {
+        start: faker.date.recent({ days: 7 }),
+        end: faker.date.recent({ days: 1 })
+      }
+    };
+
+    // 在该位置附近创建多个相关标注
+    scenario.annotations = AnnotationFactory.createForHotspot(scenario.location.name, 10)
+      .map(annotation => ({
+        ...annotation,
+        category: 'industrial',
+        intensity: faker.number.int({ min: 6, max: 10 }),
+        createdAt: faker.date.between({ 
+          from: scenario.timespan.start, 
+          to: scenario.timespan.end 
+        })
+      }));
+
+    return scenario;
+  }
+}
+
+// 重置随机种子的工具函数
+export function resetSeed(seed: number = 42) {
+  faker.seed(seed);
+  console.log(`🎲 重置随机种子为: ${seed}`);
+}
+
+// 导出热区数据供测试使用
+export { BEIJING_HOTSPOTS, SMELL_CATEGORIES, USER_PATTERNS };

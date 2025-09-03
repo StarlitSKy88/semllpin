@@ -118,8 +118,15 @@ class RedisMock {
 }
 exports.RedisMock = RedisMock;
 const redisMock = new RedisMock();
-setInterval(() => {
-    redisMock.cleanup();
-}, 60000);
+const isTestEnv = (process.env['NODE_ENV'] === 'test') || (typeof process.env['JEST_WORKER_ID'] !== 'undefined');
+if (!isTestEnv) {
+    const interval = setInterval(() => {
+        redisMock.cleanup();
+    }, 60000);
+    const maybeUnref = interval.unref;
+    if (typeof maybeUnref === 'function') {
+        maybeUnref.call(interval);
+    }
+}
 exports.default = redisMock;
 //# sourceMappingURL=redis-mock.js.map

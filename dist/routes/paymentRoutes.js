@@ -9,6 +9,43 @@ const validation_1 = require("@/middleware/validation");
 const express_validator_1 = require("express-validator");
 const paymentController_1 = __importDefault(require("@/controllers/paymentController"));
 const router = (0, express_1.Router)();
+router.post('/create', auth_1.authMiddleware, [
+    (0, express_validator_1.body)('amount')
+        .isFloat({ min: 0.01, max: 10000 })
+        .withMessage('支付金额必须在 $0.01-$10000 之间'),
+    (0, express_validator_1.body)('currency')
+        .optional()
+        .isIn(['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CNY', 'HKD', 'SGD', 'KRW'])
+        .withMessage('不支持的货币类型'),
+    (0, express_validator_1.body)('description')
+        .notEmpty()
+        .withMessage('支付描述不能为空')
+        .isLength({ max: 500 })
+        .withMessage('描述不能超过500个字符'),
+    (0, express_validator_1.body)('annotationId')
+        .optional()
+        .isString()
+        .withMessage('标注ID必须是字符串'),
+    (0, express_validator_1.body)('paymentMethod')
+        .isIn(['paypal'])
+        .withMessage('支付方式必须是 paypal'),
+], validation_1.validateRequest, paymentController_1.default.createPaymentSession);
+router.post('/capture', auth_1.authMiddleware, [
+    (0, express_validator_1.body)('orderId')
+        .notEmpty()
+        .withMessage('订单ID不能为空')
+        .isString()
+        .withMessage('订单ID必须是字符串'),
+    (0, express_validator_1.body)('payerId')
+        .notEmpty()
+        .withMessage('支付者ID不能为空')
+        .isString()
+        .withMessage('支付者ID必须是字符串'),
+    (0, express_validator_1.body)('paymentMethod')
+        .optional()
+        .isIn(['stripe', 'paypal'])
+        .withMessage('支付方式必须是 stripe 或 paypal'),
+], validation_1.validateRequest, paymentController_1.default.getPaymentSession);
 router.post('/create-session', auth_1.authMiddleware, [
     (0, express_validator_1.body)('prankId')
         .notEmpty()

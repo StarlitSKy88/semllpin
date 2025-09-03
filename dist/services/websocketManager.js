@@ -10,14 +10,24 @@ const getWebSocketService = () => {
     return websocketService;
 };
 exports.getWebSocketService = getWebSocketService;
-const sendRealtimeNotification = async (userId, notification) => {
+const sendRealtimeNotification = async (_userId, notification) => {
     if (!websocketService) {
         console.warn('WebSocket服务未初始化');
         return false;
     }
     try {
-        console.log(`发送通知给用户 ${userId}:`, notification);
-        return false;
+        websocketService.send({
+            id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            type: notification.type,
+            title: notification.title,
+            message: notification.message,
+            data: notification.data || {},
+            priority: notification.priority || 'medium',
+            timestamp: new Date().toISOString(),
+            read: false
+        });
+        const success = true;
+        return success;
     }
     catch (error) {
         console.error('发送实时通知失败:', error);
@@ -26,11 +36,26 @@ const sendRealtimeNotification = async (userId, notification) => {
 };
 exports.sendRealtimeNotification = sendRealtimeNotification;
 const sendRealtimeNotificationToUsers = async (userIds, notification) => {
-    console.log(`批量发送通知给 ${userIds.length} 个用户:`, notification);
+    if (!websocketService) {
+        console.warn('WebSocket服务未初始化');
+        return {
+            total: userIds.length,
+            online: 0,
+            offline: userIds.length,
+            failed: userIds.length
+        };
+    }
+    let successCount = 0;
+    const results = await Promise.allSettled(userIds.map(userId => (0, exports.sendRealtimeNotification)(userId, notification)));
+    results.forEach(result => {
+        if (result.status === 'fulfilled' && result.value) {
+            successCount++;
+        }
+    });
     return {
         total: userIds.length,
-        online: 0,
-        offline: userIds.length,
+        online: successCount,
+        offline: userIds.length - successCount,
     };
 };
 exports.sendRealtimeNotificationToUsers = sendRealtimeNotificationToUsers;

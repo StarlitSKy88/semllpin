@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.healthService = exports.HealthStatus = void 0;
 const logger_1 = require("../utils/logger");
+const isTestEnv = (process.env['NODE_ENV'] === 'test') || (typeof process.env['JEST_WORKER_ID'] !== 'undefined');
 var HealthStatus;
 (function (HealthStatus) {
     HealthStatus["HEALTHY"] = "healthy";
@@ -82,7 +83,10 @@ class HealthService {
         });
     }
     startPeriodicHealthCheck() {
-        this.healthCheckInterval = setInterval(async () => {
+        if (isTestEnv) {
+            return;
+        }
+        const interval = setInterval(async () => {
             try {
                 await this.performHealthCheck();
             }
@@ -90,6 +94,11 @@ class HealthService {
                 logger_1.logger.error('Periodic health check failed', { error });
             }
         }, 30000);
+        const maybeUnref = interval.unref;
+        if (typeof maybeUnref === 'function') {
+            maybeUnref.call(interval);
+        }
+        this.healthCheckInterval = interval;
     }
     stopPeriodicHealthCheck() {
         if (this.healthCheckInterval) {

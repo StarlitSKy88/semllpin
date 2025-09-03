@@ -6,7 +6,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const express_validator_1 = require("express-validator");
 const auth_1 = require("@/middleware/auth");
-const security_1 = require("@/middleware/security");
+const express_validator_2 = require("express-validator");
+const handleValidationErrors = (req, res, next) => {
+    const errors = (0, express_validator_2.validationResult)(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, errors: errors.array() });
+    }
+    return next();
+};
 const searchController_1 = __importDefault(require("@/controllers/searchController"));
 const database_1 = __importDefault(require("@/config/database"));
 const router = express_1.default.Router();
@@ -74,7 +81,7 @@ router.get('/location', [
         });
     }
     next();
-}, security_1.handleValidationErrors, searchController_1.default.searchAnnotationsByLocation);
+}, handleValidationErrors, searchController_1.default.searchAnnotationsByLocation);
 router.get('/content', [
     (0, express_validator_1.query)('keyword')
         .isLength({ min: 1, max: 100 })
@@ -107,7 +114,7 @@ router.get('/content', [
         .optional()
         .isInt({ min: 1, max: 100 })
         .withMessage('每页数量必须在1到100之间'),
-], security_1.handleValidationErrors, searchController_1.default.searchAnnotationsByContent);
+], handleValidationErrors, searchController_1.default.searchAnnotationsByContent);
 router.get('/popular-terms', searchController_1.default.getPopularSearchTerms);
 router.post('/advanced', auth_1.authMiddleware, [
     (0, express_validator_1.body)('latitude')
@@ -166,7 +173,7 @@ router.post('/advanced', auth_1.authMiddleware, [
         .optional()
         .isInt({ min: 1, max: 100 })
         .withMessage('每页数量必须在1到100之间'),
-], security_1.handleValidationErrors, searchController_1.default.advancedSearch);
+], handleValidationErrors, searchController_1.default.advancedSearch);
 router.get('/suggestions', [
     (0, express_validator_1.query)('q')
         .isLength({ min: 1, max: 50 })
@@ -175,7 +182,7 @@ router.get('/suggestions', [
         .optional()
         .isIn(['location', 'category', 'user'])
         .withMessage('建议类型必须是location、category或user'),
-], security_1.handleValidationErrors, (async (req, res) => {
+], handleValidationErrors, (async (req, res) => {
     const { q, type = 'all' } = req.query;
     try {
         const suggestions = {};
@@ -228,7 +235,7 @@ router.get('/history', auth_1.authMiddleware, [
         .optional()
         .isInt({ min: 1, max: 50 })
         .withMessage('每页数量必须在1到50之间'),
-], security_1.handleValidationErrors, (async (req, res) => {
+], handleValidationErrors, (async (req, res) => {
     const userId = req.user?.id;
     const { page = 1, limit = 20 } = req.query;
     if (!userId) {

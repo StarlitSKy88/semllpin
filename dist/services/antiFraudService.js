@@ -8,7 +8,7 @@ class AntiFraudService {
     async detectFraud(userId, locationData, annotationId) {
         try {
             const checks = await Promise.all([
-                this.validateGPSAccuracy(locationData),
+                this.validateGPSAccuracyInternal(locationData),
                 this.detectAbnormalMovement(userId, locationData),
                 this.checkLocationHistory(userId, locationData),
                 this.detectSuspiciousPatterns(userId),
@@ -41,7 +41,7 @@ class AntiFraudService {
             };
         }
     }
-    async validateGPSAccuracy(locationData) {
+    async validateGPSAccuracyInternal(locationData) {
         const maxAccuracy = 50;
         const accuracy = locationData.accuracy;
         if (accuracy > maxAccuracy) {
@@ -121,7 +121,7 @@ class AntiFraudService {
         try {
             const duplicateCount = await (0, database_1.db)('location_reports')
                 .where('user_id', userId)
-                .whereRaw('ST_DWithin(ST_Point(longitude, latitude)::geography, ST_Point(?, ?)::geography, 10)', [currentLocation.longitude, currentLocation.latitude])
+                .whereRaw('ST_DWithin(location_point, ST_GeomFromText(?, 4326), 10)', [`POINT(${currentLocation.longitude} ${currentLocation.latitude})`])
                 .where('timestamp', '>', database_1.db.raw('NOW() - INTERVAL \'1 hour\''))
                 .count('* as count')
                 .first();
@@ -169,7 +169,7 @@ class AntiFraudService {
                 .where('user_id', userId)
                 .where('created_at', '>', database_1.db.raw('NOW() - INTERVAL \'24 hours\''))
                 .whereIn('status', ['verified', 'claimed']);
-            const rewardCount = parseInt(recentRewards?.count || '0');
+            const rewardCount = parseInt(recentRewards[0]?.count || '0');
             const maxDailyRewards = 20;
             if (rewardCount > maxDailyRewards) {
                 return {
@@ -244,6 +244,9 @@ class AntiFraudService {
         }
     }
     calculateFraudScore(checks) {
+        if (checks.length === 0) {
+            return 0;
+        }
         const totalScore = checks.reduce((sum, check) => sum + check.score, 0);
         const maxScore = checks.length;
         return Math.min(totalScore / maxScore, 1.0);
@@ -276,6 +279,147 @@ class AntiFraudService {
     }
     toRadians(degrees) {
         return degrees * (Math.PI / 180);
+    }
+    validateGPSAccuracy(gps) {
+        const { latitude, longitude, accuracy, timestamp } = gps || {};
+        if (typeof latitude !== 'number' ||
+            typeof longitude !== 'number' ||
+            latitude < -90 || latitude > 90 ||
+            longitude < -180 || longitude > 180) {
+            return { isValid: false, reason: 'Invalid coordinates' };
+        }
+        if (typeof accuracy !== 'number' || accuracy > 100) {
+            return { isValid: false, reason: 'GPS accuracy too low' };
+        }
+        const ts = timestamp instanceof Date ? timestamp.getTime() : Number(timestamp);
+        if (!ts || Date.now() - ts > 5 * 60 * 1000) {
+            return { isValid: false, reason: 'GPS reading too old' };
+        }
+        const confidence = Math.max(0, Math.min(1, 1 - accuracy / 50));
+        return { isValid: true, confidence };
+    }
+    async analyzeMovementPattern(userId, currentLocation) {
+        try {
+            if (!this.db?.query) {
+                return { isNormal: true, suspiciousActivity: false };
+            }
+            const res = await this.db.query('SELECT latitude, longitude, timestamp FROM location_reports WHERE user_id = $1 ORDER BY timestamp DESC LIMIT 10', [userId]);
+            const rows = (res?.rows || []);
+            const allSame = rows.length >= 5 && rows.every(r => Math.abs(r.latitude - rows[0].latitude) < 1e-6 &&
+                Math.abs(r.longitude - rows[0].longitude) < 1e-6);
+            if (allSame) {
+                return { isNormal: false, suspiciousActivity: true, reason: 'Stationary for extended period' };
+            }
+            if (rows.length > 0) {
+                const last = rows[0];
+                const lastTs = new Date(last.timestamp).getTime();
+                const nowTs = Date.now();
+                const dtSec = Math.max(1, (nowTs - lastTs) / 1000);
+                const distM = this.calculateDistance(last.latitude, last.longitude, currentLocation.latitude, currentLocation.longitude);
+                const speedKmh = (distM / 1000) / (dtSec / 3600);
+                if (speedKmh > 1000) {
+                    return { isNormal: false, suspiciousActivity: true, reason: 'Impossible movement speed detected' };
+                }
+            }
+            return { isNormal: true, suspiciousActivity: false };
+        }
+        catch {
+            return { isNormal: true, suspiciousActivity: false };
+        }
+    }
+    detectDeviceFingerprinting(deviceInfo) {
+        const ua = String(deviceInfo?.['userAgent'] || '');
+        const sr = String(deviceInfo?.['screenResolution'] || '');
+        const tz = String(deviceInfo?.['timezone'] || '');
+        const lang = String(deviceInfo?.['language'] || '');
+        const pf = String(deviceInfo?.['platform'] || '');
+        const raw = `${ua}|${sr}|${tz}|${lang}|${pf}`;
+        let h1 = 2166136261;
+        for (let i = 0; i < raw.length; i++) {
+            h1 ^= raw.charCodeAt(i);
+            h1 += (h1 << 1) + (h1 << 4) + (h1 << 7) + (h1 << 8) + (h1 << 24);
+        }
+        return Math.abs(h1 >>> 0).toString(16) + Math.abs(h1).toString(36);
+    }
+    async checkDeviceMultipleAccounts(deviceFingerprint) {
+        if (!this.db?.query)
+            return { multipleAccounts: false, accountCount: 0 };
+        const res = await this.db.query('SELECT user_id FROM users WHERE device_fingerprint = $1', [deviceFingerprint]);
+        const count = (res?.rows || []).length;
+        return { multipleAccounts: count > 1, accountCount: count };
+    }
+    async analyzeRewardClaimingPattern(userId) {
+        if (!this.db?.query)
+            return { isNormal: true, riskScore: 0.2, suspiciousPatterns: [] };
+        const res = await this.db.query('SELECT annotation_id, claimed_at, reward_amount FROM lbs_rewards WHERE user_id = $1 ORDER BY claimed_at DESC LIMIT 100', [userId]);
+        const rows = (res?.rows || []);
+        let risk = 0.2;
+        const patterns = [];
+        let rapid = false;
+        for (let i = 0; i < rows.length - 1; i++) {
+            const t1 = new Date(rows[i].claimed_at).getTime();
+            const t2 = new Date(rows[i + 1].claimed_at).getTime();
+            if (Math.abs(t1 - t2) < 60 * 1000) {
+                rapid = true;
+                break;
+            }
+        }
+        if (rapid) {
+            risk += 0.7;
+            patterns.push('Rapid successive claims');
+        }
+        const unusual = rows.some(r => Number(r.reward_amount) > 500);
+        if (unusual) {
+            risk += 0.3;
+            patterns.push('Unusual reward amounts');
+        }
+        risk = Math.max(0, Math.min(1, risk));
+        return { isNormal: patterns.length === 0, riskScore: risk, suspiciousPatterns: patterns };
+    }
+    async checkGeofenceManipulation(userId, geofenceId, userLocation) {
+        if (!this.db?.query)
+            return { isValid: true, manipulationDetected: false };
+        const res = await this.db.query('SELECT center_lat, center_lng, radius FROM geofences WHERE id = $1', [geofenceId]);
+        const geo = (res?.rows || [])[0];
+        if (!geo)
+            return { isValid: false, manipulationDetected: true, reason: 'Geofence not found' };
+        const dist = this.calculateDistance(geo.center_lat, geo.center_lng, userLocation.latitude, userLocation.longitude);
+        if (dist > Number(geo.radius || 0)) {
+            return { isValid: false, manipulationDetected: true, reason: 'User location outside geofence' };
+        }
+        return { isValid: true, manipulationDetected: false };
+    }
+    async calculateRiskScore(userId, context) {
+        if (!this.db?.query)
+            return 0.3;
+        const violationsRes = await this.db.query('SELECT violation_type FROM anti_fraud_logs WHERE user_id = $1 AND detection_timestamp > NOW() - INTERVAL \'7 days\'', [userId]);
+        const deviceFp = this.detectDeviceFingerprinting(context?.deviceInfo || {});
+        const accountsRes = await this.db.query('SELECT user_id FROM users WHERE device_fingerprint = $1', [deviceFp]);
+        const claimsRes = await this.db.query('SELECT claimed_at FROM lbs_rewards WHERE user_id = $1 AND claimed_at > NOW() - INTERVAL \'24 hours\'', [userId]);
+        let score = 0;
+        if ((violationsRes?.rows || []).length > 0)
+            score += 0.4;
+        if ((accountsRes?.rows || []).length > 1)
+            score += 0.3;
+        if ((claimsRes?.rows || []).length > 30)
+            score += 0.4;
+        if ((context?.recentActivity || '').toLowerCase().includes('suspicious'))
+            score += 0.2;
+        return Math.max(0, Math.min(1, score));
+    }
+    async recordSuspiciousActivity(activityData) {
+        if (!this.db?.query)
+            return { id: 'mock', ...activityData };
+        const sql = 'INSERT INTO suspicious_activities (user_id, activity_type, description, risk_score, metadata, created_at) VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING id';
+        const params = [
+            activityData.userId,
+            activityData.activityType,
+            activityData.description || null,
+            activityData.riskScore ?? null,
+            activityData.metadata ? JSON.stringify(activityData.metadata) : null,
+        ];
+        const res = await this.db.query(sql, params);
+        return (res?.rows || [])[0] || { id: undefined };
     }
     async getUserFraudHistory(userId, days = 30) {
         try {
@@ -316,13 +460,20 @@ class AntiFraudService {
                     reason: 'High risk score detected',
                 };
             }
-            const recentViolations = await (0, database_1.db)('anti_fraud_logs')
-                .count('* as violation_count')
-                .where('user_id', userId)
-                .where('is_fraudulent', true)
-                .where('detection_timestamp', '>', database_1.db.raw('NOW() - INTERVAL \'24 hours\''))
-                .first();
-            const violationCount = parseInt(recentViolations?.violation_count || '0');
+            let violationCount = 0;
+            if (this.db?.query) {
+                const res = await this.db.query('SELECT violation_type FROM anti_fraud_logs WHERE user_id = $1 AND is_fraudulent = true AND detection_timestamp > NOW() - INTERVAL \'24 hours\'', [userId]);
+                violationCount = (res?.rows || []).length;
+            }
+            else {
+                const recentViolations = await (0, database_1.db)('anti_fraud_logs')
+                    .count('* as violation_count')
+                    .where('user_id', userId)
+                    .where('is_fraudulent', true)
+                    .where('detection_timestamp', '>', database_1.db.raw('NOW() - INTERVAL \'24 hours\''))
+                    .first();
+                violationCount = parseInt(recentViolations?.violation_count || '0');
+            }
             if (violationCount >= 3) {
                 return {
                     shouldBlock: true,

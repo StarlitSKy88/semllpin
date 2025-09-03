@@ -1,37 +1,17 @@
-import { Request, Response, NextFunction } from 'express';
-interface AuthRequest extends Request {
-    user?: {
-        id: string;
-        email: string;
-        username: string;
-        role: string;
-    };
+import { Request, Response } from 'express';
+export declare class PaymentController {
+    createPaymentIntent(req: Request, res: Response): Promise<void>;
+    createCheckoutSession(req: Request, res: Response): Promise<void>;
+    confirmPayment(req: Request, res: Response): Promise<void>;
+    getPaymentDetails(req: Request, res: Response): Promise<void>;
+    refundPayment(req: Request, res: Response): Promise<void>;
+    handleWebhook(req: Request, res: Response): Promise<void>;
 }
-export declare const createPaymentSession: (req: Request, res: Response, next: NextFunction) => void;
-export declare const getPaymentSession: (req: Request, res: Response, next: NextFunction) => void;
-export declare const handleStripeWebhook: (req: Request, res: Response, next: NextFunction) => void;
-export declare const getUserPayments: (req: AuthRequest, res: Response) => Promise<void>;
-export declare const requestRefund: (req: AuthRequest, res: Response) => Promise<void>;
-export declare const getPaymentStats: (req: AuthRequest, res: Response) => Promise<void>;
-export declare const getBalanceReport: (req: Request, res: Response, next: NextFunction) => void;
-export declare const retryFailedPayments: (req: Request, res: Response, next: NextFunction) => void;
-export declare const getPaymentHealth: (req: Request, res: Response, next: NextFunction) => void;
-export declare const batchProcessRefunds: (req: Request, res: Response, next: NextFunction) => void;
-export declare const processAutoRefunds: (req: Request, res: Response, next: NextFunction) => void;
-export declare const getRefundAnalysis: (req: Request, res: Response, next: NextFunction) => void;
-declare const _default: {
-    createPaymentSession: (req: Request, res: Response, next: NextFunction) => void;
-    getPaymentSession: (req: Request, res: Response, next: NextFunction) => void;
-    handleStripeWebhook: (req: Request, res: Response, next: NextFunction) => void;
-    getUserPayments: (req: AuthRequest, res: Response) => Promise<void>;
-    requestRefund: (req: AuthRequest, res: Response) => Promise<void>;
-    getPaymentStats: (req: AuthRequest, res: Response) => Promise<void>;
-    getBalanceReport: (req: Request, res: Response, next: NextFunction) => void;
-    retryFailedPayments: (req: Request, res: Response, next: NextFunction) => void;
-    getPaymentHealth: (req: Request, res: Response, next: NextFunction) => void;
-    batchProcessRefunds: (req: Request, res: Response, next: NextFunction) => void;
-    processAutoRefunds: (req: Request, res: Response, next: NextFunction) => void;
-    getRefundAnalysis: (req: Request, res: Response, next: NextFunction) => void;
-};
-export default _default;
+export declare const paymentController: PaymentController;
+export declare const createPaymentSession: (req: Request, res: Response) => Promise<void>;
+export declare const confirmPayment: (req: Request, res: Response) => Promise<void>;
+export declare const getPaymentDetails: (req: Request, res: Response) => Promise<void>;
+export declare const refundPayment: (req: Request, res: Response) => Promise<void>;
+export declare const handleWebhook: (req: Request, res: Response) => Promise<void>;
+export default paymentController;
 //# sourceMappingURL=paymentController.d.ts.map

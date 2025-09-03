@@ -1,1 +1,238 @@
-/**\n * SmellPin 测试环境 Jest 设置 - Phase 2\n * 集中处理 mock/清理工作，确保测试隔离\n */\nimport { TestContainersManager } from './testcontainers-setup';\nimport { faker } from '@faker-js/faker';\nimport 'jest-extended';\n\n// 设置全局测试超时\njest.setTimeout(30000);\n\n// 设置 faker 随机种子，确保测试可重复\nfaker.seed(12345);\n\n// 全局变量存储\ndeclare global {\n  var testManager: TestContainersManager;\n  var testSchema: string;\n  var testDbIndex: number;\n}\n\n// 在每个测试文件开始前执行\nbeforeAll(async () => {\n  // 获取测试容器管理器\n  global.testManager = TestContainersManager.getInstance();\n  \n  // 确保测试环境已启动\n  const env = global.testManager.getEnvironment();\n  if (!env) {\n    await global.testManager.setupTestEnvironment();\n  }\n});\n\n// 在每个测试用例开始前执行\nbeforeEach(async () => {\n  // 为每个测试创建独立的数据库 schema\n  const testName = expect.getState().currentTestName?.replace(/\\s+/g, '_') || 'unknown';\n  global.testSchema = await global.testManager.createIsolatedSchema(testName);\n  \n  // 为每个测试分配独立的 Redis DB 索引\n  global.testDbIndex = Math.floor(Math.random() * 15) + 1; // Redis 默认有 16 个数据库 (0-15)\n  \n  // 清理所有 mocks\n  jest.clearAllMocks();\n  jest.restoreAllMocks();\n  \n  // 重置 faker 种子（可选：为每个测试使用不同种子）\n  // faker.seed(Date.now());\n});\n\n// 在每个测试用例结束后执行\nafterEach(async () => {\n  // 清理测试用的 schema\n  if (global.testSchema) {\n    await global.testManager.dropIsolatedSchema(global.testSchema);\n  }\n  \n  // 清理 Redis 测试数据库\n  if (global.testDbIndex && global.testManager.getEnvironment()) {\n    try {\n      const redis = await global.testManager.getIsolatedRedis(global.testDbIndex);\n      await redis.flushdb();\n      await redis.disconnect();\n    } catch (error) {\n      console.warn('Redis 清理失败:', error);\n    }\n  }\n});\n\n// 全局错误处理\nprocess.on('unhandledRejection', (reason, promise) => {\n  console.error('Unhandled Rejection at:', promise, 'reason:', reason);\n});\n\n// 增强的匹配器\nexpect.extend({\n  // 自定义地理位置匹配器\n  toBeWithinDistance(received: { lat: number; lng: number }, expected: { lat: number; lng: number }, maxDistance: number) {\n    const distance = calculateDistance(received, expected);\n    const pass = distance <= maxDistance;\n    \n    return {\n      message: () => \n        `expected ${JSON.stringify(received)} to be within ${maxDistance}m of ${JSON.stringify(expected)}, but was ${distance.toFixed(2)}m away`,\n      pass,\n    };\n  },\n  \n  // 响应时间匹配器\n  toRespondWithin(received: number, maxTime: number) {\n    const pass = received <= maxTime;\n    return {\n      message: () => `expected response time ${received}ms to be within ${maxTime}ms`,\n      pass,\n    };\n  },\n  \n  // PostGIS 几何对象匹配器\n  toBeValidGeometry(received: any) {\n    const pass = received && \n                 typeof received.type === 'string' &&\n                 Array.isArray(received.coordinates);\n    return {\n      message: () => `expected ${JSON.stringify(received)} to be a valid GeoJSON geometry`,\n      pass,\n    };\n  }\n});\n\n// 辅助函数：计算两点间距离（Haversine 公式）\nfunction calculateDistance(\n  point1: { lat: number; lng: number },\n  point2: { lat: number; lng: number }\n): number {\n  const R = 6371000; // 地球半径（米）\n  const φ1 = (point1.lat * Math.PI) / 180;\n  const φ2 = (point2.lat * Math.PI) / 180;\n  const Δφ = ((point2.lat - point1.lat) * Math.PI) / 180;\n  const Δλ = ((point2.lng - point1.lng) * Math.PI) / 180;\n\n  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +\n    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);\n  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));\n\n  return R * c;\n}\n\n// 全局 mock 设置\n\n// Mock node-cron 以避免在测试中执行定时任务\njest.mock('node-cron', () => ({\n  schedule: jest.fn(),\n  destroy: jest.fn(),\n  getTasks: jest.fn(() => new Map())\n}));\n\n// Mock winston logger\njest.mock('winston', () => ({\n  createLogger: jest.fn(() => ({\n    info: jest.fn(),\n    error: jest.fn(),\n    warn: jest.fn(),\n    debug: jest.fn()\n  })),\n  format: {\n    combine: jest.fn(),\n    timestamp: jest.fn(),\n    errors: jest.fn(),\n    printf: jest.fn(),\n    json: jest.fn()\n  },\n  transports: {\n    Console: jest.fn(),\n    File: jest.fn()\n  }\n}));\n\n// Mock nodemailer 邮件发送\njest.mock('nodemailer', () => ({\n  createTransporter: jest.fn(() => ({\n    sendMail: jest.fn().mockResolvedValue({ messageId: 'test-message-id' })\n  }))\n}));\n\n// Mock 支付接口（开发环境下）\nif (process.env.NODE_ENV === 'test') {\n  jest.mock('stripe', () => ({\n    Stripe: jest.fn(() => ({\n      paymentIntents: {\n        create: jest.fn().mockResolvedValue({ id: 'pi_test_12345', status: 'succeeded' }),\n        retrieve: jest.fn().mockResolvedValue({ id: 'pi_test_12345', status: 'succeeded' })\n      },\n      webhooks: {\n        constructEvent: jest.fn().mockReturnValue({ type: 'payment_intent.succeeded', data: { object: { id: 'pi_test_12345' } } })\n      }\n    }))\n  }));\n}\n\n// Mock AWS S3 文件上传\njest.mock('aws-sdk', () => ({\n  S3: jest.fn(() => ({\n    upload: jest.fn(() => ({\n      promise: jest.fn().mockResolvedValue({ Location: 'https://test-bucket.s3.amazonaws.com/test-file.jpg' })\n    })),\n    deleteObject: jest.fn(() => ({\n      promise: jest.fn().mockResolvedValue({})\n    }))\n  })),\n  config: {\n    update: jest.fn()\n  }\n}));\n\n// 测试工具函数导出\nexport const testUtils = {\n  // 等待异步操作完成\n  waitFor: (ms: number) => new Promise(resolve => setTimeout(resolve, ms)),\n  \n  // 生成测试用的地理坐标（北京范围内）\n  generateBeijingCoordinate: () => ({\n    lat: faker.number.float({ min: 39.8, max: 40.2 }),\n    lng: faker.number.float({ min: 116.2, max: 116.6 })\n  }),\n  \n  // 生成测试用的全球坐标\n  generateGlobalCoordinate: () => ({\n    lat: faker.location.latitude(),\n    lng: faker.location.longitude()\n  }),\n  \n  // 创建测试数据库连接\n  async createTestDbConnection() {\n    const env = global.testManager.getEnvironment();\n    if (!env) throw new Error('测试环境未初始化');\n    \n    const { Client } = require('pg');\n    const client = new Client({ connectionString: env.DATABASE_URL });\n    await client.connect();\n    return client;\n  },\n  \n  // 创建测试 Redis 连接\n  async createTestRedisConnection() {\n    return await global.testManager.getIsolatedRedis(global.testDbIndex);\n  }\n};\n\n// TypeScript 声明增强\ndeclare global {\n  namespace jest {\n    interface Matchers<R> {\n      toBeWithinDistance(expected: { lat: number; lng: number }, maxDistance: number): R;\n      toRespondWithin(maxTime: number): R;\n      toBeValidGeometry(): R;\n    }\n  }\n}
+/**
+ * SmellPin 测试环境 Jest 设置 - Phase 2
+ * 集中处理 mock/清理工作，确保测试隔离
+ */
+import { TestContainersManager } from './testcontainers-setup';
+import { faker } from '@faker-js/faker';
+import 'jest-extended';
+
+// 设置全局测试超时
+jest.setTimeout(30000);
+
+// 设置 faker 随机种子，确保测试可重复
+faker.seed(12345);
+
+// 全局变量存储
+declare global {
+  var testManager: TestContainersManager;
+  var testSchema: string;
+  var testDbIndex: number;
+}
+
+// 在每个测试文件开始前执行
+beforeAll(async () => {
+  // 获取测试容器管理器
+  global.testManager = TestContainersManager.getInstance();
+  
+  // 确保测试环境已启动
+  const env = global.testManager.getEnvironment();
+  if (!env) {
+    await global.testManager.setupTestEnvironment();
+  }
+});
+
+// 在每个测试用例开始前执行
+beforeEach(async () => {
+  // 为每个测试创建独立的数据库 schema
+  const testName = expect.getState().currentTestName?.replace(/\s+/g, '_') || 'unknown';
+  global.testSchema = await global.testManager.createIsolatedSchema(testName);
+  
+  // 为每个测试分配独立的 Redis DB 索引
+  global.testDbIndex = Math.floor(Math.random() * 15) + 1; // Redis 默认有 16 个数据库 (0-15)
+  
+  // 清理所有 mocks
+  jest.clearAllMocks();
+  jest.restoreAllMocks();
+  
+  // 重置 faker 种子（可选：为每个测试使用不同种子）
+  // faker.seed(Date.now());
+});
+
+// 在每个测试用例结束后执行
+afterEach(async () => {
+  // 清理测试用的 schema
+  if (global.testSchema) {
+    await global.testManager.dropIsolatedSchema(global.testSchema);
+  }
+  
+  // 清理 Redis 测试数据库
+  if (global.testDbIndex && global.testManager.getEnvironment()) {
+    try {
+      const redis = await global.testManager.getIsolatedRedis(global.testDbIndex);
+      await redis.flushdb();
+      await redis.disconnect();
+    } catch (error) {
+      console.warn('Redis 清理失败:', error);
+    }
+  }
+});
+
+// 全局错误处理
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// 增强的匹配器
+expect.extend({
+  // 自定义地理位置匹配器
+  toBeWithinDistance(received: { lat: number; lng: number }, expected: { lat: number; lng: number }, maxDistance: number) {
+    const distance = calculateDistance(received, expected);
+    const pass = distance <= maxDistance;
+    
+    return {
+      message: () => 
+        `expected ${JSON.stringify(received)} to be within ${maxDistance}m of ${JSON.stringify(expected)}, but was ${distance.toFixed(2)}m away`,
+      pass,
+    };
+  },
+  
+  // 响应时间匹配器
+  toRespondWithin(received: number, maxTime: number) {
+    const pass = received <= maxTime;
+    return {
+      message: () => `expected response time ${received}ms to be within ${maxTime}ms`,
+      pass,
+    };
+  },
+  
+  // PostGIS 几何对象匹配器
+  toBeValidGeometry(received: any) {
+    const pass = received && 
+                 typeof received.type === 'string' &&
+                 Array.isArray(received.coordinates);
+    return {
+      message: () => `expected ${JSON.stringify(received)} to be a valid GeoJSON geometry`,
+      pass,
+    };
+  }
+});
+
+// 辅助函数：计算两点间距离（Haversine 公式）
+function calculateDistance(
+  point1: { lat: number; lng: number },
+  point2: { lat: number; lng: number }
+): number {
+  const R = 6371000; // 地球半径（米）
+  const φ1 = (point1.lat * Math.PI) / 180;
+  const φ2 = (point2.lat * Math.PI) / 180;
+  const Δφ = ((point2.lat - point1.lat) * Math.PI) / 180;
+  const Δλ = ((point2.lng - point1.lng) * Math.PI) / 180;
+
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
+
+// 全局 mock 设置
+
+// Mock node-cron 以避免在测试中执行定时任务
+jest.mock('node-cron', () => ({
+  schedule: jest.fn(),
+  destroy: jest.fn(),
+  getTasks: jest.fn(() => new Map())
+}));
+
+// Mock winston logger
+jest.mock('winston', () => ({
+  createLogger: jest.fn(() => ({
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn()
+  })),
+  format: {
+    combine: jest.fn(),
+    timestamp: jest.fn(),
+    errors: jest.fn(),
+    printf: jest.fn(),
+    json: jest.fn()
+  },
+  transports: {
+    Console: jest.fn(),
+    File: jest.fn()
+  }
+}));
+
+// Mock nodemailer 邮件发送
+jest.mock('nodemailer', () => ({
+  createTransporter: jest.fn(() => ({
+    sendMail: jest.fn().mockResolvedValue({ messageId: 'test-message-id' })
+  }))
+}));
+
+// Mock 支付接口（开发环境下）
+if (process.env.NODE_ENV === 'test') {
+  jest.mock('stripe', () => ({
+    Stripe: jest.fn(() => ({
+      paymentIntents: {
+        create: jest.fn().mockResolvedValue({ id: 'pi_test_12345', status: 'succeeded' }),
+        retrieve: jest.fn().mockResolvedValue({ id: 'pi_test_12345', status: 'succeeded' })
+      },
+      webhooks: {
+        constructEvent: jest.fn().mockReturnValue({ type: 'payment_intent.succeeded', data: { object: { id: 'pi_test_12345' } } })
+      }
+    }))
+  }));
+}
+
+// Mock AWS S3 文件上传
+jest.mock('aws-sdk', () => ({
+  S3: jest.fn(() => ({
+    upload: jest.fn(() => ({
+      promise: jest.fn().mockResolvedValue({ Location: 'https://test-bucket.s3.amazonaws.com/test-file.jpg' })
+    })),
+    deleteObject: jest.fn(() => ({
+      promise: jest.fn().mockResolvedValue({})
+    }))
+  })),
+  config: {
+    update: jest.fn()
+  }
+}));
+
+// 测试工具函数导出
+export const testUtils = {
+  // 等待异步操作完成
+  waitFor: (ms: number) => new Promise(resolve => setTimeout(resolve, ms)),
+  
+  // 生成测试用的地理坐标（北京范围内）
+  generateBeijingCoordinate: () => ({
+    lat: faker.number.float({ min: 39.8, max: 40.2 }),
+    lng: faker.number.float({ min: 116.2, max: 116.6 })
+  }),
+  
+  // 生成测试用的全球坐标
+  generateGlobalCoordinate: () => ({
+    lat: faker.location.latitude(),
+    lng: faker.location.longitude()
+  }),
+  
+  // 创建测试数据库连接
+  async createTestDbConnection() {
+    const env = global.testManager.getEnvironment();
+    if (!env) throw new Error('测试环境未初始化');
+    
+    const { Client } = require('pg');
+    const client = new Client({ connectionString: env.DATABASE_URL });
+    await client.connect();
+    return client;
+  },
+  
+  // 创建测试 Redis 连接
+  async createTestRedisConnection() {
+    return await global.testManager.getIsolatedRedis(global.testDbIndex);
+  }
+};
+
+// TypeScript 声明增强
+declare global {
+  namespace jest {
+    interface Matchers<R> {
+      toBeWithinDistance(expected: { lat: number; lng: number }, maxDistance: number): R;
+      toRespondWithin(maxTime: number): R;
+      toBeValidGeometry(): R;
+    }
+  }
+}

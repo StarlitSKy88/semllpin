@@ -7,10 +7,73 @@ const antiFraudService_1 = require("../services/antiFraudService");
 const auth_1 = require("../middleware/auth");
 const database_1 = require("../config/database");
 const router = (0, express_1.Router)();
-router.use(auth_1.authMiddleware);
 const geofenceService = new geofenceService_1.GeofenceService();
 const rewardCalculationService = new rewardCalculationService_1.RewardCalculationService();
 const antiFraudService = new antiFraudService_1.AntiFraudService();
+router.get('/locations', async (req, res) => {
+    try {
+        const { latitude, longitude, radius = 1000 } = req.query;
+        if (!latitude || !longitude) {
+            res.status(400).json({
+                code: 400,
+                message: '缺少位置参数',
+                data: null,
+            });
+            return;
+        }
+        const lat = parseFloat(latitude);
+        const lng = parseFloat(longitude);
+        const radiusKm = parseFloat(radius) / 1000;
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+            res.status(400).json({
+                code: 400,
+                message: '位置坐标无效',
+                data: null,
+            });
+            return;
+        }
+        const locationQueryTimeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Location query timeout')), 5000);
+        });
+        const locationQuery = (0, database_1.db)('annotations')
+            .select('id', 'location', 'smell_intensity', 'content as description', 'status', 'created_at')
+            .where('status', 'active')
+            .where(database_1.db.raw('(location->>?)::float BETWEEN ? AND ?', ['latitude', lat - 0.01, lat + 0.01]))
+            .where(database_1.db.raw('(location->>?)::float BETWEEN ? AND ?', ['longitude', lng - 0.01, lng + 0.01]))
+            .limit(50)
+            .orderBy('created_at', 'desc');
+        const locations = await Promise.race([locationQuery, locationQueryTimeout]);
+        res.json({
+            code: 200,
+            message: '获取位置信息成功',
+            data: {
+                locations: Array.isArray(locations) ? locations.map(loc => {
+                    const location = typeof loc.location === 'string' ? JSON.parse(loc.location) : loc.location;
+                    return {
+                        id: loc.id,
+                        latitude: parseFloat(location.latitude),
+                        longitude: parseFloat(location.longitude),
+                        smellIntensity: loc.smell_intensity,
+                        description: loc.description,
+                        status: loc.status,
+                        createdAt: loc.created_at,
+                    };
+                }) : [],
+                count: Array.isArray(locations) ? locations.length : 0,
+                radius: parseFloat(radius),
+            },
+        });
+    }
+    catch (error) {
+        console.error('获取位置信息失败:', error);
+        res.status(500).json({
+            code: 500,
+            message: '获取位置信息失败',
+            data: null,
+        });
+    }
+});
+router.use(auth_1.authMiddleware);
 router.post('/report-location', async (req, res) => {
     try {
         const userId = req.user?.id;
@@ -55,7 +118,18 @@ router.post('/report-location', async (req, res) => {
             return;
         }
         const savedLocation = await saveLocationReport(locationReport);
-        const geofenceTriggers = await geofenceService.checkGeofenceTriggers(locationData.latitude, locationData.longitude, userId);
+        let geofenceTriggers = [];
+        try {
+            const geofenceTimeout = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Geofence check timeout')), 8000);
+            });
+            const geofencePromise = geofenceService.checkGeofenceTriggers(locationData.latitude, locationData.longitude, userId);
+            geofenceTriggers = (await Promise.race([geofencePromise, geofenceTimeout]));
+        }
+        catch (error) {
+            console.error('地理围栏检测超时或失败:', error);
+            geofenceTriggers = [];
+        }
         const rewards = [];
         for (const trigger of geofenceTriggers) {
             if (!trigger.triggered) {

@@ -9,6 +9,7 @@ const annotationRoutes_1 = __importDefault(require("./annotationRoutes"));
 const paymentRoutes_1 = __importDefault(require("./paymentRoutes"));
 const mediaRoutes_1 = __importDefault(require("./mediaRoutes"));
 const lbsRoutes_1 = __importDefault(require("./lbsRoutes"));
+const geocoding_1 = __importDefault(require("./geocoding"));
 const searchRoutes_1 = __importDefault(require("./searchRoutes"));
 const socialRoutes_1 = __importDefault(require("./socialRoutes"));
 const commentRoutes_1 = __importDefault(require("./commentRoutes"));
@@ -17,6 +18,11 @@ const walletRoutes_1 = __importDefault(require("./walletRoutes"));
 const shareRoutes_1 = __importDefault(require("./shareRoutes"));
 const interactionRoutes_1 = __importDefault(require("./interactionRoutes"));
 const adminRoutes_1 = __importDefault(require("./adminRoutes"));
+const feedRoutes_1 = __importDefault(require("./feedRoutes"));
+const recommendationRoutes_1 = __importDefault(require("./recommendationRoutes"));
+const profileRoutes_1 = __importDefault(require("./profileRoutes"));
+const moderationRoutes_1 = __importDefault(require("./moderationRoutes"));
+const errorMonitoringRoutes_1 = __importDefault(require("./errorMonitoringRoutes"));
 const logger_1 = require("@/utils/logger");
 const router = (0, express_1.Router)();
 const API_VERSION = '/api/v1';
@@ -42,6 +48,7 @@ router.use(`${API_VERSION}/annotations`, annotationRoutes_1.default);
 router.use(`${API_VERSION}/payments`, paymentRoutes_1.default);
 router.use(`${API_VERSION}/media`, mediaRoutes_1.default);
 router.use(`${API_VERSION}/lbs`, lbsRoutes_1.default);
+router.use(`${API_VERSION}/geocoding`, geocoding_1.default);
 router.use(`${API_VERSION}/search`, searchRoutes_1.default);
 router.use(`${API_VERSION}/social`, socialRoutes_1.default);
 router.use(`${API_VERSION}`, commentRoutes_1.default);
@@ -50,6 +57,18 @@ router.use(`${API_VERSION}/wallet`, walletRoutes_1.default);
 router.use(`${API_VERSION}`, shareRoutes_1.default);
 router.use(`${API_VERSION}/interactions`, interactionRoutes_1.default);
 router.use(`${API_VERSION}/admin`, adminRoutes_1.default);
+router.use(`${API_VERSION}`, feedRoutes_1.default);
+router.use(`${API_VERSION}/recommendations`, recommendationRoutes_1.default);
+router.use(`${API_VERSION}`, profileRoutes_1.default);
+router.use(`${API_VERSION}/moderation`, moderationRoutes_1.default);
+router.use(`${API_VERSION}/errors`, errorMonitoringRoutes_1.default);
+router.get('/api/docs', (_req, res) => {
+    res.json({
+        success: true,
+        message: 'SmellPin API Documentation',
+        version: '1.0.0',
+    });
+});
 router.get(`${API_VERSION}/docs`, (_req, res) => {
     res.json({
         success: true,

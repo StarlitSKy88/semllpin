@@ -4,12 +4,12 @@
  * 实时监控测试进度和结果
  */
 
-import express from 'express';
+import * as express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import chalk from 'chalk';
+import * as chalk from 'chalk';
 import { watch } from 'fs';
 
 interface DashboardData {
@@ -373,7 +373,7 @@ class TestDashboard {
             const statusIndicator = document.getElementById('statusIndicator');
             const statusText = document.getElementById('statusText');
             
-            statusIndicator.className = `status-indicator status-${data.status}`;
+            statusIndicator.className = 'status-indicator status-' + data.status;
             const statusMap = {
                 idle: '系统就绪',
                 running: '测试运行中',
@@ -383,24 +383,24 @@ class TestDashboard {
             statusText.textContent = statusMap[data.status] || '未知状态';
             
             // 更新进度
-            document.getElementById('progressPercent').textContent = `${Math.round(data.progress)}%`;
-            document.getElementById('progressBar').style.width = `${data.progress}%`;
+            document.getElementById('progressPercent').textContent = Math.round(data.progress) + '%';
+            document.getElementById('progressBar').style.width = data.progress + '%';
             document.getElementById('progressText').textContent = 
-                data.status === 'running' ? `正在执行: ${data.currentSuite?.name || '未知测试'}` : '测试完成';
+                data.status === 'running' ? '正在执行: ' + (data.currentSuite?.name || '未知测试') : '测试完成';
             
             // 更新指标
             document.getElementById('totalTests').textContent = data.metrics.totalTests;
             document.getElementById('passedTests').textContent = data.metrics.passedTests;
             document.getElementById('failedTests').textContent = data.metrics.failedTests;
-            document.getElementById('duration').textContent = `${Math.round(data.metrics.totalDuration / 1000)}s`;
+            document.getElementById('duration').textContent = Math.round(data.metrics.totalDuration / 1000) + 's';
             
             // 更新实时指标
             if (data.liveMetrics && data.liveMetrics.length > 0) {
                 const latest = data.liveMetrics[data.liveMetrics.length - 1];
-                document.getElementById('cpuUsage').textContent = `${latest.cpu}%`;
-                document.getElementById('memoryUsage').textContent = `${latest.memory}MB`;
+                document.getElementById('cpuUsage').textContent = latest.cpu + '%';
+                document.getElementById('memoryUsage').textContent = latest.memory + 'MB';
                 document.getElementById('connections').textContent = latest.activeConnections;
-                document.getElementById('responseTime').textContent = `${latest.responseTime}ms`;
+                document.getElementById('responseTime').textContent = latest.responseTime + 'ms';
                 
                 // 更新图表
                 updateChart(data.liveMetrics);
@@ -428,15 +428,15 @@ class TestDashboard {
                 return;
             }
             
-            timeline.innerHTML = results.map((result, index) => `
-                <div class="timeline-item ${result.status === 'running' ? 'active' : ''}">
-                    <div class="timeline-time">${new Date().toLocaleTimeString()}</div>
-                    <div class="timeline-content">
-                        <div class="timeline-title">${result.name}</div>
-                        <div class="timeline-desc">${result.description || '测试执行中...'}</div>
-                    </div>
-                </div>
-            `).join('');
+            timeline.innerHTML = results.map((result, index) => {
+                return '<div class="timeline-item ' + (result.status === 'running' ? 'active' : '') + '">' +
+                    '<div class="timeline-time">' + new Date().toLocaleTimeString() + '</div>' +
+                    '<div class="timeline-content">' +
+                        '<div class="timeline-title">' + result.name + '</div>' +
+                        '<div class="timeline-desc">' + (result.description || '测试执行中...') + '</div>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
         }
         
         // 定时请求更新
@@ -457,15 +457,15 @@ class TestDashboard {
                     return;
                 }
                 
-                reportsList.innerHTML = reports.map(report => `
-                    <div class="report-item">
-                        <div>
-                            <div class="report-name">${report.name}</div>
-                            <div class="report-time">${new Date(report.timestamp).toLocaleString()}</div>
-                        </div>
-                        <a href="${report.path}" class="report-link" target="_blank">查看</a>
-                    </div>
-                `).join('');
+                reportsList.innerHTML = reports.map(report => {
+                    return '<div class="report-item">' +
+                        '<div>' +
+                            '<div class="report-name">' + report.name + '</div>' +
+                            '<div class="report-time">' + new Date(report.timestamp).toLocaleString() + '</div>' +
+                        '</div>' +
+                        '<a href="' + report.path + '" class="report-link" target="_blank">查看</a>' +
+                    '</div>';
+                }).join('');
             } catch (error) {
                 console.error('加载报告列表失败:', error);
             }

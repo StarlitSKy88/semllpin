@@ -392,7 +392,7 @@ export class TestDataFactory {
           '/api/v1/users/profile/me',
           '/api/v1/annotations',
           '/api/v1/users/stats'
-        ])),
+        ]),
         method: faker.helpers.arrayElement(['GET', 'POST', 'PUT', 'DELETE']),
         delay: faker.number.int({ min: 0, max: 1000 })
       }))

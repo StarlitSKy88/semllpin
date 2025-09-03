@@ -67,12 +67,13 @@ exports.commonSchemas = {
     }),
     email: joi_1.default.string().email().required(),
     password: joi_1.default.string()
-        .min(8)
+        .min(6)
         .max(128)
-        .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, 'password')
         .required()
         .messages({
-        'string.pattern.name': '密码必须包含至少一个大写字母、一个小写字母、一个数字和一个特殊字符',
+        'string.min': '密码至少需要6个字符',
+        'string.max': '密码不能超过128个字符',
+        'any.required': '密码不能为空',
     }),
     username: joi_1.default.string()
         .alphanum()

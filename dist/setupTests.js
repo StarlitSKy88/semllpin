@@ -39,23 +39,34 @@ Object.defineProperty(window, 'matchMedia', {
         dispatchEvent: jest.fn(),
     })),
 });
-Object.defineProperty(window, 'location', {
-    value: {
-        href: 'http://localhost:3000',
-        origin: 'http://localhost:3000',
-        protocol: 'http:',
-        host: 'localhost:3000',
-        hostname: 'localhost',
-        port: '3000',
-        pathname: '/',
-        search: '',
-        hash: '',
-        assign: jest.fn(),
-        replace: jest.fn(),
-        reload: jest.fn(),
-    },
-    writable: true,
-});
+let locationMocked = false;
+try {
+    if (!window.__locationMocked) {
+        delete window.location;
+        Object.defineProperty(window, 'location', {
+            value: {
+                href: 'http://localhost:3000',
+                origin: 'http://localhost:3000',
+                protocol: 'http:',
+                host: 'localhost:3000',
+                hostname: 'localhost',
+                port: '3000',
+                pathname: '/',
+                search: '',
+                hash: '',
+                assign: jest.fn(),
+                replace: jest.fn(),
+                reload: jest.fn(),
+            },
+            writable: true,
+            configurable: true,
+        });
+        window.__locationMocked = true;
+        locationMocked = true;
+    }
+}
+catch (e) {
+}
 const originalError = console.error;
 beforeAll(() => {
     console.error = (...args) => {

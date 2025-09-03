@@ -21,116 +21,28 @@ exports.getAnnotationDetails = (0, errorHandler_2.asyncHandler)(async (req, res,
     if (!id) {
         throw (0, errorHandler_1.createValidationError)('id', '标注ID不能为空');
     }
-    const cacheKey = `annotation_details:${id}`;
-    const cached = await redis_1.cacheService.get(cacheKey);
-    if (cached) {
-        logger_1.logger.info('从缓存获取标注详情', { annotationId: id });
+    try {
+        const annotation = await Annotation_1.AnnotationModel.findById(id);
+        if (!annotation) {
+            throw (0, errorHandler_1.createNotFoundError)('标注不存在');
+        }
+        const result = { annotation };
+        logger_1.logger.info('获取标注详情', {
+            annotationId: id,
+            userId,
+            fromCache: false
+        });
         res.json({
             success: true,
-            data: cached,
+            data: result,
         });
-        return;
     }
-    const annotation = await (0, database_1.db)('annotations')
-        .where('id', id)
-        .where('deleted_at', null)
-        .first();
-    if (!annotation) {
-        throw (0, errorHandler_1.createNotFoundError)('标注不存在');
+    catch (error) {
+        if (error.message === 'Annotation not found') {
+            throw (0, errorHandler_1.createNotFoundError)('标注不存在');
+        }
+        throw error;
     }
-    const mediaFiles = await (0, database_1.db)('media_files')
-        .where('annotation_id', id)
-        .where('deleted_at', null)
-        .select('*');
-    let paymentInfo = null;
-    const payment = await (0, database_1.db)('payments')
-        .where('annotation_id', id)
-        .first();
-    if (payment) {
-        paymentInfo = {
-            id: payment.id,
-            amount: payment.amount,
-            currency: payment.currency,
-            status: payment.status,
-            paymentMethod: payment.payment_method,
-            description: payment.description,
-            processedAt: payment.processed_at,
-            createdAt: payment.created_at,
-        };
-    }
-    const likesCount = await (0, database_1.db)('annotation_likes')
-        .where('annotation_id', id)
-        .count('* as count')
-        .first();
-    let isLikedByUser = false;
-    if (userId) {
-        const userLike = await (0, database_1.db)('annotation_likes')
-            .where('annotation_id', id)
-            .where('user_id', userId)
-            .first();
-        isLikedByUser = !!userLike;
-    }
-    const commentsCount = await (0, database_1.db)('annotation_comments')
-        .where('annotation_id', id)
-        .where('deleted_at', null)
-        .count('* as count')
-        .first()
-        .catch(() => ({ count: 0 }));
-    const user = await (0, database_1.db)('users')
-        .where('id', annotation.user_id)
-        .select('id', 'username', 'avatar_url', 'created_at')
-        .first();
-    let moderationInfo = null;
-    if (annotation.moderated_by) {
-        const moderator = await (0, database_1.db)('users')
-            .where('id', annotation.moderated_by)
-            .select('id', 'username')
-            .first();
-        moderationInfo = {
-            moderatedBy: moderator,
-            moderatedAt: annotation.moderated_at,
-            moderationReason: annotation.moderation_reason,
-        };
-    }
-    const result = {
-        ...annotation,
-        user: user ? {
-            id: user.id,
-            username: user.username,
-            avatarUrl: user.avatar_url,
-            memberSince: user.created_at,
-        } : null,
-        mediaFiles: mediaFiles.map(file => ({
-            id: file.id,
-            filename: file.filename,
-            originalName: file.original_name || file.original_filename,
-            fileUrl: file.file_url,
-            fileSize: file.file_size,
-            mimeType: file.mime_type,
-            fileType: file.file_type,
-            width: file.width,
-            height: file.height,
-            duration: file.duration,
-            thumbnailUrl: file.thumbnail_url,
-            createdAt: file.created_at,
-        })),
-        paymentInfo,
-        likesCount: Number(likesCount?.['count'] || 0),
-        isLikedByUser,
-        commentsCount: Number(commentsCount?.['count'] || 0),
-        moderationInfo,
-    };
-    await redis_1.cacheService.set(cacheKey, result, 300);
-    logger_1.logger.info('获取标注详情', {
-        annotationId: id,
-        userId,
-        hasPayment: !!paymentInfo,
-        mediaFilesCount: mediaFiles.length,
-    });
-    res.json({
-        success: true,
-        data: result,
-    });
 });
 exports.getPendingAnnotations = (0, errorHandler_2.asyncHandler)(async (req, res, _next) => {
     const { page = 1, limit = 20, sortBy = 'created_at', sortOrder = 'desc', } = req.query;
@@ -645,13 +557,20 @@ exports.getMapData = (0, errorHandler_2.asyncHandler)(async (req, res, _next) =>
     const cacheKey = `map_data:${JSON.stringify({ bounds, options })}`;
     const cached = await redis_1.cacheService.get(cacheKey);
     if (cached) {
-        res.json({
-            success: true,
-            data: {
-                annotations: JSON.parse(cached),
-            },
-        });
-        return;
+        try {
+            const cachedData = JSON.parse(cached);
+            res.json({
+                success: true,
+                data: {
+                    annotations: cachedData,
+                },
+            });
+            return;
+        }
+        catch (parseError) {
+            logger_1.logger.warn('缓存数据解析失败，将重新获取数据', { cacheKey, error: parseError });
+            await redis_1.cacheService.del(cacheKey);
+        }
     }
     const annotations = await Annotation_1.AnnotationModel.getMapData(bounds, options);
     await redis_1.cacheService.set(cacheKey, JSON.stringify(annotations), 300);

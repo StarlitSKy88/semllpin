@@ -41,6 +41,15 @@ export interface UserStats {
     total_comments: number;
     total_payments: number;
     reputation_score: number;
+    followers_count: number;
+    following_count: number;
+    likes_received: number;
+    likes_given: number;
+    favorites_count: number;
+    shares_count: number;
+    activity_score: number;
+    weekly_posts: number;
+    monthly_posts: number;
 }
 export declare class UserModel {
     static create(userData: CreateUserData): Promise<User>;
@@ -56,6 +65,9 @@ export declare class UserModel {
     static verifyEmail(token: string): Promise<User | null>;
     static updateLastLogin(id: string): Promise<void>;
     static getStats(id: string): Promise<UserStats>;
+    private static getBasicStats;
+    private static getSocialStats;
+    private static getActivityStats;
     static getList(options?: {
         page?: number;
         limit?: number;

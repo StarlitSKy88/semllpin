@@ -8,20 +8,21 @@ const TABLE_NAME = 'payments';
 class PaymentModel {
     static async create(paymentData) {
         try {
-            const [payment] = await (0, database_1.db)(TABLE_NAME)
-                .insert({
+            const normalizedData = {
                 id: (0, uuid_1.v4)(),
-                user_id: paymentData.user_id,
-                annotation_id: paymentData.annotation_id,
+                user_id: paymentData.userId || paymentData.user_id,
+                annotation_id: paymentData.annotationId || paymentData.annotation_id,
                 amount: paymentData.amount,
                 currency: paymentData.currency,
-                payment_method: paymentData.payment_method,
-                payment_intent_id: paymentData.payment_intent_id,
-                session_id: paymentData.session_id,
+                payment_method: paymentData.method || paymentData.payment_method,
+                payment_intent_id: paymentData.paymentIntentId || paymentData.payment_intent_id || paymentData.stripePaymentIntentId,
+                session_id: paymentData.sessionId || paymentData.session_id || paymentData.stripeSessionId || paymentData.paypalOrderId,
                 description: paymentData.description,
                 metadata: JSON.stringify(paymentData.metadata || {}),
-                status: 'pending',
-            })
+                status: paymentData.status || 'pending',
+            };
+            const [payment] = await (0, database_1.db)(TABLE_NAME)
+                .insert(normalizedData)
                 .returning('*');
             payment.metadata = JSON.parse(payment.metadata || '{}');
             logger_1.logger.info('支付记录创建成功', {
@@ -79,6 +80,22 @@ class PaymentModel {
         }
         catch (error) {
             logger_1.logger.error('通过Stripe支付意图ID查找支付记录失败', { paymentIntentId, error });
+            throw error;
+        }
+    }
+    static async findByPayPalOrderId(orderId) {
+        try {
+            const payment = await (0, database_1.db)(TABLE_NAME)
+                .where({ session_id: orderId })
+                .where({ payment_method: 'paypal' })
+                .first();
+            if (payment) {
+                payment.metadata = JSON.parse(payment.metadata || '{}');
+            }
+            return payment || null;
+        }
+        catch (error) {
+            logger_1.logger.error('通过PayPal订单ID查找支付记录失败', { orderId, error });
             throw error;
         }
     }

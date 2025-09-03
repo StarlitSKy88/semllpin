@@ -1,7 +1,7 @@
 import websocketServiceInstance from './websocketService';
 export declare const setWebSocketService: (service: typeof websocketServiceInstance) => void;
 export declare const getWebSocketService: () => typeof websocketServiceInstance | null;
-export declare const sendRealtimeNotification: (userId: string, notification: {
+export declare const sendRealtimeNotification: (_userId: string, notification: {
     type: string;
     title: string;
     message: string;
@@ -13,6 +13,12 @@ export declare const sendRealtimeNotificationToUsers: (userIds: string[], notifi
     total: number;
     online: number;
     offline: number;
+    failed: number;
+} | {
+    total: number;
+    online: number;
+    offline: number;
+    failed?: undefined;
 }>;
 export declare const sendBatchNotifications: (notifications: Array<{
     userId: string;

@@ -7,7 +7,7 @@ exports.monitorQuery = exports.buildBoundsQuery = exports.buildLocationQuery = e
 const knex_1 = __importDefault(require("knex"));
 const config_1 = require("./config");
 const logger_1 = require("../utils/logger");
-const dbConfig = (process.env['NODE_ENV'] === 'development' || process.env['NODE_ENV'] === 'test') && process.env['DB_TYPE'] !== 'postgresql' ? {
+const dbConfig = process.env['DB_TYPE'] === 'sqlite' || (!process.env['DATABASE_URL'] && process.env['NODE_ENV'] === 'test') ? {
     client: 'sqlite3',
     connection: {
         filename: process.env['NODE_ENV'] === 'test' ? './test.sqlite' : './smellpin.sqlite',
@@ -27,8 +27,10 @@ const dbConfig = (process.env['NODE_ENV'] === 'development' || process.env['NODE
     debug: config_1.config.NODE_ENV === 'development',
 } : {
     client: 'postgresql',
-    connection: {
+    connection: config_1.config.DATABASE_URL ? {
         connectionString: config_1.config.DATABASE_URL,
+        ssl: { rejectUnauthorized: false }
+    } : {
         host: config_1.config.database.host,
         port: config_1.config.database.port,
         user: config_1.config.database.username,
@@ -37,14 +39,29 @@ const dbConfig = (process.env['NODE_ENV'] === 'development' || process.env['NODE
         ssl: config_1.config.database.ssl ? { rejectUnauthorized: false } : false,
     },
     pool: {
-        min: 2,
-        max: 10,
-        createTimeoutMillis: 3000,
-        acquireTimeoutMillis: 30000,
-        idleTimeoutMillis: 30000,
-        reapIntervalMillis: 1000,
-        createRetryIntervalMillis: 100,
+        min: config_1.config.NODE_ENV === 'production' ? 8 : 3,
+        max: config_1.config.NODE_ENV === 'production' ? 50 : 15,
+        createTimeoutMillis: 8000,
+        acquireTimeoutMillis: 10000,
+        idleTimeoutMillis: config_1.config.NODE_ENV === 'production' ? 300000 : 180000,
+        destroyTimeoutMillis: 3000,
         propagateCreateError: false,
+        afterCreate: async (conn, done) => {
+            try {
+                logger_1.logger.debug('🔗 New database connection created');
+                if (conn.raw) {
+                    await conn.raw("SET statement_timeout = '8s'");
+                    await conn.raw("SET lock_timeout = '5s'");
+                    await conn.raw("SET client_encoding TO 'UTF8'");
+                    await conn.raw("SET timezone TO 'UTC'");
+                }
+                done(null, conn);
+            }
+            catch (error) {
+                logger_1.logger.error('❌ Failed to configure new connection:', error);
+                done(error instanceof Error ? error : new Error(String(error)));
+            }
+        }
     },
     migrations: {
         directory: './migrations',
@@ -57,17 +74,50 @@ const dbConfig = (process.env['NODE_ENV'] === 'development' || process.env['NODE
 };
 exports.db = (0, knex_1.default)(dbConfig);
 const connectDatabase = async () => {
-    try {
-        await exports.db.raw('SELECT 1+1 as result');
-        logger_1.logger.info('数据库连接成功');
-        if (config_1.config.NODE_ENV === 'production') {
-            await exports.db.migrate.latest();
-            logger_1.logger.info('数据库迁移完成');
+    const maxRetries = 3;
+    const retryDelay = 2000;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            logger_1.logger.info(`🔄 Attempting database connection (attempt ${attempt}/${maxRetries})...`);
+            const result = await Promise.race([
+                exports.db.raw('SELECT 1+1 as result'),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Database connection timeout after 10 seconds')), 10000))
+            ]);
+            logger_1.logger.info('✅ 数据库连接成功', {
+                result: result.rows?.[0] || result,
+                attempt,
+                connectionPool: {
+                    min: dbConfig.pool?.min || 0,
+                    max: dbConfig.pool?.max || 0
+                }
+            });
+            if (config_1.config.NODE_ENV === 'production') {
+                try {
+                    await exports.db.raw('SELECT PostGIS_Version()');
+                    logger_1.logger.info('✅ PostGIS extension verified');
+                }
+                catch (error) {
+                    logger_1.logger.warn('⚠️ PostGIS extension not available, spatial queries will be limited');
+                }
+                await exports.db.migrate.latest();
+                logger_1.logger.info('✅ 数据库迁移完成');
+            }
+            return;
         }
-    }
-    catch (error) {
-        logger_1.logger.error('数据库连接失败:', error);
-        throw error;
+        catch (error) {
+            logger_1.logger.error(`❌ 数据库连接失败 (attempt ${attempt}/${maxRetries}):`, {
+                error: error instanceof Error ? error.message : error,
+                stack: error instanceof Error ? error.stack : undefined
+            });
+            if (attempt === maxRetries) {
+                const errorMessage = `Database connection failed after ${maxRetries} attempts. Server will not start.`;
+                logger_1.logger.error(`🚨 ${errorMessage}`);
+                throw new Error(errorMessage);
+            }
+            const delay = retryDelay * attempt;
+            logger_1.logger.info(`⏳ Waiting ${delay}ms before retry...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
     }
 };
 exports.connectDatabase = connectDatabase;
@@ -83,13 +133,50 @@ const disconnectDatabase = async () => {
 };
 exports.disconnectDatabase = disconnectDatabase;
 const checkDatabaseHealth = async () => {
+    const startTime = Date.now();
+    let connectionTest = false;
+    let poolStatus = {};
+    let error;
     try {
         await exports.db.raw('SELECT 1');
-        return true;
+        connectionTest = true;
+        const pool = exports.db.client?.pool;
+        if (pool) {
+            poolStatus = {
+                size: pool.size || 0,
+                available: pool.available || 0,
+                borrowed: pool.borrowed || 0,
+                pending: pool.pending || 0,
+                max: pool.max || 0,
+                min: pool.min || 0
+            };
+        }
+        const responseTime = Date.now() - startTime;
+        const healthy = connectionTest && responseTime < 1000;
+        if (!healthy && responseTime >= 1000) {
+            logger_1.logger.warn('⚠️ Database response time is high:', { responseTime });
+        }
+        return {
+            healthy,
+            details: {
+                connectionTest,
+                poolStatus,
+                responseTime
+            }
+        };
     }
-    catch (error) {
-        logger_1.logger.error('数据库健康检查失败:', error);
-        return false;
+    catch (err) {
+        error = err instanceof Error ? err.message : String(err);
+        logger_1.logger.error('❌ 数据库健康检查失败:', error);
+        return {
+            healthy: false,
+            details: {
+                connectionTest: false,
+                poolStatus,
+                responseTime: Date.now() - startTime,
+                error
+            }
+        };
     }
 };
 exports.checkDatabaseHealth = checkDatabaseHealth;
@@ -128,11 +215,11 @@ const buildSortQuery = (query, sortBy = 'created_at', sortOrder = 'desc') => {
 };
 exports.buildSortQuery = buildSortQuery;
 const buildLocationQuery = (query, latitude, longitude, radiusInMeters = 1000) => {
-    return query.whereRaw('ST_DWithin(location, ST_GeogFromText(?), ?)', [`POINT(${longitude} ${latitude})`, radiusInMeters]);
+    return query.whereRaw('ST_DWithin(location_point, ST_GeomFromText(?, 4326), ?)', [`POINT(${longitude} ${latitude})`, radiusInMeters]);
 };
 exports.buildLocationQuery = buildLocationQuery;
 const buildBoundsQuery = (query, bounds) => {
-    return query.whereRaw('ST_Within(location, ST_GeogFromText(?))', [
+    return query.whereRaw('ST_Within(location_point, ST_GeomFromText(?, 4326))', [
         `POLYGON((${bounds.west} ${bounds.south}, ${bounds.east} ${bounds.south}, ${bounds.east} ${bounds.north}, ${bounds.west} ${bounds.north}, ${bounds.west} ${bounds.south}))`,
     ]);
 };

@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateShareLink = exports.getPopularShares = exports.getUserShareHistory = exports.getAnnotationShareStats = exports.createShareRecord = void 0;
 const uuid_1 = require("uuid");
 const database_1 = __importDefault(require("../config/database"));
+const UserFeed_1 = require("../models/UserFeed");
 const createShareRecord = async (req, res) => {
     try {
         const { annotationId } = req.params;
@@ -46,6 +47,14 @@ const createShareRecord = async (req, res) => {
                 related_id: annotationId,
                 related_type: 'annotation',
             });
+        }
+        try {
+            if (annotation.user_id && annotationId) {
+                await UserFeed_1.UserFeedModel.createShareFeed(userId, annotationId, platform, annotation.user_id);
+            }
+        }
+        catch (error) {
+            console.error('创建分享动态失败:', error);
         }
         return res.status(201).json({
             message: '分享记录创建成功',

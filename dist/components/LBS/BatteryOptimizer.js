@@ -180,7 +180,10 @@ const BatteryOptimizer = ({ onProfileChange, onOptimizationApply, className = ''
             const cleanup = await getBatteryInfo();
             return cleanup;
         };
-        initBattery();
+        const cleanupPromise = initBattery();
+        return () => {
+            cleanupPromise.then(cleanup => cleanup?.());
+        };
         const savedProfile = localStorage.getItem('lbs_power_profile');
         if (savedProfile) {
             try {

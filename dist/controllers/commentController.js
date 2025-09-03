@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.unlikeComment = exports.likeComment = exports.deleteComment = exports.updateComment = exports.getCommentReplies = exports.getAnnotationComments = exports.createComment = void 0;
 const uuid_1 = require("uuid");
 const database_1 = __importDefault(require("../config/database"));
+const UserFeed_1 = require("../models/UserFeed");
 const createComment = async (req, res) => {
     try {
         const { annotationId } = req.params;
@@ -75,6 +76,14 @@ const createComment = async (req, res) => {
                     related_type: 'comment',
                 });
             }
+        }
+        try {
+            if (annotationId && annotation.user_id) {
+                await UserFeed_1.UserFeedModel.createCommentFeed(userId, commentId, annotationId, annotation.user_id, { content: content.trim() });
+            }
+        }
+        catch (error) {
+            console.error('创建评论动态失败:', error);
         }
         return res.status(201).json({
             message: '评论创建成功',

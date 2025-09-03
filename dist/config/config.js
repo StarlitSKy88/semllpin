@@ -29,7 +29,7 @@ exports.config = {
         refreshExpiresIn: process.env['JWT_REFRESH_EXPIRES_IN'] || '30d',
     },
     cors: {
-        origin: process.env['CORS_ORIGIN'] || 'http://localhost:5174',
+        origin: process.env['CORS_ORIGIN'] || 'http://localhost:3000',
         credentials: process.env['CORS_CREDENTIALS'] === 'true' || true,
     },
     rateLimit: {
@@ -39,10 +39,10 @@ exports.config = {
     database: {
         host: process.env['DB_HOST'] || 'localhost',
         port: parseInt(process.env['DB_PORT'] || '5432', 10),
-        username: process.env['DB_USERNAME'] || 'postgres',
+        username: process.env['DB_USER'] || 'postgres',
         password: process.env['DB_PASSWORD'] || 'password',
         database: process.env['DB_NAME'] || 'smellpin',
-        ssl: process.env['DB_SSL'] === 'true',
+        ssl: process.env['DATABASE_SSL'] === 'true',
         logging: process.env['NODE_ENV'] === 'development',
         synchronize: process.env['NODE_ENV'] === 'development',
         entities: ['src/entities/**/*.ts'],

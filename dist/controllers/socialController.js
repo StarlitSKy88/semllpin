@@ -8,6 +8,7 @@ const uuid_1 = require("uuid");
 const database_1 = __importDefault(require("../config/database"));
 const emailService_1 = require("../services/emailService");
 const websocketManager_1 = require("../services/websocketManager");
+const UserFeed_1 = require("../models/UserFeed");
 const followUser = async (req, res) => {
     try {
         const { userId: followingId } = req.params;
@@ -42,6 +43,14 @@ const followUser = async (req, res) => {
                 related_id: followId,
                 related_type: 'follow',
             });
+        }
+        try {
+            if (followingId) {
+                await UserFeed_1.UserFeedModel.createFollowFeed(followerId, followingId);
+            }
+        }
+        catch (error) {
+            console.error('创建关注动态失败:', error);
         }
         return res.json({ message: '关注成功', followId });
     }
@@ -173,6 +182,14 @@ const likeAnnotation = async (req, res) => {
                     related_type: 'annotation',
                 });
             }
+            try {
+                if (annotation.user_id && annotationId) {
+                    await UserFeed_1.UserFeedModel.createLikeFeed(userId, 'annotation', annotationId, annotation.user_id);
+                }
+            }
+            catch (error) {
+                console.error('创建点赞动态失败:', error);
+            }
         }
         return res.json({ message: '点赞成功', likeId });
     }
@@ -226,6 +243,15 @@ const favoriteAnnotation = async (req, res) => {
             annotation_id: annotationId,
             created_at: new Date(),
         });
+        try {
+            const annotation = await (0, database_1.default)('annotations').where('id', annotationId).first();
+            if (annotation && annotation.user_id && annotation.user_id !== userId && annotationId) {
+                await UserFeed_1.UserFeedModel.createFavoriteFeed(userId, annotationId, annotation.user_id);
+            }
+        }
+        catch (error) {
+            console.error('创建收藏动态失败:', error);
+        }
         return res.json({ message: '收藏成功', favoriteId });
     }
     catch (error) {
