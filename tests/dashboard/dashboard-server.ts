@@ -4,12 +4,12 @@
  * 实时监控测试进度和结果
  */
 
-import * as express from 'express';
+import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import * as chalk from 'chalk';
+import { promises as fs } from 'fs';
+import path from 'path';
+import chalk from 'chalk';
 import { watch } from 'fs';
 
 interface DashboardData {

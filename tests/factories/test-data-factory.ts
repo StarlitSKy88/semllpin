@@ -221,7 +221,7 @@ export class TestDataFactory {
       '<body onload="alert(\'XSS\')">',
       '<link rel="stylesheet" href="javascript:alert(\'XSS\')">',
       '"><script>alert("XSS")</script>',
-      '\';alert(String.fromCharCode(88,83,83))//\';alert(String.fromCharCode(88,83,83))//";',
+      "';alert(String.fromCharCode(88,83,83))//';alert(String.fromCharCode(88,83,83))//\";",
       '<scr<script>ipt>alert("XSS")</scr</script>ipt>',
       '<SCRIPT SRC=http://xss.rocks/xss.js></SCRIPT>',
       '<<SCRIPT>alert("XSS");//<</SCRIPT>',

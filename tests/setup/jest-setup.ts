@@ -128,14 +128,15 @@ function calculateDistance(
 // 全局 mock 设置
 
 // Mock node-cron 以避免在测试中执行定时任务
-jest.mock('node-cron', () => ({
+const mockNodeCron = {
   schedule: jest.fn(),
   destroy: jest.fn(),
   getTasks: jest.fn(() => new Map())
-}));
+};
+jest.doMock('node-cron', () => mockNodeCron);
 
 // Mock winston logger
-jest.mock('winston', () => ({
+const mockWinston = {
   createLogger: jest.fn(() => ({
     info: jest.fn(),
     error: jest.fn(),
@@ -153,32 +154,38 @@ jest.mock('winston', () => ({
     Console: jest.fn(),
     File: jest.fn()
   }
-}));
+};
+jest.doMock('winston', () => mockWinston);
 
 // Mock nodemailer 邮件发送
-jest.mock('nodemailer', () => ({
+const mockNodemailer = {
   createTransporter: jest.fn(() => ({
     sendMail: jest.fn().mockResolvedValue({ messageId: 'test-message-id' })
   }))
-}));
+};
+jest.doMock('nodemailer', () => mockNodemailer);
 
 // Mock 支付接口（开发环境下）
-if (process.env.NODE_ENV === 'test') {
-  jest.mock('stripe', () => ({
-    Stripe: jest.fn(() => ({
-      paymentIntents: {
-        create: jest.fn().mockResolvedValue({ id: 'pi_test_12345', status: 'succeeded' }),
-        retrieve: jest.fn().mockResolvedValue({ id: 'pi_test_12345', status: 'succeeded' })
-      },
-      webhooks: {
-        constructEvent: jest.fn().mockReturnValue({ type: 'payment_intent.succeeded', data: { object: { id: 'pi_test_12345' } } })
-      }
-    }))
-  }));
+if (process.env['NODE_ENV'] === 'test') {
+  const mockStripe = {
+    Stripe: function() {
+      return {
+        paymentIntents: {
+          create: jest.fn().mockResolvedValue({ id: 'pi_test_12345', status: 'succeeded' }),
+          retrieve: jest.fn().mockResolvedValue({ id: 'pi_test_12345', status: 'succeeded' })
+        },
+        webhooks: {
+          constructEvent: jest.fn().mockReturnValue({ type: 'payment_intent.succeeded', data: { object: { id: 'pi_test_12345' } } })
+        }
+      };
+    }
+  };
+  
+  jest.doMock('stripe', () => mockStripe);
 }
 
 // Mock AWS S3 文件上传
-jest.mock('aws-sdk', () => ({
+const mockAwsSdk = {
   S3: jest.fn(() => ({
     upload: jest.fn(() => ({
       promise: jest.fn().mockResolvedValue({ Location: 'https://test-bucket.s3.amazonaws.com/test-file.jpg' })
@@ -190,7 +197,8 @@ jest.mock('aws-sdk', () => ({
   config: {
     update: jest.fn()
   }
-}));
+};
+jest.doMock('aws-sdk', () => mockAwsSdk);
 
 // 测试工具函数导出
 export const testUtils = {
