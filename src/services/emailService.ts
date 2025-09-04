@@ -54,7 +54,7 @@ class EmailService {
       this.isConfigured = true;
 
       // 验证配置
-      this.transporter?.verify((error) => {
+      this.transporter?.verify((error: any) => {
         if (error) {
           logger.error('邮件服务配置验证失败:', error);
           this.isConfigured = false;
