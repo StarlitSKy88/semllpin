@@ -57,7 +57,8 @@ export const config = {
     origin: process.env['CORS_ORIGIN'] || [
       'http://localhost:3000',
       'http://localhost:3001', 
-      'https://frontend-e7utegtsp-starlitsky88s-projects.vercel.app'
+      'https://frontend-e7utegtsp-starlitsky88s-projects.vercel.app',
+      'https://frontend-d1c8f377d-starlitsky88s-projects.vercel.app'
     ],
     credentials: process.env['CORS_CREDENTIALS'] === 'true' || true,
   },
