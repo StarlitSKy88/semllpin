@@ -83,7 +83,7 @@ export default function LazyLoadingDemo() {
     },
     {
       title: '支付模块', 
-      description: '包含PayPal和Stripe支付集成',
+      description: '包含PayPal支付集成',
       component: LazyPaymentModal,
       estimatedSize: '~38KB',
       loadTime: '~150ms'

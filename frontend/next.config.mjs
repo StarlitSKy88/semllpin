@@ -1,90 +1,94 @@
-/** @type {import('next').NextConfig} */
+import { BundleAnalyzerPlugin } from '@next/bundle-analyzer'
+
+const withBundleAnalyzer = BundleAnalyzerPlugin({
+  enabled: process.env.ANALYZE === 'true',
+})
+
 const nextConfig = {
-  // Enable React strict mode for better development
-  reactStrictMode: true,
-  
-  // Enable powered by header optimization
-  poweredByHeader: false,
-  
-  // Enable experimental features for performance
+  // Enable experimental features for better performance
   experimental: {
-    optimizePackageImports: [
-      '@radix-ui/react-icons',
-      'lucide-react',
-      'framer-motion'
+    // Enable React 18 features
+    appDir: false,
+    // Optimize CSS loading
+    optimizeCss: true,
+    // Enable SWC minification
+    swcMinify: true,
+    // Enable modern JavaScript features
+    esmExternals: true,
+    // Optimize font loading
+    fontLoaders: [
+      { loader: '@next/font/google', options: { subsets: ['latin'] } },
     ],
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
-      },
-    },
   },
 
-  eslint: {
-    // Only ignore during builds for now - will be fixed later
-    ignoreDuringBuilds: false,
-  },
-  typescript: {
-    // Enable strict type checking
-    ignoreBuildErrors: false,
+  // Compiler optimizations
+  compiler: {
+    // Remove console.log in production
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
+    // Enable React compiler optimizations
+    reactRemoveProperties: process.env.NODE_ENV === 'production',
   },
 
-  // Optimized image configuration
+  // Image optimization
   images: {
+    // Enable modern image formats
     formats: ['image/webp', 'image/avif'],
-    domains: [
-      'images.unsplash.com', 
-      'localhost',
-      'api.smellpin.com',
-      'assets.smellpin.com'
-    ],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '3000',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: '**.smellpin.com',
-        port: '',
-        pathname: '/**',
-      },
-    ],
+    // Optimize image loading
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // Enable image optimization
+    minimumCacheTTL: 60 * 60 * 24 * 365, // 1 year
+    // Allow external image domains
+    domains: [],
+    // Enable placeholder blur
+    placeholder: 'blur',
+    // Quality settings
+    quality: 85,
   },
 
   // Performance optimizations
-  compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
-  },
+  poweredByHeader: false,
+  generateEtags: true,
+  compress: true,
 
-  // Advanced webpack configuration
-  webpack: (config, { isServer, dev }) => {
-    // Resolve GSAP modules properly
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      'gsap/ScrollTrigger': 'gsap/dist/ScrollTrigger',
-      'gsap/ScrollToPlugin': 'gsap/dist/ScrollToPlugin',
-      '@': import.meta.dirname,
+  // Custom webpack configuration for advanced optimizations
+  webpack: (config, { dev, isServer }) => {
+    // Optimize bundle size
+    if (!dev && !isServer) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        // Reduce bundle size by aliasing heavy libraries
+        'react/jsx-runtime.js': 'preact/compat/jsx-runtime',
+      }
     }
-    
-    // Client-side optimizations
+
+    // Optimize for Node.js environment
+    if (isServer) {
+      config.externals = {
+        ...config.externals,
+        // Externalize heavy server-side dependencies
+        canvas: 'canvas',
+        'utf-8-validate': 'utf-8-validate',
+        bufferutil: 'bufferutil',
+      }
+    }
+
+    // Disable Node.js polyfills for client-side
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+        stream: false,
+        url: false,
+        zlib: false,
+        http: false,
+        https: false,
+        assert: false,
         path: false,
         os: false,
       }
@@ -104,7 +108,7 @@ const nextConfig = {
           cacheGroups: {
             // UI libraries
             ui: {
-              test: /[\\/]node_modules[\\/](@radix-ui|lucide-react|framer-motion)[\\/]/,
+              test: /[\/]node_modules[\/](@radix-ui|lucide-react|framer-motion)[\/]/,
               name: 'ui-libs',
               priority: 20,
               chunks: 'all',
@@ -112,7 +116,7 @@ const nextConfig = {
             },
             // Map libraries
             map: {
-              test: /[\\/]node_modules[\\/](leaflet|react-leaflet)[\\/]/,
+              test: /[\/]node_modules[\/](leaflet|react-leaflet)[\/]/,
               name: 'map-libs',
               priority: 15,
               chunks: 'all',
@@ -120,7 +124,7 @@ const nextConfig = {
             },
             // Animation libraries
             animation: {
-              test: /[\\/]node_modules[\\/](gsap|@gsap|three|@react-three)[\\/]/,
+              test: /[\/]node_modules[\/](gsap|@gsap|three|@react-three)[\/]/,
               name: 'animation-libs',
               priority: 15,
               chunks: 'all',
@@ -128,7 +132,7 @@ const nextConfig = {
             },
             // Payment libraries
             payment: {
-              test: /[\\/]node_modules[\\/](@paypal|stripe)[\\/]/,
+              test: /[\/]node_modules[\/](@paypal)[\/]/,
               name: 'payment-libs',
               priority: 15,
               chunks: 'all',
@@ -136,7 +140,7 @@ const nextConfig = {
             },
             // React ecosystem
             react: {
-              test: /[\\/]node_modules[\\/](react|react-dom|@tanstack)[\\/]/,
+              test: /[\/]node_modules[\/](react|react-dom|@tanstack)[\/]/,
               name: 'react-vendor',
               priority: 12,
               chunks: 'all',
@@ -144,7 +148,7 @@ const nextConfig = {
             },
             // Default vendor chunk for remaining modules
             vendor: {
-              test: /[\\/]node_modules[\\/]/,
+              test: /[\/]node_modules[\/]/,
               name: 'vendors',
               priority: 10,
               chunks: 'all',
@@ -224,12 +228,12 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://www.paypal.com https://maps.googleapis.com",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.paypal.com https://maps.googleapis.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://maps.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: https: blob:",
-              "connect-src 'self' https://api.stripe.com https://api.paypal.com https://api-m.sandbox.paypal.com https://maps.googleapis.com",
-              "frame-src 'self' https://js.stripe.com https://www.paypal.com https://maps.google.com",
+              "connect-src 'self' https://api.paypal.com https://api-m.sandbox.paypal.com https://maps.googleapis.com",
+              "frame-src 'self' https://www.paypal.com https://maps.google.com",
               "object-src 'none'",
               "media-src 'self'",
               "worker-src 'self' blob:",

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { PayPalService } from '@/services/paypal';
-import { PaymentService } from '@/services/paymentService';
-import { CreatePaymentData } from '@/models/Payment';
+import { PayPalService } from '../services/paypal';
+import { PaymentService } from '../services/paymentService';
+import { CreatePaymentData } from '../models/Payment';
 
 /**
  * PayPal支付控制器
@@ -151,7 +151,7 @@ export class PayPalPaymentController {
       }
 
       // 验证支付所有权
-      if (payment.userId !== userId) {
+      if (payment['user_id'] !== userId) {
         res.status(403).json({
           success: false,
           message: '无权访问此支付记录'
@@ -189,10 +189,10 @@ export class PayPalPaymentController {
       }
 
       // 如果支付成功且关联了标注，创建标注
-      if (captureResult.status === 'approved' && payment.annotationId) {
+      if (captureResult.status === 'approved' && payment['annotation_id']) {
         // 这里可以触发标注创建逻辑
         // 可以通过事件系统或直接调用相关服务
-        console.log(`Payment captured for annotation: ${payment.annotationId}`);
+        console.log(`Payment captured for annotation: ${payment['annotation_id']}`);
       }
 
       res.json({
@@ -204,7 +204,7 @@ export class PayPalPaymentController {
           status: captureResult.status,
           amount: payment.amount,
           currency: payment.currency,
-          capturedAt: updatedPayment.metadata?.capturedAt
+          capturedAt: updatedPayment.metadata?.['capturedAt']
         }
       });
 
@@ -248,7 +248,7 @@ export class PayPalPaymentController {
       // 获取数据库中的支付记录
       const payment = await PaymentService.findByPayPalOrderId(orderId);
       
-      if (!payment || payment.userId !== userId) {
+      if (!payment || payment['user_id'] !== userId) {
         res.status(403).json({
           success: false,
           message: '无权访问此支付记录'
@@ -264,8 +264,8 @@ export class PayPalPaymentController {
             amount: payment.amount,
             currency: payment.currency,
             status: payment.status,
-            createdAt: payment.createdAt,
-            updatedAt: payment.updatedAt
+            createdAt: payment['created_at'],
+            updatedAt: payment['updated_at']
           },
           paypalOrder: {
             id: orderDetails.id,
@@ -315,20 +315,11 @@ export class PayPalPaymentController {
       }
 
       // 验证支付所有权（或管理员权限）
-      if (payment.userId !== userId) {
+      if (payment['user_id'] !== userId) {
         // 这里可以添加管理员权限检查
         res.status(403).json({
           success: false,
           message: '无权操作此支付记录'
-        });
-        return;
-      }
-
-      // 检查支付状态
-      if (payment.status !== 'completed') {
-        res.status(400).json({
-          success: false,
-          message: '只有已完成的支付才能退款'
         });
         return;
       }
@@ -342,10 +333,19 @@ export class PayPalPaymentController {
         return;
       }
 
+      // 检查支付状态
+      if (payment.status !== 'completed') {
+        res.status(400).json({
+          success: false,
+          message: '只有已完成的支付才能退款'
+        });
+        return;
+      }
+
       // 执行PayPal退款
       const refundAmount = amount ? amount.toString() : payment.amount.toString();
       const refundResult = await PayPalService.refundPayment(
-        payment.paypalOrderId || payment.stripeSessionId || '',
+        (payment as any)['paypal_order_id'] || '',
         refundAmount,
         payment.currency,
         reason
@@ -371,7 +371,7 @@ export class PayPalPaymentController {
           paymentId: payment.id,
           refundId: refundResult.id,
           refundAmount: refundAmount,
-          refundedAt: updatedPayment?.metadata?.refundedAt
+          refundedAt: updatedPayment?.metadata?.['refundedAt']
         }
       });
 
@@ -392,7 +392,7 @@ export class PayPalPaymentController {
     try {
       const webhookBody = JSON.stringify(req.body);
       const headers = req.headers;
-      const webhookId = process.env.PAYPAL_WEBHOOK_ID || '';
+      const webhookId = process.env['PAYPAL_WEBHOOK_ID'] || '';
 
       // 验证webhook
       const isValid = await PayPalService.verifyWebhook(headers, webhookBody, webhookId);

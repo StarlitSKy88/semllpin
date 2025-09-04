@@ -154,7 +154,7 @@ class QueryAnalyzerService {
         planData = result.rows[0]['QUERY PLAN'][0];
       } else {
         // Parse text format (more complex parsing required)
-        planData = this.parseTextPlan(result.rows.map(row => row['QUERY PLAN']));
+        planData = this.parseTextPlan(result.rows.map((row: any) => row['QUERY PLAN']));
       }
 
       // Analyze execution plan
@@ -250,11 +250,11 @@ class QueryAnalyzerService {
   private analyzePlanNode(node: QueryPlanNode, analysis: QueryAnalysis): void {
     if (!node) return;
 
-    const nodeType = node.nodeType || node['Node Type'];
-    const relationName = node.relationName || node['Relation Name'];
-    const indexName = node.indexName || node['Index Name'];
-    const actualTime = node.actualTotalTime || node['Actual Total Time'];
-    const actualRows = node.actualRows || node['Actual Rows'];
+    const nodeType = node.nodeType || (node as any)['Node Type'];
+    const relationName = node.relationName || (node as any)['Relation Name'];
+    const indexName = node.indexName || (node as any)['Index Name'];
+    const actualTime = node.actualTotalTime || (node as any)['Actual Total Time'];
+    const actualRows = node.actualRows || (node as any)['Actual Rows'];
 
     // Track indexes used
     if (indexName && !analysis.indexesUsed.includes(indexName)) {
@@ -279,7 +279,7 @@ class QueryAnalyzerService {
 
     // Hash join analysis
     if (nodeType === 'Hash Join' || nodeType === 'Hash') {
-      const workMemUsed = node['Peak Memory Usage'] || 0;
+      const workMemUsed = (node as any)['Peak Memory Usage'] || 0;
       if (workMemUsed > 64 * 1024) { // 64MB
         analysis.bottlenecks.push(`Hash operation used ${workMemUsed}KB of memory`);
       }
@@ -287,8 +287,8 @@ class QueryAnalyzerService {
 
     // Sort analysis
     if (nodeType === 'Sort') {
-      const sortMethod = node['Sort Method'] || 'unknown';
-      if (sortMethod.includes('external')) {
+      const sortMethod = (node as any)['Sort Method'] || 'unknown';
+      if (typeof sortMethod === 'string' && sortMethod.includes('external')) {
         analysis.bottlenecks.push('Sort spilled to disk (external sort)');
       }
     }

@@ -247,7 +247,7 @@ describe('Authentication and Authorization Integration Tests', () => {
         
         otherUserToken = jwt.sign(
           { id: otherUserId, phone: '13900139999', role: 'user' },
-          process.env.JWT_SECRET || 'test-secret',
+          process.env['JWT_SECRET'] || 'test-secret',
           { expiresIn: '1h' }
         );
 

@@ -240,13 +240,10 @@ const BatteryOptimizer: React.FC<BatteryOptimizerProps> = ({
     };
     
     const cleanupPromise = initBattery();
-    return () => {
-      cleanupPromise.then(cleanup => cleanup?.());
-    };
     
     // 从本地存储恢复配置
     const savedProfile = localStorage.getItem('lbs_power_profile');
-    if (savedProfile) {
+    if (savedProfile && savedProfile !== 'null') {
       try {
         const profile = JSON.parse(savedProfile);
         setCurrentProfile(profile);
@@ -254,6 +251,10 @@ const BatteryOptimizer: React.FC<BatteryOptimizerProps> = ({
         console.warn('Failed to parse saved power profile:', error);
       }
     }
+    
+    return () => {
+      cleanupPromise.then(cleanup => cleanup?.());
+    };
   }, [getBatteryInfo]);
 
   // 自动优化监听

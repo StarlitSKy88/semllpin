@@ -224,7 +224,7 @@ class WalletController {
           currency,
           status,
           description,
-          stripe_session_id
+          paypal_session_id
         FROM transactions 
         ${whereClause}
         ORDER BY created_at DESC
@@ -243,7 +243,7 @@ class WalletController {
           transaction.currency.toUpperCase(),
           transaction.status,
           transaction.description || '',
-          transaction.stripe_session_id || '',
+          transaction.paypal_session_id || '',
         ]);
 
         const csvData = [csvHeaders.join(','), ...csvRows.map((row: any[]) => row.join(','))].join('\n');
@@ -275,7 +275,7 @@ class WalletController {
   async createTopUpSession(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const userId = req.user!.id;
-      const { amount, paymentMethod = 'stripe', currency = 'usd', description } = req.body;
+      const { amount, paymentMethod = 'paypal', currency = 'usd', description } = req.body;
 
       // 验证充值金额
       if (!amount || amount < 5 || amount > 1000) {
@@ -286,33 +286,16 @@ class WalletController {
         return;
       }
 
-      // 调用支付控制器创建充值会话
-      const stripe = require('stripe')(process.env['STRIPE_SECRET_KEY']);
-
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        line_items: [
-          {
-            price_data: {
-              currency: currency.toLowerCase(),
-              product_data: {
-                name: description || `钱包充值 $${amount}`,
-                description: '钱包余额充值',
-              },
-              unit_amount: Math.round(amount * 100), // Stripe使用分为单位
-            },
-            quantity: 1,
-          },
-        ],
-        mode: 'payment',
-        success_url: `${process.env['FRONTEND_URL']}/wallet/topup/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env['FRONTEND_URL']}/wallet/topup/cancel`,
-        metadata: {
-          userId,
-          type: 'topup',
-          amount: amount.toString(),
-        },
-      });
+      // TODO: 实现PayPal支付集成
+      // 这里应该调用PayPal API创建支付会话
+      const sessionId = `paypal_${Date.now()}_${userId}`;
+      const session = {
+        id: sessionId,
+        url: `${process.env['FRONTEND_URL']}/wallet/topup/paypal?session_id=${sessionId}`,
+        amount,
+        currency,
+        status: 'pending'
+      };
 
       // 缓存会话信息
       const sessionInfo = {
@@ -359,11 +342,9 @@ class WalletController {
       const { sessionId } = req.body;
       const userId = req.user!.id;
 
-      // 验证支付会话
-      const stripe = require('stripe')(process.env['STRIPE_SECRET_KEY']);
-      const session = await stripe.checkout.sessions.retrieve(sessionId);
-
-      if (!session || session.payment_status !== 'paid') {
+      // TODO: 实现PayPal支付验证
+      // 这里应该调用PayPal API验证支付状态
+      if (!sessionId || !sessionId.startsWith('paypal_')) {
         res.status(400).json({
           success: false,
           message: '支付会话无效或未完成支付',

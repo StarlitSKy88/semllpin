@@ -12,11 +12,11 @@
  * - Automatic failover and recovery
  */
 
-import { Knex } from 'knex';
-import knex from 'knex';
-import { config } from './config';
-import { logger } from '../utils/logger';
+import { Pool, PoolClient } from 'pg';
 import { EventEmitter } from 'events';
+import knex, { Knex } from 'knex';
+import { logger } from '../utils/logger';
+import { config } from './config';
 
 // Pool health metrics interface
 interface PoolHealthMetrics {
@@ -50,7 +50,15 @@ interface QueryPerformanceMetrics {
 class DatabasePoolManager extends EventEmitter {
   private static instance: DatabasePoolManager;
   private dbInstance: Knex | null = null;
-  private poolConfig: Knex.PoolConfig;
+  private poolConfig: Knex.PoolConfig = {
+    min: 2,
+    max: 10,
+    createTimeoutMillis: 5000,
+    acquireTimeoutMillis: 15000,
+    idleTimeoutMillis: 30000,
+    reapIntervalMillis: 2000,
+    createRetryIntervalMillis: 200
+  };
   private healthCheckInterval: NodeJS.Timeout | null = null;
   private queryMetrics: QueryPerformanceMetrics;
   private preparedStatements: Map<string, any> = new Map();
@@ -96,10 +104,6 @@ class DatabasePoolManager extends EventEmitter {
       createRetryIntervalMillis: 200,               // Retry failed connections quickly
       
       // Advanced pool management
-      evictionRunIntervalMillis: 15000,             // Check connections every 15s
-      numTestsPerEvictionRun: 5,                    // Test 5 connections per run
-      softIdleTimeoutMillis: 10000,                 // Soft close after 10s idle
-      testOnBorrow: true,                           // Validate before use
       propagateCreateError: false,                  // Don't fail immediately on create error
       
       // Connection lifecycle hooks
@@ -138,7 +142,7 @@ class DatabasePoolManager extends EventEmitter {
           await connection.raw("SET client_encoding TO 'UTF8'");
           await connection.raw("SET timezone TO 'UTC'");
           
-          this.connectionAttempts = 0; // Reset on successful connection
+          DatabasePoolManager.getInstance().connectionAttempts = 0; // Reset on successful connection
           done(null, connection);
           
         } catch (error) {
@@ -147,23 +151,9 @@ class DatabasePoolManager extends EventEmitter {
         }
       },
 
-      // Connection validation
-      validate: async (connection: any) => {
-        try {
-          await connection.raw('SELECT 1');
-          return true;
-        } catch (error) {
-          logger.warn('⚠️ Connection validation failed:', error);
-          return false;
-        }
-      },
+      // Note: Connection validation is handled by Knex internally
 
-      // Connection destruction cleanup
-      beforeDestroy: (connection: any, done: Function) => {
-        logger.debug('🗑️ Destroying database connection');
-        // Clean up any connection-specific resources
-        done();
-      }
+      // Note: Connection destruction cleanup is handled by Knex internally
     };
 
     return baseConfig;
@@ -232,7 +222,7 @@ class DatabasePoolManager extends EventEmitter {
         postProcessResponse: (result: any, queryContext: any) => {
           if (queryContext && queryContext.startTime) {
             const duration = Date.now() - queryContext.startTime;
-            this.recordQueryMetrics(duration, !!queryContext.error);
+            DatabasePoolManager.getInstance().recordQueryMetrics(duration, !!queryContext.error);
             
             // Log slow queries
             if (duration > 100) { // Queries > 100ms
@@ -278,7 +268,7 @@ class DatabasePoolManager extends EventEmitter {
       return this.dbInstance;
 
     } catch (error) {
-      logger.error('❌ Failed to initialize database pool:', error);
+      logger.error('❌ Failed to initialize database pool:', error instanceof Error ? error.message : String(error));
       throw error;
     }
   }
@@ -390,7 +380,7 @@ class DatabasePoolManager extends EventEmitter {
       
       this.emit('healthCheck', {
         healthy: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         timestamp: new Date()
       });
 
@@ -515,7 +505,7 @@ class DatabasePoolManager extends EventEmitter {
       
       logger.error(`❌ Query failed: ${queryName}`, {
         duration,
-        error: error.message
+        error: (error as Error).message || String(error)
       });
       
       throw error;
@@ -563,7 +553,7 @@ class DatabasePoolManager extends EventEmitter {
       logger.info('✅ Database pool shutdown completed');
 
     } catch (error) {
-      logger.error('❌ Error during database shutdown:', error);
+      logger.error('❌ Error during database shutdown:', (error as Error).message || String(error));
       throw error;
     }
   }

@@ -8,10 +8,10 @@ let redisClient: Redis | null = null;
 
 // Redis configuration
 const redisConfig: any = {
-  host: config.redis.host,
-  port: config.redis.port,
-  ...(config.redis.password && { password: config.redis.password }),
-  db: config.redis.db,
+  host: config.redis?.host || process.env['REDIS_HOST'] || 'localhost',
+  port: config.redis?.port || parseInt(process.env['REDIS_PORT'] || '6379'),
+  ...(config.redis?.password && { password: config.redis.password }),
+  db: config.redis?.db || parseInt(process.env['REDIS_DB'] || '0'),
   retryDelayOnFailover: 100,
   enableReadyCheck: true,
   maxRetriesPerRequest: 3,
@@ -122,7 +122,7 @@ export class CacheService {
   private client: Redis;
   private defaultTTL: number;
 
-  constructor(ttl: number = config.cache.ttl) {
+  constructor(ttl: number = config.cache?.ttl || 3600) {
     this.client = getRedisClient();
     this.defaultTTL = ttl;
   }
@@ -132,6 +132,21 @@ export class CacheService {
     key: string,
     value: string | number | object,
     ttl: number = this.defaultTTL,
+  ): Promise<void> {
+    try {
+      const serializedValue = typeof value === 'string' ? value : JSON.stringify(value);
+      await this.client.setex(key, ttl, serializedValue);
+    } catch (error) {
+      logger.error(`缓存设置失败 - Key: ${key}`, error);
+      throw error;
+    }
+  }
+
+  // Set cache with TTL (Redis setex method)
+  async setex(
+    key: string,
+    ttl: number,
+    value: string | number | object,
   ): Promise<void> {
     try {
       const serializedValue = typeof value === 'string' ? value : JSON.stringify(value);
@@ -163,12 +178,23 @@ export class CacheService {
   }
 
   // Delete cache
-  async del(key: string): Promise<void> {
+  async del(...keys: string[]): Promise<void> {
     try {
-      await this.client.del(key);
+      if (keys.length === 0) return;
+      await this.client.del(...keys);
     } catch (error) {
-      logger.error(`缓存删除失败 - Key: ${key}`, error);
+      logger.error(`缓存删除失败 - Keys: ${keys.join(', ')}`, error);
       throw error;
+    }
+  }
+
+  // Get keys by pattern
+  async keys(pattern: string): Promise<string[]> {
+    try {
+      return await this.client.keys(pattern);
+    } catch (error) {
+      logger.error(`获取缓存键失败 - Pattern: ${pattern}`, error);
+      return [];
     }
   }
 

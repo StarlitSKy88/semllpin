@@ -30,12 +30,12 @@ const dbConfig: Knex.Config = process.env['DB_TYPE'] === 'sqlite' || (!process.e
     connectionString: config.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
   } : {
-    host: config.database.host,
-    port: config.database.port,
-    user: config.database.username,
-    password: config.database.password,
-    database: config.database.database,
-    ssl: config.database.ssl ? { rejectUnauthorized: false } : false,
+    host: config.database?.host || process.env['DB_HOST'],
+    port: config.database?.port || parseInt(process.env['DB_PORT'] || '5432'),
+    user: config.database?.username || process.env['DB_USER'],
+    password: config.database?.password || process.env['DB_PASSWORD'],
+    database: config.database?.database || process.env['DB_NAME'],
+    ssl: config.database?.ssl ? { rejectUnauthorized: false } : false,
   },
   pool: {
     min: config.NODE_ENV === 'production' ? 8 : 3,        // Minimum idle connections

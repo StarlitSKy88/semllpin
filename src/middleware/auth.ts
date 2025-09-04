@@ -24,8 +24,8 @@ const extractToken = (req: Request): string | null => {
   }
 
   // Also check for token in cookies (for web app)
-  if (req.cookies && req.cookies.token) {
-    return req.cookies.token;
+  if (req.cookies && req.cookies['token']) {
+    return req.cookies['token'];
   }
 
   return null;
@@ -34,7 +34,7 @@ const extractToken = (req: Request): string | null => {
 // Verify JWT token
 const verifyToken = (token: string): Promise<JWTPayload> => {
   return new Promise((resolve, reject) => {
-    jwt.verify(token, config.jwt.secret, (err, decoded) => {
+    jwt.verify(token, config.jwt?.secret || process.env['JWT_SECRET'] || 'default-secret', (err: jwt.VerifyErrors | null, decoded: string | jwt.JwtPayload | undefined) => {
       if (err) {
         reject(err);
       } else {
@@ -189,22 +189,22 @@ export const requireOwnership = (getResourceUserId: (req: Request) => string | P
 
 // Generate JWT token
 export const generateToken = (payload: Omit<JWTPayload, 'iat' | 'exp'>): string => {
-  return jwt.sign(payload, config.jwt.secret, {
-    expiresIn: config.jwt.expiresIn,
-  } as jwt.SignOptions);
+  const secret = config.jwt?.secret || process.env['JWT_SECRET'] || 'default-secret';
+  const expiresIn = config.jwt?.expiresIn || process.env['JWT_EXPIRES_IN'] || '1h';
+  return jwt.sign(payload, secret, { expiresIn } as jwt.SignOptions);
 };
 
 // Generate refresh token
 export const generateRefreshToken = (userId: string): string => {
-  return jwt.sign({ sub: userId }, config.jwt.refreshSecret, {
-    expiresIn: config.jwt.refreshExpiresIn,
-  } as jwt.SignOptions);
+  const secret = config.jwt?.refreshSecret || process.env['JWT_REFRESH_SECRET'] || 'default-refresh-secret';
+  const expiresIn = config.jwt?.refreshExpiresIn || process.env['JWT_REFRESH_EXPIRES_IN'] || '7d';
+  return jwt.sign({ sub: userId }, secret, { expiresIn } as jwt.SignOptions);
 };
 
 // Verify refresh token
 export const verifyRefreshToken = (token: string): Promise<{ sub: string }> => {
   return new Promise((resolve, reject) => {
-    jwt.verify(token, config.jwt.refreshSecret, (err: jwt.VerifyErrors | null, decoded: any) => {
+    jwt.verify(token, config.jwt?.refreshSecret || process.env['JWT_REFRESH_SECRET'] || 'default-refresh-secret', (err: jwt.VerifyErrors | null, decoded: string | jwt.JwtPayload | undefined) => {
       if (err) {
         reject(err);
       } else {

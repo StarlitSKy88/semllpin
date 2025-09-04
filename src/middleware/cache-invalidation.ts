@@ -110,13 +110,13 @@ export class CacheInvalidationStrategy {
     const rulesByPriority = this.groupByPriority(matchingRules);
     
     // High priority - immediate invalidation
-    await this.processRules(rulesByPriority.high, context, 0);
+    await this.processRules(rulesByPriority['high'], context, 0);
     
     // Medium priority - slight delay
-    await this.processRules(rulesByPriority.medium, context, 1000);
+    await this.processRules(rulesByPriority['medium'], context, 1000);
     
     // Low priority - longer delay
-    await this.processRules(rulesByPriority.low, context, 5000);
+    await this.processRules(rulesByPriority['low'], context, 5000);
   }
 
   private groupByPriority(
@@ -241,14 +241,14 @@ export class CacheInvalidationStrategy {
     const urls: string[] = [];
     
     // Extract URLs based on context
-    if (context.userId && pattern.includes('user:')) {
-      urls.push(`/assets/users/${context.userId}/avatar.webp`);
-      urls.push(`/assets/users/${context.userId}/avatar.avif`);
+    if (context['userId'] && pattern.includes('user:')) {
+      urls.push(`/assets/users/${context['userId']}/avatar.webp`);
+      urls.push(`/assets/users/${context['userId']}/avatar.avif`);
     }
 
-    if (context.annotationId && pattern.includes('annotation:')) {
-      urls.push(`/assets/annotations/${context.annotationId}.webp`);
-      urls.push(`/assets/annotations/${context.annotationId}.avif`);
+    if (context['annotationId'] && pattern.includes('annotation:')) {
+      urls.push(`/assets/annotations/${context['annotationId']}.webp`);
+      urls.push(`/assets/annotations/${context['annotationId']}.avif`);
     }
 
     return urls;
@@ -320,18 +320,18 @@ export const cacheInvalidationMiddleware = (
 // Specific middleware factories for common operations
 export const annotationCacheInvalidation = (action: 'created' | 'updated' | 'deleted') =>
   cacheInvalidationMiddleware(`annotation.${action}`, (req) => ({
-    annotationId: req.params.id || req.body.id,
+    annotationId: req.params['id'] || req.body.id,
     userId: req.user?.id,
     location: req.body.location,
   }));
 
 export const userCacheInvalidation = (action: 'updated' | 'avatar_changed') =>
   cacheInvalidationMiddleware(`user.${action}`, (req) => ({
-    userId: req.params.id || req.user?.id,
+    userId: req.params['id'] || req.user?.id,
   }));
 
 export const commentCacheInvalidation = cacheInvalidationMiddleware('comment.created', (req) => ({
-  annotationId: req.params.annotationId || req.body.annotationId,
+  annotationId: req.params['annotationId'] || req.body.annotationId,
   userId: req.user?.id,
 }));
 
@@ -407,10 +407,11 @@ export const cachePenetrationProtection = (
           attempts: currentAttempts.count,
         });
 
-        return res.status(429).json({
+        res.status(429).json({
           error: 'Too many requests for this resource',
           retryAfter: Math.ceil((currentAttempts.resetTime - now) / 1000),
         });
+        return;
       }
 
       // Check if data exists in cache

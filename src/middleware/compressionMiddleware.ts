@@ -308,98 +308,83 @@ export class AdvancedCompressionMiddleware {
       const originalSend = res.send;
       const originalJson = res.json;
 
-      res.send = async function(data: any) {
+      const self = this;
+      res.send = function(data: any) {
         if (res.headersSent) {
           return originalSend.call(res, data);
         }
 
         try {
-          const buffer = Buffer.isBuffer(data) ? data : Buffer.from(data.toString(), 'utf8');
+          // Skip compression for small payloads
+          const dataStr = typeof data === 'string' ? data : JSON.stringify(data);
+          const buffer = Buffer.from(dataStr, 'utf8');
           
-          // 检查缓存
-          let cacheKey: string | null = null;
-          if (this.config.cacheCompressed) {
-            cacheKey = this.generateCacheKey(buffer, algorithm);
-            const cached = compressionCache.get(cacheKey);
-            
-            if (cached && Date.now() - cached.timestamp < 30 * 60 * 1000) { // 30分钟缓存
-              res.setHeader('Content-Encoding', cached.encoding);
-              res.setHeader('Content-Length', cached.data.length);
-              res.setHeader('X-Compression-Cache', 'HIT');
-              res.setHeader('X-Compression-Ratio', cached.stats.compressionRatio.toString());
-              
-              this.recordStats(req.originalUrl, cached.stats);
-              return originalSend.call(res, cached.data);
+          if (buffer.length < self.config.threshold) {
+            return originalSend.call(res, data);
+          }
+
+          // Check cache first
+          const cacheKey = self.generateCacheKey(buffer, algorithm);
+          if (self.config.cacheCompressed && compressionCache.has(cacheKey)) {
+            const cached = compressionCache.get(cacheKey)!;
+            res.setHeader('Content-Encoding', cached.encoding);
+            res.setHeader('Content-Length', cached.data.length);
+            res.setHeader('Vary', 'Accept-Encoding');
+            return originalSend.call(res, cached.data);
+          }
+
+          // Synchronous compression using zlib sync methods
+           let compressed: Buffer;
+           const startTime = Date.now();
+           
+           if (algorithm === 'br') {
+              const { brotliCompressSync } = require('zlib');
+              compressed = brotliCompressSync(buffer);
+            } else {
+              const { gzipSync } = require('zlib');
+              compressed = gzipSync(buffer);
             }
-          }
+           
+           const stats: CompressionStats = {
+             originalSize: buffer.length,
+             compressedSize: compressed.length,
+             compressionRatio: (1 - compressed.length / buffer.length) * 100,
+             processingTime: Date.now() - startTime,
+             algorithm
+           };
 
-          // 执行压缩
-          let compressed: Buffer;
-          let stats: CompressionStats;
-
-          if (algorithm === 'br') {
-            const result = await this.compressBrotli(buffer);
-            compressed = result.compressed;
-            stats = result.stats;
-          } else {
-            const result = await this.compressGzip(buffer);
-            compressed = result.compressed;
-            stats = result.stats;
-          }
-
-          // 缓存压缩结果
-          if (this.config.cacheCompressed && cacheKey) {
-            const crypto = require('crypto');
-            const etag = crypto.createHash('md5').update(compressed).digest('hex');
-            
+          // Cache the result
+          if (self.config.cacheCompressed) {
             compressionCache.set(cacheKey, {
               data: compressed,
               encoding: algorithm,
-              etag,
+              etag: '',
               timestamp: Date.now(),
-              stats,
+              stats
             });
           }
 
-          // 设置响应头
+          // Record statistics
+          self.recordStats(req.url, stats);
+
+          // Set compression headers
           res.setHeader('Content-Encoding', algorithm);
           res.setHeader('Content-Length', compressed.length);
-          res.setHeader('X-Compression-Cache', 'MISS');
-          res.setHeader('X-Compression-Ratio', stats.compressionRatio.toString());
-          res.setHeader('X-Compression-Time', stats.processingTime.toString());
           res.setHeader('Vary', 'Accept-Encoding');
-
-          // 记录统计
-          this.recordStats(req.originalUrl, stats);
-
-          // 记录日志
-          if (stats.compressionRatio > 50) { // 压缩率超过50%
-            logger.info('High compression achieved', {
-              url: req.originalUrl,
-              algorithm,
-              originalSize: stats.originalSize,
-              compressedSize: stats.compressedSize,
-              compressionRatio: stats.compressionRatio,
-              processingTime: stats.processingTime,
-            });
-          }
-
-          return originalSend.call(res, compressed);
-        } catch (error) {
-          logger.error('Compression error', {
-            url: req.originalUrl,
-            algorithm,
-            error: (error as Error).message,
-          });
           
-          // 压缩失败，发送原始数据
+          // Send compressed data
+          return originalSend.call(res, compressed);
+          
+        } catch (error) {
+          logger.error('Compression failed:', error);
           return originalSend.call(res, data);
         }
       };
 
-      res.json = function(obj: any): Response {
+      res.json = function(obj: any) {
         const jsonString = JSON.stringify(obj);
-        return res.send(jsonString);
+        res.send(jsonString);
+        return res;
       };
 
       next();

@@ -61,7 +61,7 @@ export class QueryPerformanceMonitor {
       longRunningThreshold: 30000, // 30秒
       enableLogging: config.enableLogging !== false,
       enableMetrics: config.enableMetrics !== false,
-      sampleRate: config.sampleRate || (config.NODE_ENV === 'production' ? 0.1 : 1.0),
+      sampleRate: config.sampleRate || (process.env['NODE_ENV'] === 'production' ? 0.1 : 1.0),
       ...config,
     };
 
@@ -94,7 +94,7 @@ export class QueryPerformanceMonitor {
     };
 
     // 记录堆栈跟踪（开发环境）
-    if (config.NODE_ENV === 'development') {
+    if (process.env['NODE_ENV'] === 'development') {
       execution.stackTrace = new Error().stack;
     }
 
@@ -330,9 +330,25 @@ export class QueryPerformanceMonitor {
   // 生成性能报告
   generateReport(): {
     summary: PerformanceMetrics;
-    slowQueries: ReturnType<typeof this.getSlowQueries>;
-    failedQueries: ReturnType<typeof this.getFailedQueries>;
-    queryPatterns: ReturnType<typeof this.getQueryPatterns>;
+    slowQueries: Array<{
+      queryName: string;
+      averageDuration: number;
+      count: number;
+      maxDuration: number;
+      examples: QueryExecution[];
+    }>;
+    failedQueries: Array<{
+      queryName: string;
+      errorCount: number;
+      latestError: string;
+      examples: QueryExecution[];
+    }>;
+    queryPatterns: Array<{
+      pattern: string;
+      count: number;
+      averageDuration: number;
+      examples: string[];
+    }>;
     recommendations: string[];
   } {
     const summary = this.getMetrics();
@@ -465,10 +481,10 @@ export class QueryPerformanceMonitor {
 
 // 创建全局监控实例
 export const queryPerformanceMonitor = new QueryPerformanceMonitor({
-  enableLogging: config.NODE_ENV !== 'production',
+  enableLogging: process.env['NODE_ENV'] !== 'production',
   enableMetrics: true,
-  slowQueryThreshold: config.NODE_ENV === 'production' ? 2000 : 1000,
-  sampleRate: config.NODE_ENV === 'production' ? 0.1 : 1.0,
+  slowQueryThreshold: process.env['NODE_ENV'] === 'production' ? 2000 : 1000,
+  sampleRate: process.env['NODE_ENV'] === 'production' ? 0.1 : 1.0,
 });
 
 // 监控装饰器

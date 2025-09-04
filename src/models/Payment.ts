@@ -38,8 +38,6 @@ export interface CreatePaymentData {
   sessionId?: string;  // 新增：支持两种命名风格
   session_id?: string;
   paypalOrderId?: string;  // 新增：PayPal订单ID
-  stripeSessionId?: string;  // 新增：Stripe会话ID
-  stripePaymentIntentId?: string;  // 新增：Stripe支付意图ID
   description?: string;
   status?: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled' | 'refunded';
   metadata?: Record<string, any>;
@@ -90,8 +88,8 @@ export class PaymentModel {
         amount: paymentData.amount,
         currency: paymentData.currency,
         payment_method: paymentData.method || paymentData.payment_method,
-        payment_intent_id: paymentData.paymentIntentId || paymentData.payment_intent_id || paymentData.stripePaymentIntentId,
-        session_id: paymentData.sessionId || paymentData.session_id || paymentData.stripeSessionId || paymentData.paypalOrderId,
+        payment_intent_id: paymentData.paymentIntentId || paymentData.payment_intent_id,
+        session_id: paymentData.sessionId || paymentData.session_id || paymentData.paypalOrderId,
         description: paymentData.description,
         metadata: JSON.stringify(paymentData.metadata || {}),
         status: paymentData.status || 'pending',
@@ -136,8 +134,8 @@ export class PaymentModel {
     }
   }
 
-  // Find payment by Stripe session ID
-  static async findByStripeSessionId(sessionId: string): Promise<Payment | null> {
+  // Find payment by session ID
+  static async findBySessionId(sessionId: string): Promise<Payment | null> {
     try {
       const payment = await db(TABLE_NAME)
         .where({ session_id: sessionId })
@@ -149,13 +147,13 @@ export class PaymentModel {
 
       return payment || null;
     } catch (error) {
-      logger.error('通过Stripe会话ID查找支付记录失败', { sessionId, error });
+      logger.error('通过会话ID查找支付记录失败', { sessionId, error });
       throw error;
     }
   }
 
-  // Find payment by Stripe payment intent ID
-  static async findByStripePaymentIntentId(paymentIntentId: string): Promise<Payment | null> {
+  // Find payment by payment intent ID
+  static async findByPaymentIntentId(paymentIntentId: string): Promise<Payment | null> {
     try {
       const payment = await db(TABLE_NAME)
         .where({ payment_intent_id: paymentIntentId })
@@ -167,7 +165,7 @@ export class PaymentModel {
 
       return payment || null;
     } catch (error) {
-      logger.error('通过Stripe支付意图ID查找支付记录失败', { paymentIntentId, error });
+      logger.error('通过支付意图ID查找支付记录失败', { paymentIntentId, error });
       throw error;
     }
   }

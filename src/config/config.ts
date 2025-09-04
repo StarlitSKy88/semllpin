@@ -89,10 +89,10 @@ export const config = {
 
   // 支付配置
   payment: {
-    stripe: {
-      secretKey: process.env['STRIPE_SECRET_KEY'] || 'sk_test_...',
-      publishableKey: process.env['STRIPE_PUBLISHABLE_KEY'] || 'pk_test_...',
-      webhookSecret: process.env['STRIPE_WEBHOOK_SECRET'] || 'whsec_...',
+    paypal: {
+      clientId: process.env['PAYPAL_CLIENT_ID'] || 'your-paypal-client-id',
+      clientSecret: process.env['PAYPAL_CLIENT_SECRET'] || 'your-paypal-client-secret',
+      environment: process.env['PAYPAL_ENVIRONMENT'] || 'sandbox', // sandbox or live
     },
   },
 

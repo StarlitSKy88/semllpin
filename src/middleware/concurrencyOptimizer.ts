@@ -318,7 +318,7 @@ export class ConcurrencyOptimizer {
             queueLength: this.requestQueue.length,
           });
           
-          return; // 不调用next()，等待队列处理
+          return Promise.resolve(); // 不调用next()，等待队列处理
         }
         
         // 低优先级请求直接拒绝

@@ -239,7 +239,11 @@ export class RedisService {
    */
   async info(section?: string): Promise<string> {
     try {
-      return await this.client.info(section);
+      if (section) {
+        return await this.client.info(section);
+      } else {
+        return await this.client.info();
+      }
     } catch (error) {
       logger.error(`Redis INFO error:`, error);
       return '';
@@ -261,7 +265,7 @@ export class RedisService {
   /**
    * Get pipeline for batch operations
    */
-  pipeline(): Redis.Pipeline {
+  pipeline() {
     return this.client.pipeline();
   }
 
@@ -298,4 +302,5 @@ export class RedisService {
 }
 
 // Export a singleton instance
-ex
+export const redisService = new RedisService();
+export default redisService;

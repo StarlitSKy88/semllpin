@@ -11,15 +11,9 @@ import { asyncHandler } from '../middleware/errorHandler';
 import { logger } from '../utils/logger';
 import { cacheService } from '../config/redis';
 import { db } from '../config/database';
-import Stripe from 'stripe';
 import { config } from '../config/config';
 // import { optimizedQueryService } from '../services/optimizedQueryService';
 // import { advancedCacheService, CacheConfigs } from '../services/advancedCacheService';
-
-// 初始化 Stripe
-const stripe = new Stripe(config.payment.stripe.secretKey, {
-  apiVersion: '2023-10-16',
-});
 
 // Get detailed annotation with all related data
 export const getAnnotationDetails = asyncHandler(async (
@@ -53,7 +47,12 @@ export const getAnnotationDetails = asyncHandler(async (
       data: result,
     });
   } catch (error) {
-    if ((error as Error).message === 'Annotation not found') {
+    logger.error('获取标注详情失败', {
+      annotationId: id,
+      userId,
+      error: error instanceof Error ? error.message : String(error)
+    });
+    if (error instanceof Error && error.message === 'Annotation not found') {
       throw createNotFoundError('标注不存在');
     }
     throw error;
@@ -255,26 +254,28 @@ export const handlePaidAnnotationSuccess = asyncHandler(async (
     throw createValidationError('sessionId', '支付会话ID不能为空');
   }
 
-  // 获取 Stripe 会话信息
-  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  // 获取 PayPal 订单信息
+  const paymentRecord = await db('payments')
+    .where('payment_intent_id', sessionId)
+    .first();
 
-  if (session.payment_status !== 'paid') {
+  if (!paymentRecord || paymentRecord.status !== 'completed') {
     throw createValidationError('payment', '支付未完成');
   }
 
-  // 从元数据中获取标注信息
-  const metadata = session.metadata;
-  if (!metadata || metadata['type'] !== 'prank_annotation') {
-    throw createValidationError('session', '无效的支付会话');
+  // 从支付记录中获取标注信息
+  const metadata = paymentRecord.metadata || {};
+  if (!metadata.annotationData) {
+    throw createValidationError('session', '无效的支付订单');
   }
 
   const annotationData: CreateAnnotationData = {
-    user_id: metadata['userId'] || '',
-    latitude: parseFloat(metadata['latitude'] || '0'),
-    longitude: parseFloat(metadata['longitude'] || '0'),
-    smell_intensity: parseInt(metadata['smellIntensity'] || '5'),
-    description: metadata['description'] || '',
-    media_files: JSON.parse(metadata['mediaFiles'] || '[]'),
+    user_id: paymentRecord.user_id,
+    latitude: metadata.annotationData.latitude,
+    longitude: metadata.annotationData.longitude,
+    smell_intensity: metadata.annotationData.smellIntensity,
+    description: metadata.annotationData.description || '',
+    media_files: metadata.annotationData.mediaFiles || [],
   };
 
   // 创建标注
@@ -299,9 +300,9 @@ export const handlePaidAnnotationSuccess = asyncHandler(async (
 
   logger.info('付费恶搞标注创建成功', {
     annotationId: annotation.id,
-    userId: metadata['userId'],
+    userId: paymentRecord.user_id,
     sessionId,
-    amount: (session.amount_total || 0) / 100,
+    amount: paymentRecord.amount,
   });
 
   res.status(201).json({
@@ -321,8 +322,8 @@ export const handlePaidAnnotationSuccess = asyncHandler(async (
       },
       payment: {
         sessionId,
-        amount: (session.amount_total || 0) / 100,
-        currency: session.currency,
+        amount: paymentRecord.amount,
+        currency: paymentRecord.currency.toLowerCase(),
       },
     },
   });
@@ -356,33 +357,33 @@ export const createPaidPrankAnnotation = asyncHandler(async (
     throw createValidationError('amount', '支付金额必须在 $1-$100 之间');
   }
 
-  // 创建 Stripe 支付会话
-  const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
-    line_items: [{
-      price_data: {
-        currency,
-        product_data: {
-          name: '恶搞标注创建',
-          description: paymentDescription || `创建恶搞标注 - 臭味强度: ${smellIntensity}`,
-        },
-        unit_amount: Math.round(amount * 100), // Stripe uses cents
+  // 创建 PayPal 支付订单
+  const paypalPaymentController = require('./paypalPaymentController');
+  const orderData = {
+    intent: 'CAPTURE',
+    purchase_units: [{
+      amount: {
+        currency_code: currency.toUpperCase(),
+        value: amount.toString(),
       },
-      quantity: 1,
+      description: paymentDescription || `创建恶搞标注 - 臭味强度: ${smellIntensity}`,
+      custom_id: JSON.stringify({
+        userId,
+        latitude,
+        longitude,
+        smellIntensity,
+        description,
+        mediaFiles,
+        type: 'prank_annotation',
+      }),
     }],
-    mode: 'payment',
-    success_url: `${process.env['FRONTEND_URL'] || 'http://localhost:5176'}/prank-success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${process.env['FRONTEND_URL'] || 'http://localhost:5176'}/map`,
-    metadata: {
-      userId,
-      latitude: latitude.toString(),
-      longitude: longitude.toString(),
-      smellIntensity: smellIntensity.toString(),
-      description: description || '',
-      mediaFiles: JSON.stringify(mediaFiles || []),
-      type: 'prank_annotation',
+    application_context: {
+      return_url: `${process.env['FRONTEND_URL'] || 'http://localhost:5176'}/prank-success`,
+      cancel_url: `${process.env['FRONTEND_URL'] || 'http://localhost:5176'}/map`,
     },
-  });
+  };
+  
+  const order = await paypalPaymentController.createOrder(orderData);
 
   // 记录支付会话到数据库
   const dbClient = process.env['DB_CLIENT'] || 'sqlite3';
@@ -392,12 +393,12 @@ export const createPaidPrankAnnotation = asyncHandler(async (
       user_id: userId,
       amount,
       currency: currency.toUpperCase(),
-      payment_method: 'stripe',
-      payment_intent_id: session.id,
+      payment_method: 'paypal',
+      payment_intent_id: order.id,
       status: 'pending',
       description: paymentDescription || `恶搞标注创建 - 臭味强度: ${smellIntensity}`,
       metadata: {
-        sessionId: session.id,
+        orderId: order.id,
         annotationData: {
           latitude,
           longitude,
@@ -416,8 +417,8 @@ export const createPaidPrankAnnotation = asyncHandler(async (
       user_id: userId,
       amount,
       currency: currency.toUpperCase(),
-      payment_method: 'stripe',
-      payment_intent_id: session.id,
+      payment_method: 'paypal',
+      payment_intent_id: order.id,
       status: 'pending',
       description: paymentDescription || `恶搞标注创建 - 臭味强度: ${smellIntensity}`,
       created_at: new Date(),
@@ -425,8 +426,8 @@ export const createPaidPrankAnnotation = asyncHandler(async (
     });
   }
 
-  logger.info('付费恶搞标注支付会话创建成功', {
-    sessionId: session.id,
+  logger.info('付费恶搞标注支付订单创建成功', {
+    orderId: order.id,
     userId,
     amount,
     currency,
@@ -434,10 +435,10 @@ export const createPaidPrankAnnotation = asyncHandler(async (
 
   res.status(201).json({
     success: true,
-    message: '支付会话创建成功',
+    message: '支付订单创建成功',
     data: {
-      sessionId: session.id,
-      paymentUrl: session.url,
+      orderId: order.id,
+      paymentUrl: order.links.find((link: any) => link.rel === 'approve')?.href,
       amount,
       currency,
     },

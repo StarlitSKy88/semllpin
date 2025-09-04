@@ -120,7 +120,7 @@ router.get('/database/metrics', (req, res) => {
 router.post('/database/reconnect', async (req, res) => {
   try {
     // In production, add authentication middleware here
-    // if (process.env.NODE_ENV === 'production') {
+    // if (process.env['NODE_ENV'] === 'production') {
     //   // Check for admin role
     // }
     

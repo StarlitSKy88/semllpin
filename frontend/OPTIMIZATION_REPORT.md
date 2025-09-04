@@ -31,7 +31,7 @@ splitChunks: {
     ui: { /* @radix-ui, lucide-react, framer-motion */ },
     map: { /* leaflet, react-leaflet */ },
     animation: { /* gsap, three.js */ },
-    payment: { /* @paypal, stripe */ },
+    payment: { /* @paypal */ },
     react: { /* react生态系统 */ },
     // ...
   }

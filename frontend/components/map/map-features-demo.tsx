@@ -55,7 +55,7 @@ const features = [
   },
   {
     icon: CreditCard,
-    title: 'Stripe支付',
+    title: 'PayPal支付',
     description: '安全的在线支付系统，支持创建付费标注',
     color: 'from-yellow-500 to-orange-500'
   },
@@ -160,7 +160,7 @@ export const MapFeaturesDemo: React.FC = () => {
             <ul className="space-y-2 text-white/70 text-sm">
               <li>• Node.js + Express.js API</li>
               <li>• PostgreSQL + PostGIS</li>
-              <li>• Stripe 支付集成</li>
+              <li>• PayPal 支付集成</li>
               <li>• JWT 认证系统</li>
               <li>• 地理编码服务</li>
             </ul>

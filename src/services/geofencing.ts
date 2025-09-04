@@ -163,7 +163,7 @@ export class BackendGeofencingService {
   }>();
   
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
+  
   constructor(pool: Pool) {
     this.pool = pool;
   }
@@ -245,9 +245,9 @@ export class BackendGeofencingService {
         }
       };
 
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Backend geofence check error:', error);
-      throw new Error(`Failed to check geofence: ${(error as Error).message}`);
+      throw new Error(`Failed to check geofence: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       client.release();
     }
@@ -322,9 +322,9 @@ export class BackendGeofencingService {
       results.sort((a, b) => a.distance_meters - b.distance_meters);
       return results;
 
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Backend multiple geofence check error:', error);
-      throw new Error(`Failed to check multiple geofences: ${(error as Error).message}`);
+      throw new Error(`Failed to check multiple geofences: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       client.release();
     }
@@ -353,9 +353,9 @@ export class BackendGeofencingService {
         return await this.findNearbyAnnotationsFallback(params, client);
       }
 
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Backend find nearby annotations error:', error);
-      throw new Error(`Failed to find nearby annotations: ${(error as Error).message}`);
+      throw new Error(`Failed to find nearby annotations: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       client.release();
     }

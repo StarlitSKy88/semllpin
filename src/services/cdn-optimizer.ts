@@ -136,7 +136,6 @@ export class ImageOptimizer {
       case 'webp':
         pipeline = pipeline.webp({
           quality: options.quality,
-          progressive: options.progressive,
           effort: 6, // Max compression effort
         });
         break;
@@ -209,11 +208,11 @@ export class ImageOptimizer {
     
     const response = await fetch(endpoint, {
       method: 'PUT',
-      body: buffer,
+      body: new Uint8Array(buffer),
       headers: {
         'Content-Type': contentType,
         'Cache-Control': cacheControl,
-        'Authorization': `Bearer ${process.env.CLOUDFLARE_TOKEN}`,
+        'Authorization': `Bearer ${process.env['CLOUDFLARE_TOKEN']}`,
       },
     });
 
@@ -541,7 +540,7 @@ export class CDNManager {
     const response = await fetch(`https://api.cloudflare.com/client/v4/zones/${this.config.zone}/purge_cache`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.CLOUDFLARE_TOKEN}`,
+        'Authorization': `Bearer ${process.env['CLOUDFLARE_TOKEN']}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ files: urls }),
@@ -576,15 +575,15 @@ export class CDNManager {
 // Factory function to create CDN optimizer based on configuration
 export const createCDNOptimizer = (): CDNManager => {
   const config: CDNConfig = {
-    provider: (process.env.CDN_PROVIDER as 'cloudflare' | 'aws') || 'cloudflare',
-    endpoint: process.env.CDN_ENDPOINT || '',
-    domain: process.env.CDN_DOMAIN || '',
-    zone: process.env.CLOUDFLARE_ZONE || '',
-    bucket: process.env.AWS_S3_BUCKET || '',
-    region: process.env.AWS_REGION || 'us-east-1',
+    provider: (process.env['CDN_PROVIDER'] as 'cloudflare' | 'aws') || 'cloudflare',
+      endpoint: process.env['CDN_ENDPOINT'] || '',
+      domain: process.env['CDN_DOMAIN'] || '',
+      zone: process.env['CLOUDFLARE_ZONE'] || '',
+      bucket: process.env['AWS_S3_BUCKET'] || '',
+      region: process.env['AWS_REGION'] || 'us-east-1',
     enableCompression: true,
     enableWebP: true,
-    enableAVIF: process.env.ENABLE_AVIF !== 'false',
+    enableAVIF: process.env['ENABLE_AVIF'] !== 'false',
     cacheControl: 'public, max-age=31536000, immutable',
   };
 

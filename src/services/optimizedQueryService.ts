@@ -103,8 +103,8 @@ export class OptimizedQueryService {
       cacheParams
     );
     
-    if (cached) {
-      return new Map(cached || []);
+    if (cached && Array.isArray(cached)) {
+      return new Map(cached);
     }
 
     // 从数据库查询
@@ -154,8 +154,8 @@ export class OptimizedQueryService {
       cacheParams
     );
     
-    if (cached) {
-      return new Map(cached || []);
+    if (cached && Array.isArray(cached)) {
+      return new Map(cached);
     }
 
     const mediaFiles = await db('media_files')
@@ -216,8 +216,8 @@ export class OptimizedQueryService {
       cacheParams
     );
     
-    if (cached) {
-      return new Map(cached || []);
+    if (cached && Array.isArray(cached)) {
+      return new Map(cached);
     }
 
     const likes = await db('annotation_likes')
@@ -262,8 +262,8 @@ export class OptimizedQueryService {
       cacheParams
     );
     
-    if (cached) {
-      return new Map(cached || []);
+    if (cached && Array.isArray(cached)) {
+      return new Map(cached);
     }
 
     const comments = await db('annotation_comments')
@@ -314,7 +314,7 @@ export class OptimizedQueryService {
     );
     
     if (cached) {
-      return cached;
+      return cached as { annotations: any[]; total: number; hasMore: boolean };
     }
 
     // 获取基本注释信息
@@ -416,7 +416,7 @@ export class OptimizedQueryService {
     );
     
     if (cached) {
-      return cached;
+      return cached as { annotations: any[]; total: number; hasMore: boolean };
     }
 
     // 构建基础查询

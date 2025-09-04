@@ -91,12 +91,12 @@ export class AdvancedPerformanceMonitor {
   private responseTimes: Map<string, number[]> = new Map();
   private errorCounts: Map<string, number> = new Map();
   private alertCooldowns: Map<string, number> = new Map();
-  private isTestEnv: boolean = process.env.NODE_ENV === 'test' || !!process.env.JEST_WORKER_ID;
+  private isTestEnv: boolean = process.env['NODE_ENV'] === 'test' || !!process.env['JEST_WORKER_ID'];
 
   constructor(thresholds: Partial<PerformanceThresholds> = {}) {
     this.redis = getRedisClient();
     this.thresholds = { ...DEFAULT_THRESHOLDS, ...thresholds };
-    if (!this.isTestEnv && process.env.PERF_MONITOR_ENABLED !== 'false') {
+    if (!this.isTestEnv && process.env['PERF_MONITOR_ENABLED'] !== 'false') {
       this.startBackgroundTasks();
     }
   }

@@ -421,7 +421,7 @@ export class SocialCacheService {
   }> {
     try {
       const allKeys = await cacheService.keys('*');
-      const socialKeys = allKeys.filter(key => 
+      const socialKeys = allKeys.filter((key: string) =>
         Object.values(this.CACHE_PREFIX).some(prefix => key.startsWith(prefix))
       );
 

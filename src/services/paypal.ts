@@ -98,8 +98,8 @@ export class PayPalService {
         })
       }],
       redirect_urls: {
-        return_url: `${process.env.APP_BASE_URL}/api/payments/success`,
-        cancel_url: `${process.env.APP_BASE_URL}/api/payments/cancel`
+        return_url: `${process.env['APP_BASE_URL']}/api/payments/success`,
+        cancel_url: `${process.env['APP_BASE_URL']}/api/payments/cancel`
       }
     };
 

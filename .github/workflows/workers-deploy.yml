@@ -239,7 +239,7 @@ jobs:
             echo "${{ secrets.DATABASE_URL }}" | wrangler secret put DATABASE_URL --env production || echo "Failed to update DATABASE_URL"
             echo "${{ secrets.JWT_SECRET }}" | wrangler secret put JWT_SECRET --env production || echo "Failed to update JWT_SECRET"
             echo "${{ secrets.PAYPAL_CLIENT_SECRET }}" | wrangler secret put PAYPAL_CLIENT_SECRET --env production || echo "Failed to update PAYPAL_CLIENT_SECRET"
-            echo "${{ secrets.STRIPE_SECRET_KEY }}" | wrangler secret put STRIPE_SECRET_KEY --env production || echo "Failed to update STRIPE_SECRET_KEY"
+            # Stripe integration removed - using PayPal only
             echo "${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}" | wrangler secret put R2_ACCESS_KEY_ID --env production || echo "Failed to update R2_ACCESS_KEY_ID"
             echo "${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}" | wrangler secret put R2_SECRET_ACCESS_KEY --env production || echo "Failed to update R2_SECRET_ACCESS_KEY"
             

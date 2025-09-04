@@ -259,7 +259,7 @@ export const paymentSchemas = {
     body: Joi.object({
       amount: Joi.number().positive().precision(2).required(),
       currency: Joi.string().length(3).uppercase().default('USD'),
-      paymentMethod: Joi.string().valid('stripe', 'paypal', 'alipay', 'wechat').required(),
+      paymentMethod: Joi.string().valid('paypal', 'alipay', 'wechat').required(),
       annotationId: commonSchemas.uuid.optional(),
       description: Joi.string().max(200),
     }),

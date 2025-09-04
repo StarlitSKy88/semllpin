@@ -9,11 +9,11 @@ export const securityHeaders = helmet({
         directives: {
             defaultSrc: ["'self'"],
             styleSrc: ["'self'", "'unsafe-inline'", "https:"],
-            scriptSrc: ["'self'", "https://js.stripe.com", "https://www.paypal.com"],
+            scriptSrc: ["'self'", "https://www.paypal.com"],
             imgSrc: ["'self'", "data:", "https:"],
             fontSrc: ["'self'", "https:", "data:"],
-            connectSrc: ["'self'", "https://api.stripe.com", "https://api.paypal.com", "wss://"],
-            frameSrc: ["'self'", "https://js.stripe.com", "https://www.paypal.com"],
+            connectSrc: ["'self'", "https://api.paypal.com", "wss://"],
+            frameSrc: ["'self'", "https://www.paypal.com"],
             objectSrc: ["'none'"],
             baseUri: ["'self'"],
             formAction: ["'self'"],
@@ -66,13 +66,14 @@ export const fileUploadRateLimit = rateLimit({
 });
 
 // 输入验证中间件
-export const validateInput = (req: Request, res: Response, next: NextFunction) => {
+export const validateInput = (req: Request, res: Response, next: NextFunction): void => {
     // 检查请求体大小
     if (req.body && JSON.stringify(req.body).length > 1024 * 1024) { // 1MB
-        return res.status(400).json({
+        res.status(400).json({
             error: 'Request body too large',
             code: 'PAYLOAD_TOO_LARGE'
         });
+        return;
     }
     
     // 基本XSS过滤

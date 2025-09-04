@@ -1,57 +1,56 @@
 import { Router } from 'express';
 import { GeofencingController } from '../controllers/geofencing';
-import { authenticateToken, requireAuth } from '../middleware/auth';
-import { requireAdmin } from '../middleware/adminAuth';
-import { rateLimiter } from '../middleware/rateLimiter';
+import { authMiddleware, requireAdmin } from '../middleware/auth';
+import { rateLimiter } from '../middleware/performance';
 import { validateRequest } from '../middleware/validation';
-import { z } from 'zod';
+import Joi from 'joi';
 
 // Create router instance
 const router = Router();
 const geofencingController = new GeofencingController();
 
 // Validation schemas for request validation middleware
-const checkGeofenceSchema = z.object({
-  body: z.object({
-    user_location: z.object({
-      latitude: z.number().min(-90).max(90),
-      longitude: z.number().min(-180).max(180)
-    }),
-    annotation_id: z.string().uuid(),
-    custom_radius: z.number().min(50).max(1000).optional()
+const checkGeofenceSchema = {
+  body: Joi.object({
+    user_location: Joi.object({
+      latitude: Joi.number().min(-90).max(90).required(),
+      longitude: Joi.number().min(-180).max(180).required()
+    }).required(),
+    annotation_id: Joi.string().uuid().required(),
+    custom_radius: Joi.number().min(50).max(1000).optional()
   })
-});
+};
 
-const batchGeofenceSchema = z.object({
-  body: z.object({
-    user_location: z.object({
-      latitude: z.number().min(-90).max(90),
-      longitude: z.number().min(-180).max(180)
-    }),
-    annotation_ids: z.array(z.string().uuid()).max(100),
-    max_distance: z.number().min(100).max(5000).optional()
+const batchGeofenceSchema = {
+  body: Joi.object({
+    user_location: Joi.object({
+      latitude: Joi.number().min(-90).max(90).required(),
+      longitude: Joi.number().min(-180).max(180).required()
+    }).required(),
+    annotation_ids: Joi.array().items(Joi.string().uuid()).max(100).required(),
+    max_distance: Joi.number().min(100).max(5000).optional()
   })
-});
+};
 
-const nearbyAnnotationsSchema = z.object({
-  body: z.object({
-    user_location: z.object({
-      latitude: z.number().min(-90).max(90),
-      longitude: z.number().min(-180).max(180)
-    }),
-    search_radius: z.number().min(50).max(2000),
-    limit: z.number().min(1).max(100).optional(),
-    annotation_types: z.array(z.string()).optional()
+const nearbyAnnotationsSchema = {
+  body: Joi.object({
+    user_location: Joi.object({
+      latitude: Joi.number().min(-90).max(90).required(),
+      longitude: Joi.number().min(-180).max(180).required()
+    }).required(),
+    search_radius: Joi.number().min(50).max(2000).required(),
+    limit: Joi.number().min(1).max(100).optional(),
+    annotation_types: Joi.array().items(Joi.string()).optional()
   })
-});
+};
 
-const configureRadiusSchema = z.object({
-  body: z.object({
-    annotation_id: z.string().uuid(),
-    reward_radius: z.number().min(50).max(1000),
-    annotation_type: z.string().optional()
+const configureRadiusSchema = {
+  body: Joi.object({
+    annotation_id: Joi.string().uuid().required(),
+    reward_radius: Joi.number().min(50).max(1000).required(),
+    annotation_type: Joi.string().optional()
   })
-});
+};
 
 /**
  * @route POST /api/geofencing/init-tables
@@ -60,7 +59,7 @@ const configureRadiusSchema = z.object({
  */
 router.post(
   '/init-tables',
-  rateLimiter({ windowMs: 15 * 60 * 1000, max: 5 }), // 5 requests per 15 minutes
+  rateLimiter(5, 15 * 60 * 1000), // 5 requests per 15 minutes
   geofencingController.initializeTables
 );
 
@@ -72,7 +71,7 @@ router.post(
  */
 router.post(
   '/check',
-  rateLimiter({ windowMs: 1 * 60 * 1000, max: 100 }), // 100 requests per minute
+  rateLimiter(100, 1 * 60 * 1000), // 100 requests per minute
   validateRequest(checkGeofenceSchema),
   geofencingController.checkAnnotationGeofence
 );
@@ -85,7 +84,7 @@ router.post(
  */
 router.post(
   '/check-batch',
-  rateLimiter({ windowMs: 1 * 60 * 1000, max: 50 }), // 50 requests per minute (more intensive)
+  rateLimiter(50, 1 * 60 * 1000), // 50 requests per minute (more intensive)
   validateRequest(batchGeofenceSchema),
   geofencingController.checkBatchGeofences
 );
@@ -98,7 +97,7 @@ router.post(
  */
 router.post(
   '/nearby',
-  rateLimiter({ windowMs: 1 * 60 * 1000, max: 60 }), // 60 requests per minute
+  rateLimiter(60, 1 * 60 * 1000), // 60 requests per minute
   validateRequest(nearbyAnnotationsSchema),
   geofencingController.findNearbyAnnotations
 );
@@ -111,9 +110,9 @@ router.post(
  */
 router.post(
   '/configure-radius',
-  rateLimiter({ windowMs: 5 * 60 * 1000, max: 20 }), // 20 requests per 5 minutes
-  authenticateToken,
-  requireAuth,
+  rateLimiter(20, 5 * 60 * 1000), // 20 requests per 5 minutes
+  authMiddleware,
+  requireAdmin,
   validateRequest(configureRadiusSchema),
   geofencingController.configureAnnotationRadius
 );
@@ -125,9 +124,9 @@ router.post(
  */
 router.get(
   '/stats',
-  rateLimiter({ windowMs: 1 * 60 * 1000, max: 10 }), // 10 requests per minute
-  authenticateToken,
-  requireAuth,
+  rateLimiter(10, 1 * 60 * 1000), // 10 requests per minute
+  authMiddleware,
+  requireAdmin,
   geofencingController.getGeofencingStats
 );
 
@@ -138,9 +137,8 @@ router.get(
  */
 router.delete(
   '/cache',
-  rateLimiter({ windowMs: 5 * 60 * 1000, max: 5 }), // 5 requests per 5 minutes
-  authenticateToken,
-  requireAuth,
+  rateLimiter(5, 5 * 60 * 1000), // 5 requests per 5 minutes
+  authMiddleware,
   requireAdmin,
   geofencingController.clearGeofencingCache
 );
@@ -152,7 +150,7 @@ router.delete(
  */
 router.get(
   '/health',
-  rateLimiter({ windowMs: 1 * 60 * 1000, max: 30 }), // 30 requests per minute
+  rateLimiter(30, 1 * 60 * 1000), // 30 requests per minute
   geofencingController.healthCheck
 );
 

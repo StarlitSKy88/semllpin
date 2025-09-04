@@ -53,14 +53,14 @@ router.post(
       .withMessage('支付者ID必须是字符串'),
     body('paymentMethod')
       .optional()
-      .isIn(['stripe', 'paypal'])
-      .withMessage('支付方式必须是 stripe 或 paypal'),
+      .isIn(['paypal'])
+      .withMessage('支付方式必须是 paypal'),
   ],
   validateRequest,
   paymentController.getPaymentSession,
 );
 
-// Stripe支付路由（现有）
+// PayPal支付路由
 // 创建支付会话
 router.post(
   '/create-session',
@@ -102,12 +102,12 @@ router.get(
   paymentController.getPaymentSession,
 );
 
-// Stripe Webhook 处理（不需要认证）
+// PayPal Webhook 处理（不需要认证）
 router.post(
   '/webhook',
   // 注意：这个路由不使用 authenticateToken 中间件
-  // 因为它是 Stripe 服务器调用的
-  paymentController.handleStripeWebhook,
+  // 因为它是 PayPal 服务器调用的
+  paymentController.handleWebhook,
 );
 
 // 获取用户支付历史

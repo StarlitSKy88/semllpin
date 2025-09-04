@@ -12,7 +12,7 @@
 
 import { Knex } from 'knex';
 import Redis from 'ioredis';
-import { compress, decompress } from 'lz4';
+// import { compress, decompress } from 'lz4'; // Commented out due to missing package
 import { logger } from '../utils/logger';
 import { config } from '../config/config';
 
@@ -113,19 +113,17 @@ class QueryCacheService {
         port: config.redis?.port || 6379,
         password: config.redis?.password,
         db: 1, // Use database 1 for query cache
-        retryDelayOnFailover: 200,
         maxRetriesPerRequest: 3,
         lazyConnect: true,
         keyPrefix: 'query_cache:',
         
         // Optimizations for cache workload
         enableReadyCheck: false,
-        maxLoadingTimeout: 5000,
         commandTimeout: 5000,
         
         // Connection pool settings
         family: 4,
-        keepAlive: true,
+        keepAlive: 30000,
         connectTimeout: 10000,
         
         // Retry strategy
@@ -177,33 +175,15 @@ class QueryCacheService {
   }
 
   // Compress data
-  private compressData(data: any): Buffer | string {
-    if (!this.shouldCompress(data)) {
-      return JSON.stringify(data);
-    }
-
-    try {
-      const jsonStr = JSON.stringify(data);
-      return compress(Buffer.from(jsonStr, 'utf8'));
-    } catch (error) {
-      logger.warn('⚠️ Compression failed, storing uncompressed:', error);
-      return JSON.stringify(data);
-    }
+  private compressData(data: any): string {
+    // Simplified without lz4 compression
+    return JSON.stringify(data);
   }
 
   // Decompress data
-  private decompressData(data: Buffer | string, compressed: boolean): any {
-    if (!compressed || typeof data === 'string') {
-      return JSON.parse(data as string);
-    }
-
-    try {
-      const decompressed = decompress(data as Buffer);
-      return JSON.parse(decompressed.toString('utf8'));
-    } catch (error) {
-      logger.error('❌ Decompression failed:', error);
-      throw error;
-    }
+  private decompressData(data: string, compressed: boolean): any {
+    // Simplified without lz4 decompression
+    return JSON.parse(data);
   }
 
   // Get from memory cache
@@ -236,10 +216,7 @@ class QueryCacheService {
   private storeInMemory(key: string, data: any, ttl: number): void {
     const compressed = this.shouldCompress(data);
     const processedData = this.compressData(data);
-    const size = Buffer.byteLength(
-      typeof processedData === 'string' ? processedData : processedData.toString(),
-      'utf8'
-    );
+    const size = Buffer.byteLength(processedData, 'utf8');
 
     const entry: CacheEntry = {
       data: processedData,
@@ -560,10 +537,10 @@ class QueryCacheService {
       if (db.client.config.client === 'postgresql') {
         // Use native prepared statement
         const placeholders = params.map((_, i) => `$${i + 1}`).join(', ');
-        result = await db.raw(`EXECUTE ${name}(${placeholders})`, params);
+        result = (await db.raw(`EXECUTE ${name}(${placeholders})`, params)) as T;
       } else {
         // Use parameterized query
-        result = await db.raw(prepared.sql, params);
+        result = (await db.raw(prepared.sql, params)) as T;
       }
 
       const duration = Date.now() - startTime;

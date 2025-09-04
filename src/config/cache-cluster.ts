@@ -20,9 +20,6 @@ export interface ClusterConfig {
       keepAlive: number;
     };
     enableOfflineQueue: boolean;
-    redisOptions: {
-      maxRetriesPerRequest: number;
-    };
     scaleReads: string;
     maxRedirections: number;
   };
@@ -356,7 +353,7 @@ export const createCacheCluster = (): Redis | Cluster => {
   };
 
   // Check if cluster mode is enabled
-  const clusterNodes = process.env.REDIS_CLUSTER_NODES;
+  const clusterNodes = process.env['REDIS_CLUSTER_NODES'];
   
   if (clusterNodes) {
     const nodes = clusterNodes.split(',').map(node => {
@@ -386,7 +383,7 @@ export const createCacheCluster = (): Redis | Cluster => {
 // Initialize multi-tier cache
 export const initMultiTierCache = (): MultiTierCache => {
   const redisClient = createCacheCluster();
-  const maxMemoryCacheSize = parseInt(process.env.MAX_MEMORY_CACHE_SIZE || '200');
+  const maxMemoryCacheSize = parseInt(process.env['MAX_MEMORY_CACHE_SIZE'] || '200');
   
   const multiTierCache = new MultiTierCache(redisClient, maxMemoryCacheSize);
   

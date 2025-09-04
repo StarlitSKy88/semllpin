@@ -11,6 +11,7 @@ const toast = {
   error: (message: string) => console.error('Toast error:', message),
   success: (message: string) => console.log('Toast success:', message),
   info: (message: string) => console.info('Toast info:', message),
+  warning: (message: string) => console.warn('Toast warning:', message),
 };
 import useNotificationStore from '../../stores/notificationStore';
 import NotificationButton from '../Notifications/NotificationButton';
@@ -348,7 +349,7 @@ const LBSRewardTracker: React.FC = () => {
         altitude: initialLocation.altitude,
         heading: initialLocation.heading,
         speed: initialLocation.speed,
-        timestamp: initialLocation.timestamp
+        timestamp: Date.now()
       } as Location);
       
     } catch (error) {

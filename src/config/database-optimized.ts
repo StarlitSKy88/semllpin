@@ -23,7 +23,10 @@ const queryMetricsHistory: QueryMetrics[] = [];
 const MAX_METRICS_HISTORY = 1000;
 
 // Connection pool configuration optimized for LBS workload
-const getOptimizedPoolConfig = (isProduction: boolean) => ({
+const getOptimizedPoolConfig = (isProduction: boolean): Knex.PoolConfig & {
+  validateConnection?: (connection: any) => Promise<boolean>;
+  afterCreate?: (connection: any, done: Function) => void;
+} => ({
   min: isProduction ? 5 : 2,           // Minimum connections
   max: isProduction ? 25 : 10,         // Maximum connections  
   createTimeoutMillis: 3000,           // Timeout for creating new connections
@@ -34,10 +37,7 @@ const getOptimizedPoolConfig = (isProduction: boolean) => ({
   propagateCreateError: false,         // Don't propagate connection creation errors immediately
   
   // Advanced pool settings for high-concurrency LBS workload
-  evictionRunIntervalMillis: 10000,    // Check for connections to evict every 10s
-  numTestsPerEvictionRun: 3,           // Number of connections to test per eviction run
-  softIdleTimeoutMillis: 5000,         // Soft idle timeout
-  testOnBorrow: true,                  // Test connections before use
+  // Note: Some advanced pool settings are not supported by Knex.PoolConfig
   
   // Connection validation
   validateConnection: async (connection: any) => {

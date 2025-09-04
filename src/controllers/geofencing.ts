@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { BackendGeofencingService, GeofenceResult } from '../services/geofencing';
-import { getDatabase } from '../config/database';
+import { getDatabase } from '../config/database-pool';
 import { z } from 'zod';
 
 // Validation schemas
@@ -51,7 +51,12 @@ export class GeofencingController {
   private geofencingService: BackendGeofencingService;
 
   constructor() {
-    const pool = getDatabase();
+    const db = getDatabase();
+    // Extract the pool from the Knex instance
+    const pool = (db as any).client?.pool as any;
+    if (!pool) {
+      throw new Error('Database pool not available');
+    }
     this.geofencingService = new BackendGeofencingService(pool);
   }
 
@@ -77,11 +82,11 @@ export class GeofencingController {
         });
       }
 
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Initialize geofencing tables error:', error);
       res.status(500).json({
         error: 'Internal Server Error',
-        message: `Failed to initialize geofencing tables: ${error.message}`,
+        message: `Failed to initialize geofencing tables: ${error instanceof Error ? error.message : String(error)}`,
         timestamp: new Date().toISOString()
       });
     }
@@ -119,7 +124,7 @@ export class GeofencingController {
         res.status(400).json({
           error: 'Validation Error',
           message: 'Invalid input data',
-          details: error.errors,
+          details: error.issues,
           timestamp: new Date().toISOString()
         });
         return;
@@ -127,7 +132,7 @@ export class GeofencingController {
 
       res.status(500).json({
         error: 'Internal Server Error',
-        message: `Failed to check geofence: ${error.message}`,
+        message: `Failed to check geofence: ${error instanceof Error ? error.message : String(error)}`,
         timestamp: new Date().toISOString()
       });
     }
@@ -177,7 +182,7 @@ export class GeofencingController {
         res.status(400).json({
           error: 'Validation Error',
           message: 'Invalid input data',
-          details: error.errors,
+          details: error.issues,
           timestamp: new Date().toISOString()
         });
         return;
@@ -185,7 +190,7 @@ export class GeofencingController {
 
       res.status(500).json({
         error: 'Internal Server Error',
-        message: `Failed to check batch geofences: ${error.message}`,
+        message: `Failed to check batch geofences: ${error instanceof Error ? error.message : String(error)}`,
         timestamp: new Date().toISOString()
       });
     }
@@ -237,7 +242,7 @@ export class GeofencingController {
         res.status(400).json({
           error: 'Validation Error',
           message: 'Invalid input data',
-          details: error.errors,
+          details: error.issues,
           timestamp: new Date().toISOString()
         });
         return;
@@ -245,7 +250,7 @@ export class GeofencingController {
 
       res.status(500).json({
         error: 'Internal Server Error',
-        message: `Failed to find nearby annotations: ${error.message}`,
+        message: `Failed to find nearby annotations: ${(error as Error).message}`,
         timestamp: new Date().toISOString()
       });
     }
@@ -291,7 +296,7 @@ export class GeofencingController {
         res.status(400).json({
           error: 'Validation Error',
           message: 'Invalid input data',
-          details: error.errors,
+          details: error.issues,
           timestamp: new Date().toISOString()
         });
         return;
@@ -299,7 +304,7 @@ export class GeofencingController {
 
       res.status(500).json({
         error: 'Internal Server Error',
-        message: `Failed to configure geofence radius: ${error.message}`,
+        message: `Failed to configure geofence radius: ${(error as Error).message}`,
         timestamp: new Date().toISOString()
       });
     }
@@ -323,11 +328,10 @@ export class GeofencingController {
       const cacheStats = this.geofencingService.getCacheStats();
 
       // Get database statistics
-      const pool = getDatabase();
-      const client = await pool.connect();
+      const db = getDatabase();
       
       try {
-        const configStatsResult = await client.query(`
+        const configStatsResult = await db.raw(`
           SELECT 
             COUNT(*) as total_configs,
             AVG(reward_radius) as avg_radius,
@@ -336,7 +340,7 @@ export class GeofencingController {
           FROM geofence_configs
         `);
 
-        const annotationStatsResult = await client.query(`
+        const annotationStatsResult = await db.raw(`
           SELECT 
             COUNT(*) as total_annotations,
             COUNT(CASE WHEN status = 'active' THEN 1 END) as active_annotations
@@ -348,13 +352,13 @@ export class GeofencingController {
           success: true,
           data: {
             cache: cacheStats,
-            configurations: configStatsResult.rows[0] || {
+            configurations: configStatsResult.rows?.[0] || {
               total_configs: 0,
               avg_radius: 0,
               min_radius: 0,
               max_radius: 0
             },
-            annotations: annotationStatsResult.rows[0] || {
+            annotations: annotationStatsResult.rows?.[0] || {
               total_annotations: 0,
               active_annotations: 0
             },
@@ -365,15 +369,16 @@ export class GeofencingController {
           timestamp: new Date().toISOString()
         });
 
-      } finally {
-        client.release();
+      } catch (dbError) {
+        console.error('Database query error:', dbError);
+        throw dbError;
       }
 
     } catch (error) {
       console.error('Get geofencing stats error:', error);
       res.status(500).json({
         error: 'Internal Server Error',
-        message: `Failed to get geofencing statistics: ${error.message}`,
+        message: `Failed to get geofencing statistics: ${(error as Error).message}`,
         timestamp: new Date().toISOString()
       });
     }
@@ -417,7 +422,7 @@ export class GeofencingController {
       console.error('Clear geofencing cache error:', error);
       res.status(500).json({
         error: 'Internal Server Error',
-        message: `Failed to clear geofencing cache: ${error.message}`,
+        message: `Failed to clear geofencing cache: ${(error as Error).message}`,
         timestamp: new Date().toISOString()
       });
     }
@@ -448,7 +453,7 @@ export class GeofencingController {
       console.error('Geofencing health check error:', error);
       res.status(500).json({
         error: 'Service Unhealthy',
-        message: `Geofencing service health check failed: ${error.message}`,
+        message: `Geofencing service health check failed: ${(error as Error).message}`,
         timestamp: new Date().toISOString()
       });
     }

@@ -52,7 +52,7 @@ export class LoadBalancer {
   private initializeCluster(): void {
     if (!cluster.isMaster) return;
 
-    const numWorkers = process.env.NODE_ENV === 'production' 
+    const numWorkers = process.env['NODE_ENV'] === 'production' 
       ? os.cpus().length 
       : Math.min(2, os.cpus().length);
 
@@ -468,7 +468,7 @@ export const LoadBalancePresets = {
 
 // 创建实例
 export const loadBalancer = new LoadBalancer(
-  process.env.NODE_ENV === 'production' 
+  process.env['NODE_ENV'] === 'production' 
     ? LoadBalancePresets.production 
     : LoadBalancePresets.development
 );

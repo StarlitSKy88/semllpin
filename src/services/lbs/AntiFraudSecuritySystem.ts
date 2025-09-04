@@ -205,7 +205,7 @@ export class GPSSpoofingDetector extends EventEmitter {
     };
 
     // Suspicious patterns
-    const tooFewSatellites = satelliteData.visedSatellites < 4;
+    const tooFewSatellites = satelliteData.visibleSatellites < 4;
     const perfectGeometry = satelliteData.geometryQuality > 0.98;
     const unnaturalSignalStrength = satelliteData.signalToNoise > 45;
 
@@ -386,9 +386,9 @@ export class GPSSpoofingDetector extends EventEmitter {
     };
 
     // Suspicious: Perfect GPS signal in challenging environments
-    const perfectSignalIndoors = environment.isIndoors && point.accuracy && point.accuracy < 3;
-    const perfectSignalInStorm = environment.weatherConditions === 'stormy' && point.accuracy && point.accuracy < 5;
-    const perfectSignalHighDensity = environment.buildingDensity > 0.8 && point.accuracy && point.accuracy < 3;
+    const perfectSignalIndoors = Boolean(environment.isIndoors && point.accuracy && point.accuracy < 3);
+    const perfectSignalInStorm = Boolean(environment.weatherConditions === 'stormy' && point.accuracy && point.accuracy < 5);
+    const perfectSignalHighDensity = Boolean(environment.buildingDensity > 0.8 && point.accuracy && point.accuracy < 3);
 
     const isSuspicious = perfectSignalIndoors || perfectSignalInStorm || perfectSignalHighDensity;
     const confidence = isSuspicious ? 0.6 : 0.1;
@@ -957,6 +957,8 @@ export class DeviceFingerprintingEngine extends EventEmitter {
       ...fingerprintData,
       deviceId,
       fingerprint,
+      hardware: fingerprintData.hardware || 'unknown',
+      networkInfo: fingerprintData.networkInfo || 'unknown',
       confidence: this.calculateFingerprintConfidence(fingerprintData),
       firstSeen: new Date(),
       lastSeen: new Date()

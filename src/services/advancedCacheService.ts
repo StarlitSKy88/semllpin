@@ -144,7 +144,7 @@ export class AdvancedCacheService extends CacheService {
         rawData = gzip(compressed).toString();
       }
 
-      const cacheData = JSON.parse(rawData);
+      const cacheData = JSON.parse(rawData as string);
       const now = Date.now();
       const age = now - cacheData.createdAt;
       const ttl = config.ttl * 1000; // 转换为毫秒
@@ -209,6 +209,11 @@ export class AdvancedCacheService extends CacheService {
     }
   }
 
+  // 获取pipeline实例
+  protected getPipeline() {
+    return (this as any).client.pipeline();
+  }
+
   // 按标签清除缓存
   async invalidateByTags(tags: Partial<CacheTags>): Promise<number> {
     const keysToInvalidate = new Set<string>();
@@ -232,7 +237,7 @@ export class AdvancedCacheService extends CacheService {
     });
 
     // 批量删除
-    const pipeline = this.client.pipeline();
+    const pipeline = this.getPipeline();
     keysToInvalidate.forEach(key => {
       pipeline.del(key);
       pipeline.del(`${key}:compressed`);

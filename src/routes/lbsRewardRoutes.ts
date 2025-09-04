@@ -5,7 +5,7 @@
 
 import express, { Request, Response, NextFunction } from 'express';
 import { body, query, param, validationResult } from 'express-validator';
-import { authenticateToken } from '../middleware/auth';
+import { authMiddleware } from '../middleware/auth';
 import { logger } from '../utils/logger';
 import { RedisService } from '../services/RedisService';
 import { LBSMasterSystem } from '../services/lbs/LBSMasterSystem';
@@ -69,7 +69,7 @@ const validateCheckInRequest = [
         timestamp: new Date().toISOString()
       });
     }
-    next();
+    return next();
   }
 ];
 
@@ -115,7 +115,7 @@ const validateAnalyticsRequest = [
         timestamp: new Date().toISOString()
       });
     }
-    next();
+    return next();
   }
 ];
 
@@ -126,7 +126,7 @@ const validateAnalyticsRequest = [
  * @rateLimit 10 requests per minute
  */
 router.post('/checkin', 
-  authenticateToken,
+  authMiddleware,
   validateCheckInRequest,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -141,14 +141,14 @@ router.post('/checkin',
         });
       }
 
-      await lbsSystem.processCheckIn(req, res, next);
+      return await lbsSystem.processCheckIn(req, res, next);
     } catch (error) {
       logger.error('Advanced LBS check-in route error', { 
         userId: req.user?.id, 
         error 
       });
       
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: {
           code: 'INTERNAL_SERVER_ERROR',
@@ -166,7 +166,7 @@ router.post('/checkin',
  * @access  Private (Admin only)
  */
 router.get('/status',
-  authenticateToken,
+  authMiddleware,
   async (req: Request, res: Response) => {
     try {
       // Check if user has admin privileges
@@ -192,11 +192,11 @@ router.get('/status',
         });
       }
 
-      await lbsSystem.getSystemStatus(req, res);
+      return await lbsSystem.getSystemStatus(req, res);
     } catch (error) {
       logger.error('Advanced LBS status route error', { error });
       
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: {
           code: 'INTERNAL_SERVER_ERROR',
@@ -215,7 +215,7 @@ router.get('/status',
  * @rateLimit 100 requests per hour
  */
 router.get('/analytics/user',
-  authenticateToken,
+  authMiddleware,
   validateAnalyticsRequest,
   async (req: Request, res: Response) => {
     try {
@@ -230,14 +230,14 @@ router.get('/analytics/user',
         });
       }
 
-      await lbsSystem.getAnalytics(req, res);
+      return await lbsSystem.getAnalytics(req, res);
     } catch (error) {
       logger.error('Advanced LBS analytics route error', { 
         userId: req.user?.id, 
         error 
       });
       
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: {
           code: 'INTERNAL_SERVER_ERROR',
@@ -255,7 +255,7 @@ router.get('/analytics/user',
  * @access  Private
  */
 router.get('/analytics/location',
-  authenticateToken,
+  authMiddleware,
   [
     query('latitude')
       .isFloat({ min: -90, max: 90 })
@@ -280,7 +280,7 @@ router.get('/analytics/location',
           timestamp: new Date().toISOString()
         });
       }
-      next();
+      return next();
     }
   ],
   async (req: Request, res: Response) => {
@@ -311,7 +311,7 @@ router.get('/analytics/location',
         locationRadius
       );
 
-      res.json({
+      return res.json({
         success: true,
         data: {
           location,
@@ -327,7 +327,7 @@ router.get('/analytics/location',
         error 
       });
       
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: {
           code: 'INTERNAL_SERVER_ERROR',
@@ -345,7 +345,7 @@ router.get('/analytics/location',
  * @access  Private
  */
 router.get('/user/history',
-  authenticateToken,
+  authMiddleware,
   async (req: Request, res: Response) => {
     try {
       const userId = req.user!.id;
@@ -388,7 +388,7 @@ router.get('/user/history',
         });
       }
 
-      res.json({
+      return res.json({
         success: true,
         data: history,
         timestamp: new Date().toISOString()
@@ -400,7 +400,7 @@ router.get('/user/history',
         error 
       });
       
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: {
           code: 'INTERNAL_SERVER_ERROR',
@@ -418,7 +418,7 @@ router.get('/user/history',
  * @access  Private
  */
 router.get('/rewards/distribution/:id',
-  authenticateToken,
+  authMiddleware,
   param('id')
     .matches(/^dist_\d+_[a-z0-9]+$/)
     .withMessage('Invalid distribution ID format'),
@@ -437,7 +437,7 @@ router.get('/rewards/distribution/:id',
         });
       }
 
-      const distributionId = req.params.id;
+      const distributionId = req.params['id'];
       
       if (!lbsSystem) {
         return res.status(503).json({
@@ -475,7 +475,7 @@ router.get('/rewards/distribution/:id',
         });
       }
 
-      res.json({
+      return res.json({
         success: true,
         data: distribution,
         timestamp: new Date().toISOString()
@@ -484,11 +484,11 @@ router.get('/rewards/distribution/:id',
     } catch (error) {
       logger.error('Advanced distribution status route error', { 
         userId: req.user?.id,
-        distributionId: req.params.id,
+        distributionId: req.params['id'],
         error 
       });
       
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: {
           code: 'INTERNAL_SERVER_ERROR',
@@ -506,7 +506,7 @@ router.get('/rewards/distribution/:id',
  * @access  Private (Admin only)
  */
 router.post('/geofence',
-  authenticateToken,
+  authMiddleware,
   [
     body('name')
       .notEmpty()
@@ -540,7 +540,7 @@ router.post('/geofence',
           timestamp: new Date().toISOString()
         });
       }
-      next();
+      return next();
     }
   ],
   async (req: Request, res: Response) => {
@@ -580,7 +580,7 @@ router.post('/geofence',
         active: true
       });
 
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
         data: {
           geofenceId,
@@ -595,7 +595,7 @@ router.post('/geofence',
         error 
       });
       
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: {
           code: 'INTERNAL_SERVER_ERROR',
@@ -613,7 +613,7 @@ router.post('/geofence',
  * @access  Private (Admin only)
  */
 router.get('/test',
-  authenticateToken,
+  authMiddleware,
   query('quick')
     .optional()
     .isBoolean()
@@ -644,7 +644,7 @@ router.get('/test',
       }
 
       // Only allow in non-production environments
-      if (process.env.NODE_ENV === 'production') {
+      if (process.env['NODE_ENV'] === 'production') {
         return res.status(404).json({
           success: false,
           error: {
@@ -655,7 +655,7 @@ router.get('/test',
         });
       }
 
-      await lbsSystem.runTests(req, res);
+      return await lbsSystem.runTests(req, res);
 
     } catch (error) {
       logger.error('Advanced test route error', { 
@@ -663,7 +663,7 @@ router.get('/test',
         error 
       });
       
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: {
           code: 'INTERNAL_SERVER_ERROR',
@@ -681,7 +681,7 @@ router.get('/test',
  * @access  Private (Admin only)
  */
 router.get('/metrics',
-  authenticateToken,
+  authMiddleware,
   async (req: Request, res: Response) => {
     try {
       // Check if user has admin privileges
@@ -712,7 +712,7 @@ router.get('/metrics',
         lbsSystem['rewardEngine'].getPerformanceMetrics()
       ]);
 
-      res.json({
+      return res.json({
         success: true,
         data: {
           systemHealth,
@@ -728,7 +728,7 @@ router.get('/metrics',
         error 
       });
       
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: {
           code: 'INTERNAL_SERVER_ERROR',
@@ -746,7 +746,7 @@ router.get('/metrics',
  * @access  Private
  */
 router.get('/leaderboard',
-  authenticateToken,
+  authMiddleware,
   [
     query('period')
       .optional()
@@ -773,7 +773,7 @@ router.get('/leaderboard',
           timestamp: new Date().toISOString()
         });
       }
-      next();
+      return next();
     }
   ],
   async (req: Request, res: Response) => {
@@ -809,7 +809,7 @@ router.get('/leaderboard',
         userValue: Math.floor(Math.random() * 1000)
       };
 
-      res.json({
+      return res.json({
         success: true,
         data: leaderboard,
         timestamp: new Date().toISOString()
@@ -821,7 +821,7 @@ router.get('/leaderboard',
         error 
       });
       
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         error: {
           code: 'INTERNAL_SERVER_ERROR',
