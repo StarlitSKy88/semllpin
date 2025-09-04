@@ -2,16 +2,12 @@
 const nextConfig = {
   // Basic configuration for deployment
   experimental: {
-    // Optimize CSS loading
-    optimizeCss: true,
+    // Disable experimental features for stable deployment
   },
 
-  // Compiler optimizations
+  // Compiler optimizations - disabled for deployment stability
   compiler: {
-    // Remove console.log in production
-    removeConsole: process.env.NODE_ENV === 'production' ? {
-      exclude: ['error', 'warn'],
-    } : false,
+    // Disable advanced optimizations that may cause build issues
   },
 
   // Image optimization

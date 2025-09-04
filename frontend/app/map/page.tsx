@@ -589,7 +589,7 @@ export default function MapPage() {
           </div>
         </motion.div>
 
-        {/* 地图容器 */}
+        {/* 真实OSM地图容器 */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -598,93 +598,15 @@ export default function MapPage() {
         >
           <div className="max-w-6xl mx-auto">
             <div className="relative h-[50vh] sm:h-[60vh] rounded-2xl sm:rounded-3xl overflow-hidden">
-              {/* 液体玻璃效果背景 */}
-              <div className="absolute inset-0 bg-white/5 backdrop-blur-xl border border-white/10"></div>
-              
-              {/* 地图内容 */}
-              <div 
-                className="relative h-full p-3 sm:p-6 cursor-crosshair"
-                onClick={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect()
-                  const x = e.clientX - rect.left
-                  const y = e.clientY - rect.top
-                  const lat = 39.9042 + (0.5 - y / rect.height) * 0.1
-                  const lng = 116.4074 + (x / rect.width - 0.5) * 0.1
-                  handleMapClick(lat, lng)
-                }}
-              >
-                {/* 地图网格背景 */}
-                <div className="absolute inset-3 sm:inset-6 opacity-20">
-                  <div className="w-full h-full" style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M0 0h40v40H0V0zm20 20h20v20H20V20z'/%3E%3C/g%3E%3C/svg%3E")`
-                  }}></div>
-                </div>
-
-                {/* 热力图层 */}
-                {(mapViewMode === 'heatmap' || mapViewMode === 'hybrid') && (
-                  <div className="absolute inset-3 sm:inset-6">
-                    {/* Heatmap visualization would go here */}
-                  </div>
-                )}
-
-                {/* 地图标记 */}
-                {(mapViewMode === 'markers' || mapViewMode === 'hybrid') && annotations.map((annotation, index) => {
-                  const markerColor = getMarkerColor(annotation.rewardAmount || 0)
-                  return (
-                    <motion.div
-                      key={annotation.id}
-                      initial={{ opacity: 0, scale: 0 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
-                      className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group z-10"
-                      style={{
-                        left: `${50 + (annotation.longitude - center[1]) * 800}%`,
-                        top: `${50 - (annotation.latitude - center[0]) * 800}%`
-                      }}
-                      onClick={() => handleAnnotationClick(annotation)}
-                      whileHover={{ scale: 1.2 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <div className={`relative w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-white shadow-lg flex items-center justify-center transition-all duration-300 ${
-                        markerColor === 'red' ? 'bg-gradient-to-r from-red-500 to-pink-500' :
-                        markerColor === 'blue' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' : 
-                        'bg-gradient-to-r from-green-500 to-emerald-500'
-                      }`}>
-                        <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-                        <div className="absolute -inset-2 bg-white/20 rounded-full animate-ping opacity-0 group-hover:opacity-100"></div>
-                      </div>
-                      
-                      {/* 标记信息提示 */}
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="bg-black/80 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-lg whitespace-nowrap max-w-32 sm:max-w-none truncate sm:whitespace-nowrap">
-                          {annotation.title} - ¥{annotation.rewardAmount || 0}
-                        </div>
-                      </div>
-                    </motion.div>
-                  )
-                })}
-
-                {/* 用户位置标记 */}
-                {userLocation && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, delay: 1 }}
-                    className="absolute transform -translate-x-1/2 -translate-y-1/2"
-                    style={{
-                      left: `${50 + (userLocation[1] - center[1]) * 800}%`,
-                      top: `${50 - (userLocation[0] - center[0]) * 800}%`
-                    }}
-                  >
-                    <div className="relative">
-                      <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full border-2 border-white shadow-lg">
-                        <div className="absolute inset-0 bg-blue-400 rounded-full animate-ping opacity-75"></div>
-                      </div>
-                      <Navigation className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" />
-                    </div>
-                  </motion.div>
-                )}
-              </div>
+              {/* OSM地图组件 */}
+              <OSMMap
+                center={center}
+                zoom={zoom}
+                annotations={annotationsData?.data || []}
+                onMapClick={handleMapClick}
+                showUserLocation={true}
+                className="h-full w-full"
+              />
             </div>
           </div>
         </motion.div>
@@ -871,7 +793,7 @@ export default function MapPage() {
                       <div className="relative px-4 py-3">
                         <Slider
                           value={[newAnnotation.smell_intensity]}
-                          onValueChange={(value) => setNewAnnotation({...newAnnotation, smell_intensity: value[0]})}
+                          onValueChange={(value) => setNewAnnotation({...newAnnotation, smell_intensity: value[0] || 3})}
                           min={1}
                           max={5}
                           step={1}

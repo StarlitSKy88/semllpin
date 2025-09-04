@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Leaflet CSS 样式 */
+@import 'leaflet/dist/leaflet.css';
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

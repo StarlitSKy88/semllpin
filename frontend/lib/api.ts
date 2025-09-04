@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // API基础配置
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3002/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://semllpin.onrender.com/api';
 
 // 创建axios实例
 export const apiClient = axios.create({

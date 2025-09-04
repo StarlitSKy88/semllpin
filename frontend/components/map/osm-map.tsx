@@ -50,12 +50,18 @@ const createSmellIcon = (intensity: number, type: string) => {
 
 interface Annotation {
   id: string
+  title: string
+  description: string
   latitude: number
   longitude: number
-  smell_intensity: number
+  rewardAmount: number
   smell_type?: string
-  description: string
-  created_at: string
+  smell_intensity?: number
+  images?: string[]
+  createdAt: string
+  author?: {
+    username: string
+  }
 }
 
 interface OSMMapProps {
@@ -187,22 +193,33 @@ export const OSMMap: React.FC<OSMMapProps> = ({
           <Marker
             key={annotation.id}
             position={[annotation.latitude, annotation.longitude]}
-            icon={createSmellIcon(annotation.smell_intensity, annotation.smell_type || 'unknown')}
+            icon={createSmellIcon(annotation.smell_intensity || 5, annotation.smell_type || 'unknown')}
           >
             <Popup maxWidth={300}>
               <div className="p-2">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-semibold text-lg">
-                    气味强度: {annotation.smell_intensity}/10
+                    {annotation.title}
                   </span>
-                  <span className="text-sm text-gray-500">
-                    {annotation.smell_type || '未分类'}
+                  <span className="text-sm text-yellow-500 font-semibold">
+                    ¥{annotation.rewardAmount || 0}
                   </span>
                 </div>
+                {annotation.smell_intensity && (
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">
+                      气味强度: {annotation.smell_intensity}/10
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      {annotation.smell_type || '未分类'}
+                    </span>
+                  </div>
+                )}
                 <p className="text-sm mb-2">{annotation.description}</p>
                 <div className="text-xs text-gray-400">
                   <p>位置: {annotation.latitude.toFixed(4)}, {annotation.longitude.toFixed(4)}</p>
-                  <p>时间: {new Date(annotation.created_at).toLocaleString('zh-CN')}</p>
+                  <p>创建者: {annotation.author?.username || '匿名用户'}</p>
+                  <p>时间: {new Date(annotation.createdAt).toLocaleString('zh-CN')}</p>
                 </div>
               </div>
             </Popup>
