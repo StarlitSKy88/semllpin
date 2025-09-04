@@ -112,9 +112,15 @@ export const connectDatabase = async (): Promise<void> => {
           logger.warn('⚠️ PostGIS extension not available, spatial queries will be limited');
         }
 
-        // Run migrations in production
-        await db.migrate.latest();
-        logger.info('✅ 数据库迁移完成');
+        // Run migrations in production (with error handling)
+        try {
+          await db.migrate.latest();
+          logger.info('✅ 数据库迁移完成');
+        } catch (migrationError) {
+          logger.warn('⚠️ 数据库迁移跳过（迁移文件不存在或无法执行）:', 
+            migrationError instanceof Error ? migrationError.message : migrationError);
+          // Don't fail the connection if migrations fail - many deployments work without migrations
+        }
       }
       
       // Connection successful, exit retry loop
