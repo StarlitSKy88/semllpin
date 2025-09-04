@@ -5,6 +5,7 @@ export interface BlogPost {
   date: string
   author: string
   category: string
+  content?: string
 }
 
 export const allPosts: BlogPost[] = [
@@ -49,3 +50,7 @@ export const allPosts: BlogPost[] = [
     category: "社区规范"
   }
 ]
+
+export function getPostBySlug(slug: string): BlogPost | undefined {
+  return allPosts.find(post => post.slug === slug);
+}

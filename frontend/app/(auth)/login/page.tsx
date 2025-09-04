@@ -24,15 +24,15 @@ export default function LoginPage() {
     const newErrors: Record<string, string> = {};
 
     if (!formData.email.trim()) {
-      newErrors.email = '邮箱不能为空';
+      newErrors['email'] = '邮箱不能为空';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = '请输入有效的邮箱地址';
+      newErrors['email'] = '请输入有效的邮箱地址';
     }
 
     if (!formData.password) {
-      newErrors.password = '密码不能为空';
+      newErrors['password'] = '密码不能为空';
     } else if (formData.password.length < 6) {
-      newErrors.password = '密码至少需要6个字符';
+      newErrors['password'] = '密码至少需要6个字符';
     }
 
     setErrors(newErrors);
@@ -86,11 +86,11 @@ export default function LoginPage() {
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
               variant="glass-dark"
-              className={errors.email ? 'border-red-500/50' : ''}
+              className={errors['email'] ? 'border-red-500/50' : ''}
               disabled={isLoading}
             />
-            {errors.email && (
-              <p className="text-red-400 text-sm mt-1">{errors.email}</p>
+            {errors['email'] && (
+              <p className="text-red-400 text-sm mt-1">{errors['email']}</p>
             )}
           </div>
 
@@ -102,11 +102,11 @@ export default function LoginPage() {
               value={formData.password}
               onChange={(e) => handleInputChange('password', e.target.value)}
               variant="glass-dark"
-              className={errors.password ? 'border-red-500/50' : ''}
+              className={errors['password'] ? 'border-red-500/50' : ''}
               disabled={isLoading}
             />
-            {errors.password && (
-              <p className="text-red-400 text-sm mt-1">{errors.password}</p>
+            {errors['password'] && (
+              <p className="text-red-400 text-sm mt-1">{errors['password']}</p>
             )}
           </div>
         </div>

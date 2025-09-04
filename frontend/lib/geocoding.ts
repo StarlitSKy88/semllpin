@@ -1,9 +1,8 @@
 import axios from 'axios';
+import { CONFIG } from './config';
 
 // 地理编码配置
-const GEOCODING_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? '/api/v1/geocoding' 
-  : 'http://localhost:3000/api/v1/geocoding';
+const GEOCODING_BASE_URL = CONFIG.API.API_BASE_URL + '/geocoding';
 
 // 客户端缓存配置
 interface CacheEntry<T> {
@@ -14,7 +13,7 @@ interface CacheEntry<T> {
 
 class GeocodingCache {
   private cache = new Map<string, CacheEntry<any>>();
-  private defaultTTL = 3600000; // 1小时
+  private defaultTTL = CONFIG.CACHE.GEOCODING_TTL; // 1小时
 
   set<T>(key: string, data: T, ttl?: number): void {
     this.cache.set(key, {
@@ -180,7 +179,7 @@ interface ApiResponse<T> {
 // 创建axios实例
 const api = axios.create({
   baseURL: GEOCODING_BASE_URL,
-  timeout: 10000,
+  timeout: CONFIG.API.REQUEST.TIMEOUT,
   headers: {
     'Content-Type': 'application/json'
   }

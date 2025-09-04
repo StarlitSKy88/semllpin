@@ -26,41 +26,41 @@ export default function RegisterPage() {
 
     // 邮箱验证
     if (!formData.email.trim()) {
-      newErrors.email = '邮箱不能为空';
+      newErrors['email'] = '邮箱不能为空';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = '请输入有效的邮箱地址';
+      newErrors['email'] = '请输入有效的邮箱地址';
     }
 
     // 用户名验证
     if (!formData.username.trim()) {
-      newErrors.username = '用户名不能为空';
+      newErrors['username'] = '用户名不能为空';
     } else if (formData.username.length < 2) {
-      newErrors.username = '用户名至少需要2个字符';
+      newErrors['username'] = '用户名至少需要2个字符';
     } else if (formData.username.length > 20) {
-      newErrors.username = '用户名不能超过20个字符';
+      newErrors['username'] = '用户名不能超过20个字符';
     } else if (!/^[a-zA-Z0-9_\u4e00-\u9fa5]+$/.test(formData.username)) {
-      newErrors.username = '用户名只能包含字母、数字、下划线和中文';
+      newErrors['username'] = '用户名只能包含字母、数字、下划线和中文';
     }
 
     // 密码验证
     if (!formData.password) {
-      newErrors.password = '密码不能为空';
+      newErrors['password'] = '密码不能为空';
     } else if (formData.password.length < 6) {
-      newErrors.password = '密码至少需要6个字符';
+      newErrors['password'] = '密码至少需要6个字符';
     } else if (formData.password.length > 50) {
-      newErrors.password = '密码不能超过50个字符';
+      newErrors['password'] = '密码不能超过50个字符';
     }
 
     // 确认密码验证
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = '请确认密码';
+      newErrors['confirmPassword'] = '请确认密码';
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = '两次输入的密码不一致';
+      newErrors['confirmPassword'] = '两次输入的密码不一致';
     }
 
     // 服务条款验证
     if (!agreedToTerms) {
-      newErrors.terms = '请同意服务条款和隐私政策';
+      newErrors['terms'] = '请同意服务条款和隐私政策';
     }
 
     setErrors(newErrors);
@@ -120,11 +120,11 @@ export default function RegisterPage() {
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
               variant="glass-dark"
-              className={errors.email ? 'border-red-500/50' : ''}
+              className={errors['email'] ? 'border-red-500/50' : ''}
               disabled={isLoading}
             />
-            {errors.email && (
-              <p className="text-red-400 text-sm mt-1">{errors.email}</p>
+            {errors['email'] && (
+              <p className="text-red-400 text-sm mt-1">{errors['email']}</p>
             )}
           </div>
 
@@ -136,11 +136,11 @@ export default function RegisterPage() {
               value={formData.username}
               onChange={(e) => handleInputChange('username', e.target.value)}
               variant="glass-dark"
-              className={errors.username ? 'border-red-500/50' : ''}
+              className={errors['username'] ? 'border-red-500/50' : ''}
               disabled={isLoading}
             />
-            {errors.username && (
-              <p className="text-red-400 text-sm mt-1">{errors.username}</p>
+            {errors['username'] && (
+              <p className="text-red-400 text-sm mt-1">{errors['username']}</p>
             )}
           </div>
 
@@ -152,11 +152,11 @@ export default function RegisterPage() {
               value={formData.password}
               onChange={(e) => handleInputChange('password', e.target.value)}
               variant="glass-dark"
-              className={errors.password ? 'border-red-500/50' : ''}
+              className={errors['password'] ? 'border-red-500/50' : ''}
               disabled={isLoading}
             />
-            {errors.password && (
-              <p className="text-red-400 text-sm mt-1">{errors.password}</p>
+            {errors['password'] && (
+              <p className="text-red-400 text-sm mt-1">{errors['password']}</p>
             )}
           </div>
 
@@ -168,11 +168,11 @@ export default function RegisterPage() {
               value={formData.confirmPassword}
               onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
               variant="glass-dark"
-              className={errors.confirmPassword ? 'border-red-500/50' : ''}
+              className={errors['confirmPassword'] ? 'border-red-500/50' : ''}
               disabled={isLoading}
             />
-            {errors.confirmPassword && (
-              <p className="text-red-400 text-sm mt-1">{errors.confirmPassword}</p>
+            {errors['confirmPassword'] && (
+              <p className="text-red-400 text-sm mt-1">{errors['confirmPassword']}</p>
             )}
           </div>
         </div>
@@ -185,7 +185,7 @@ export default function RegisterPage() {
             checked={agreedToTerms}
             onChange={(e) => {
               setAgreedToTerms(e.target.checked);
-              if (errors.terms) {
+              if (errors['terms']) {
                 setErrors(prev => ({ ...prev, terms: '' }));
               }
             }}
@@ -203,8 +203,8 @@ export default function RegisterPage() {
             </Link>
           </label>
         </div>
-        {errors.terms && (
-          <p className="text-red-400 text-sm">{errors.terms}</p>
+        {errors['terms'] && (
+          <p className="text-red-400 text-sm">{errors['terms']}</p>
         )}
 
         {/* 注册按钮 */}

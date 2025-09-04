@@ -1,39 +1,13 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import dynamic from "next/dynamic"
 import "./globals.css"
 import { Header } from "@/components/header"
 import { LanguageProvider } from "@/context/language-context"
 import { QueryProvider } from '@/components/providers/query-provider'
 import { AuthProvider } from '@/components/providers/auth-provider'
 import { GlobalProvider } from '@/components/providers/global-provider'
-
-// Lazy load non-critical components for better performance
-const Footer = dynamic(() => import("@/components/footer").then(mod => ({ default: mod.Footer })), {
-  ssr: false,
-  loading: () => null
-})
-
-const GsapProvider = dynamic(() => import("@/components/gsap-provider").then(mod => ({ default: mod.GsapProvider })), {
-  ssr: false
-})
-
-const TransitionProvider = dynamic(() => import("@/components/transition-provider").then(mod => ({ default: mod.TransitionProvider })), {
-  ssr: false
-})
-
-const NotificationProvider = dynamic(() => import('@/components/notifications/notification-provider'), {
-  ssr: false
-})
-
-const Toaster = dynamic(() => import('sonner').then(mod => ({ default: mod.Toaster })), {
-  ssr: false
-})
-
-const ServiceWorkerProvider = dynamic(() => import('@/components/service-worker-provider').then(mod => ({ default: mod.ServiceWorkerProvider })), {
-  ssr: false
-})
+import { ClientLayout } from '@/components/client-layout'
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -89,22 +63,15 @@ export default function RootLayout({
         <QueryProvider>
           <AuthProvider>
             <GlobalProvider>
-              <NotificationProvider>
-                <LanguageProvider>
-                  <GsapProvider>
-                    <TransitionProvider>
-                      <Header />
-                      <main className="min-h-screen">{children}</main>
-                      <Footer />
-                    </TransitionProvider>
-                  </GsapProvider>
-                </LanguageProvider>
-              </NotificationProvider>
+              <LanguageProvider>
+                <ClientLayout>
+                  <Header />
+                  <main className="min-h-screen">{children}</main>
+                </ClientLayout>
+              </LanguageProvider>
             </GlobalProvider>
           </AuthProvider>
         </QueryProvider>
-        <ServiceWorkerProvider />
-        <Toaster position="top-right" richColors />
       </body>
     </html>
   )

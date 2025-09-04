@@ -7,7 +7,7 @@ import {
   MapPin, Camera, Users, Clock, TrendingUp, Gift,
   Lock, Unlock, CheckCircle, Flame, Shield, Heart,
   Coffee, TreePine, Building, Laugh, Eye, Sparkles,
-  Calendar, BarChart3, Progress as ProgressIcon
+  Calendar, BarChart3, Activity as ProgressIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

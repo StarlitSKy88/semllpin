@@ -1,24 +1,13 @@
-import { BundleAnalyzerPlugin } from '@next/bundle-analyzer'
-
-const withBundleAnalyzer = BundleAnalyzerPlugin({
-  enabled: process.env.ANALYZE === 'true',
-})
+// Bundle analyzer configuration
+const withBundleAnalyzer = (config) => config;
 
 const nextConfig = {
   // Enable experimental features for better performance
   experimental: {
-    // Enable React 18 features
-    appDir: false,
     // Optimize CSS loading
     optimizeCss: true,
-    // Enable SWC minification
-    swcMinify: true,
     // Enable modern JavaScript features
     esmExternals: true,
-    // Optimize font loading
-    fontLoaders: [
-      { loader: '@next/font/google', options: { subsets: ['latin'] } },
-    ],
   },
 
   // Compiler optimizations
@@ -42,10 +31,6 @@ const nextConfig = {
     minimumCacheTTL: 60 * 60 * 24 * 365, // 1 year
     // Allow external image domains
     domains: [],
-    // Enable placeholder blur
-    placeholder: 'blur',
-    // Quality settings
-    quality: 85,
   },
 
   // Performance optimizations
@@ -66,13 +51,8 @@ const nextConfig = {
 
     // Optimize for Node.js environment
     if (isServer) {
-      config.externals = {
-        ...config.externals,
-        // Externalize heavy server-side dependencies
-        canvas: 'canvas',
-        'utf-8-validate': 'utf-8-validate',
-        bufferutil: 'bufferutil',
-      }
+      // Skip external configuration to avoid webpack errors
+      // config.externals can be configured here if needed
     }
 
     // Disable Node.js polyfills for client-side
@@ -170,20 +150,8 @@ const nextConfig = {
       }
     }
 
-    // Bundle analyzer for optimization (synchronous)
-    if (process.env.ANALYZE === 'true') {
-      const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
-      config.plugins.push(
-        new BundleAnalyzerPlugin({
-          analyzerMode: 'static',
-          openAnalyzer: true,
-          generateStatsFile: true,
-          statsOptions: {
-            source: false,
-          },
-        })
-      )
-    }
+    // Bundle analyzer disabled for now to avoid import issues
+    // Can be enabled later with proper dynamic imports
     
     return config
   },

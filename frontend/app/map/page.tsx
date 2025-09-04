@@ -280,7 +280,7 @@ export default function MapPage() {
     setIsSearchingLocation(true)
     try {
       const response = await geocodingApi.geocode(searchAddress)
-      const { latitude, longitude } = response.data
+      const { latitude, longitude } = response.data?.data || response.data || {}
       setCenter([latitude, longitude])
       setZoom(16)
       addNotification({
