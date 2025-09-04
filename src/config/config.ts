@@ -54,7 +54,11 @@ export const config = {
 
   // CORS配置
   cors: {
-    origin: process.env['CORS_ORIGIN'] || 'http://localhost:3000',
+    origin: process.env['CORS_ORIGIN'] || [
+      'http://localhost:3000',
+      'http://localhost:3001', 
+      'https://frontend-e7utegtsp-starlitsky88s-projects.vercel.app'
+    ],
     credentials: process.env['CORS_CREDENTIALS'] === 'true' || true,
   },
 

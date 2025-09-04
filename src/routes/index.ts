@@ -34,6 +34,22 @@ const router = Router();
 // API version prefix
 const API_VERSION = '/api/v1';
 
+// Root endpoint
+router.get('/', (_req, res) => {
+  res.json({
+    success: true,
+    message: 'Welcome to SmellPin API',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+    description: 'SmellPin - Location-based Smell Annotation Platform API',
+    endpoints: {
+      health: '/health',
+      docs: '/api/docs',
+      api: '/api/v1',
+    },
+  });
+});
+
 // Health check endpoint
 router.get('/health', (_req, res) => {
   res.json({
