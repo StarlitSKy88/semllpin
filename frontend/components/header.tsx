@@ -6,12 +6,14 @@ import { LanguageSwitcher } from "./language-switcher"
 import { useLanguage } from "@/context/language-context"
 import { motion } from "framer-motion"
 import { useState } from "react"
-import { Menu, X } from "lucide-react"
+import { Menu, X, LogIn, UserPlus } from "lucide-react"
 import NotificationCenter from "./notifications/notification-center"
+import { useAuthStore } from "@/store/auth"
 
 export function Header() {
   const { t } = useLanguage()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { isAuthenticated, user, logout } = useAuthStore()
 
   return (
     <motion.header
@@ -61,18 +63,50 @@ export function Header() {
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
 
-        {/* Desktop CTA Button */}
+        {/* Desktop Auth Buttons */}
         <div className="hidden md:flex items-center gap-4">
           <NotificationCenter />
           <LanguageSwitcher />
-          <motion.button
-            className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-6 py-2 rounded-full font-medium hover:bg-white/20 transition-all duration-200 shadow-lg hover:shadow-xl"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
-            {t('nav.getStarted')}
-          </motion.button>
+          
+          {isAuthenticated ? (
+            <div className="flex items-center gap-4">
+              <span className="text-white/80 text-sm">
+                欢迎, {user?.username || user?.email}
+              </span>
+              <motion.button
+                onClick={logout}
+                className="bg-red-500/20 backdrop-blur-md border border-red-400/30 text-red-200 px-4 py-2 rounded-full font-medium hover:bg-red-500/30 transition-all duration-200"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                登出
+              </motion.button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <TransitionLink href="/login">
+                <motion.button
+                  className="bg-blue-500/20 backdrop-blur-md border border-blue-400/30 text-blue-200 px-4 py-2 rounded-full font-medium hover:bg-blue-500/30 transition-all duration-200 flex items-center gap-2"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <LogIn size={16} />
+                  登录
+                </motion.button>
+              </TransitionLink>
+              
+              <TransitionLink href="/register">
+                <motion.button
+                  className="bg-green-500/20 backdrop-blur-md border border-green-400/30 text-green-200 px-4 py-2 rounded-full font-medium hover:bg-green-500/30 transition-all duration-200 flex items-center gap-2"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <UserPlus size={16} />
+                  注册
+                </motion.button>
+              </TransitionLink>
+            </div>
+          )}
         </div>
       </div>
 
@@ -107,12 +141,47 @@ export function Header() {
             >
               {t('nav.myMarks')}
             </a>
-            <div className="flex items-center gap-4 pt-4 border-t border-white/10">
-              <NotificationCenter />
-              <LanguageSwitcher />
-              <button className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-6 py-2 rounded-full font-medium hover:bg-white/20 transition-all duration-200">
-                {t('nav.getStarted')}
-              </button>
+            <div className="pt-4 border-t border-white/10">
+              <div className="flex items-center gap-4 mb-4">
+                <NotificationCenter />
+                <LanguageSwitcher />
+              </div>
+              
+              {isAuthenticated ? (
+                <div className="space-y-3">
+                  <div className="text-white/80 text-sm">
+                    欢迎, {user?.username || user?.email}
+                  </div>
+                  <button
+                    onClick={logout}
+                    className="w-full bg-red-500/20 backdrop-blur-md border border-red-400/30 text-red-200 px-4 py-2 rounded-full font-medium hover:bg-red-500/30 transition-all duration-200"
+                  >
+                    登出
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-3">
+                  <TransitionLink href="/login" className="flex-1">
+                    <button 
+                      className="w-full bg-blue-500/20 backdrop-blur-md border border-blue-400/30 text-blue-200 px-4 py-2 rounded-full font-medium hover:bg-blue-500/30 transition-all duration-200 flex items-center justify-center gap-2"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <LogIn size={16} />
+                      登录
+                    </button>
+                  </TransitionLink>
+                  
+                  <TransitionLink href="/register" className="flex-1">
+                    <button 
+                      className="w-full bg-green-500/20 backdrop-blur-md border border-green-400/30 text-green-200 px-4 py-2 rounded-full font-medium hover:bg-green-500/30 transition-all duration-200 flex items-center justify-center gap-2"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <UserPlus size={16} />
+                      注册
+                    </button>
+                  </TransitionLink>
+                </div>
+              )}
             </div>
           </nav>
         </motion.div>

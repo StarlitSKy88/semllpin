@@ -7,13 +7,15 @@ import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 // import { Scene } from "@/components/scene"
 import { TransitionLink } from "@/components/transition-link"
-import { ArrowRight, Upload, Download, Zap, MapPin } from "lucide-react"
+import { ArrowRight, Upload, Download, Zap, MapPin, LogIn, UserPlus } from "lucide-react"
 import { useLanguage } from "@/context/language-context"
 import { Button } from "@/components/ui/button"
+import { useAuthStore } from "@/store/auth"
 
 export function Hero() {
   const { t } = useLanguage()
   const container = useRef(null)
+  const { isAuthenticated } = useAuthStore()
 
   useGSAP(
     () => {
@@ -71,18 +73,44 @@ export function Hero() {
         </div>
 
         <div className="flex justify-center mt-6 md:mt-8">
-          <TransitionLink href="/map">
-            <Button
-              variant="gradient"
-              size="lg"
-              className="px-8 sm:px-12 md:px-16 py-3 md:py-4 font-semibold text-base md:text-lg shadow-lg hover:shadow-xl w-full max-w-xs sm:max-w-md"
-              style={{ letterSpacing: '0.2em' }}
-            >
-              <span>开始</span>
-              <MapPin className="mx-2" size={20} />
-              <span>标注</span>
-            </Button>
-          </TransitionLink>
+          {isAuthenticated ? (
+            <TransitionLink href="/map">
+              <Button
+                variant="gradient"
+                size="lg"
+                className="px-8 sm:px-12 md:px-16 py-3 md:py-4 font-semibold text-base md:text-lg shadow-lg hover:shadow-xl w-full max-w-xs sm:max-w-md"
+                style={{ letterSpacing: '0.2em' }}
+              >
+                <span>开始</span>
+                <MapPin className="mx-2" size={20} />
+                <span>标注</span>
+              </Button>
+            </TransitionLink>
+          ) : (
+            <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
+              <TransitionLink href="/register" className="flex-1">
+                <Button
+                  variant="gradient"
+                  size="lg"
+                  className="w-full px-6 py-3 md:py-4 font-semibold text-base md:text-lg shadow-lg hover:shadow-xl"
+                >
+                  <UserPlus className="mr-2" size={20} />
+                  <span>免费注册</span>
+                </Button>
+              </TransitionLink>
+              
+              <TransitionLink href="/login" className="flex-1">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full px-6 py-3 md:py-4 font-semibold text-base md:text-lg shadow-lg hover:shadow-xl bg-white/10 backdrop-blur-md border border-white/30 text-white hover:bg-white/20"
+                >
+                  <LogIn className="mr-2" size={20} />
+                  <span>登录</span>
+                </Button>
+              </TransitionLink>
+            </div>
+          )}
         </div>
       </div>
     </div>
