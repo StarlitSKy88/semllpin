@@ -225,8 +225,8 @@ export class AntiFraudService {
         )
         .first();
 
-      const totalReports = parseInt(locationSpread?.total_reports || '0');
-      const uniqueLocations = parseInt(locationSpread?.unique_locations || '0');
+      const totalReports = parseInt((locationSpread as any)?.total_reports || '0');
+      const uniqueLocations = parseInt((locationSpread as any)?.unique_locations || '0');
 
       if (totalReports > 10 && uniqueLocations < 3) {
         return {

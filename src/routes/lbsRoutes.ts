@@ -461,10 +461,10 @@ router.get('/stats', async (req: AuthenticatedRequest, res: Response) => {
       .first();
 
     return res.json({
-      totalRewards: parseInt(stats?.total_rewards || '0'),
-      totalAmount: parseFloat(stats?.total_amount || '0'),
-      monthlyRewards: parseInt(stats?.monthly_rewards || '0'),
-      monthlyAmount: parseFloat(stats?.monthly_amount || '0'),
+      totalRewards: parseInt((stats as any)?.total_rewards || '0'),
+      totalAmount: parseFloat((stats as any)?.total_amount || '0'),
+      monthlyRewards: parseInt((stats as any)?.monthly_rewards || '0'),
+      monthlyAmount: parseFloat((stats as any)?.monthly_amount || '0'),
     });
   } catch (error) {
     console.error('获取LBS统计失败:', error);

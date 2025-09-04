@@ -134,17 +134,17 @@ export const getAdminStats = async (req: AuthRequest, res: Response): Promise<vo
       .first();
 
     const stats: AdminStats = {
-      totalUsers: parseInt(userStats?.total_users || '0'),
-      activeUsers: parseInt(userStats?.active_users || '0'),
-      suspendedUsers: parseInt(userStats?.suspended_users || '0'),
-      bannedUsers: parseInt(userStats?.banned_users || '0'),
-      totalAnnotations: parseInt(annotationStats?.total_annotations || '0'),
-      pendingAnnotations: parseInt(annotationStats?.pending_annotations || '0'),
-      approvedAnnotations: parseInt(annotationStats?.approved_annotations || '0'),
-      rejectedAnnotations: parseInt(annotationStats?.rejected_annotations || '0'),
-      totalRevenue: parseFloat(revenueStats?.total_revenue || '0'),
+      totalUsers: parseInt((userStats as any)?.total_users || '0'),
+      activeUsers: parseInt((userStats as any)?.active_users || '0'),
+      suspendedUsers: parseInt((userStats as any)?.suspended_users || '0'),
+      bannedUsers: parseInt((userStats as any)?.banned_users || '0'),
+      totalAnnotations: parseInt((annotationStats as any)?.total_annotations || '0'),
+      pendingAnnotations: parseInt((annotationStats as any)?.pending_annotations || '0'),
+      approvedAnnotations: parseInt((annotationStats as any)?.approved_annotations || '0'),
+      rejectedAnnotations: parseInt((annotationStats as any)?.rejected_annotations || '0'),
+      totalRevenue: parseFloat((revenueStats as any)?.total_revenue || '0'),
       monthlyRevenue: parseFloat(monthlyRevenue?.['monthly_revenue'] || '0'),
-      totalTransactions: parseInt(revenueStats?.total_transactions || '0'),
+      totalTransactions: parseInt((revenueStats as any)?.total_transactions || '0'),
       pendingReports: parseInt(String(pendingReports?.['pending_reports'] || '0')),
     };
 

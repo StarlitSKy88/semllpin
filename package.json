@@ -5,7 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "nodemon --exec ts-node src/server.ts",
-    "build": "tsc",
+    "build": "tsc --project tsconfig.prod.json",
     "start": "node -r ./register-paths.js dist/server.js",
     "start:prod": "NODE_ENV=production node -r ./register-paths.js dist/server.js",
     "test": "npm run test:frontend && npm run test:backend",
