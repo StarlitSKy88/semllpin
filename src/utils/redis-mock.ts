@@ -6,20 +6,29 @@
 export interface RedisClient {
   get(key: string): Promise<string | null>;
   set(key: string, value: string, ttl?: number): Promise<void>;
-  del(key: string): Promise<number>;
+  del(...keys: string[]): Promise<number>;
   exists(key: string): Promise<number>;
   ping(): Promise<string>;
   info(section?: string): Promise<string>;
   quit(): Promise<void>;
+  connect?(): Promise<void>;
   incr(key: string): Promise<number>;
   decr(key: string): Promise<number>;
   expire(key: string, seconds: number): Promise<number>;
   ttl(key: string): Promise<number>;
   setex(key: string, seconds: number, value: string): Promise<string>;
+  mget(...keys: string[]): Promise<(string | null)[]>;
+  keys(pattern: string): Promise<string[]>;
+  sadd(key: string, ...members: string[]): Promise<number>;
+  smembers(key: string): Promise<string[]>;
+  srem(key: string, ...members: string[]): Promise<number>;
+  sismember(key: string, member: string): Promise<number>;
+  flushall(): Promise<string>;
 }
 
 class RedisMock implements RedisClient {
   private store: Map<string, { value: string; expires?: number }> = new Map();
+  private sets: Map<string, Set<string>> = new Map();
   private connected: boolean = true;
 
   async get(key: string): Promise<string | null> {
@@ -44,10 +53,19 @@ class RedisMock implements RedisClient {
     this.store.set(key, item);
   }
 
-  async del(key: string): Promise<number> {
-    const existed = this.store.has(key);
-    this.store.delete(key);
-    return existed ? 1 : 0;
+  async del(...keys: string[]): Promise<number> {
+    let count = 0;
+    keys.forEach(key => {
+      if (this.store.has(key)) {
+        this.store.delete(key);
+        count++;
+      }
+      if (this.sets.has(key)) {
+        this.sets.delete(key);
+        count++;
+      }
+    });
+    return count;
   }
 
   async exists(key: string): Promise<number> {
@@ -86,9 +104,14 @@ class RedisMock implements RedisClient {
     return Object.values(mockInfo).join('\n');
   }
 
+  async connect(): Promise<void> {
+    this.connected = true;
+  }
+
   async quit(): Promise<void> {
     this.connected = false;
     this.store.clear();
+    this.sets.clear();
   }
 
   // 模拟连接状态
@@ -153,6 +176,65 @@ class RedisMock implements RedisClient {
   async setex(key: string, seconds: number, value: string): Promise<string> {
     const expires = Date.now() + (seconds * 1000);
     this.store.set(key, { value, expires });
+    return 'OK';
+  }
+
+  async mget(...keys: string[]): Promise<(string | null)[]> {
+    return Promise.all(keys.map(key => this.get(key)));
+  }
+
+  async keys(pattern: string): Promise<string[]> {
+    const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+    const allKeys = [...this.store.keys(), ...this.sets.keys()];
+    return allKeys.filter(key => regex.test(key));
+  }
+
+  async sadd(key: string, ...members: string[]): Promise<number> {
+    if (!this.sets.has(key)) {
+      this.sets.set(key, new Set());
+    }
+    const set = this.sets.get(key)!;
+    let added = 0;
+    members.forEach(member => {
+      if (!set.has(member)) {
+        set.add(member);
+        added++;
+      }
+    });
+    return added;
+  }
+
+  async smembers(key: string): Promise<string[]> {
+    const set = this.sets.get(key);
+    return set ? Array.from(set) : [];
+  }
+
+  async srem(key: string, ...members: string[]): Promise<number> {
+    const set = this.sets.get(key);
+    if (!set) return 0;
+    
+    let removed = 0;
+    members.forEach(member => {
+      if (set.has(member)) {
+        set.delete(member);
+        removed++;
+      }
+    });
+    
+    if (set.size === 0) {
+      this.sets.delete(key);
+    }
+    return removed;
+  }
+
+  async sismember(key: string, member: string): Promise<number> {
+    const set = this.sets.get(key);
+    return set && set.has(member) ? 1 : 0;
+  }
+
+  async flushall(): Promise<string> {
+    this.store.clear();
+    this.sets.clear();
     return 'OK';
   }
 }

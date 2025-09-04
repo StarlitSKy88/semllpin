@@ -6,8 +6,20 @@ import RedisMock from '@/utils/redis-mock';
 // Redis client instance
 let redisClient: Redis | null = null;
 
-// Redis configuration
-const redisConfig: any = {
+// Redis configuration with support for REDIS_URL
+const redisConfig: any = process.env['REDIS_URL'] ? {
+  // Use connection string for managed Redis services (like Render)
+  connectionName: 'SmellPin-Redis',
+  retryDelayOnFailover: 100,
+  enableReadyCheck: true,
+  maxRetriesPerRequest: 3,
+  lazyConnect: true,
+  keepAlive: 30000,
+  connectTimeout: 10000,
+  commandTimeout: 5000,
+  retryDelayOnClusterDown: 300,
+} : {
+  // Use individual config options for self-hosted Redis
   host: config.redis?.host || process.env['REDIS_HOST'] || 'localhost',
   port: config.redis?.port || parseInt(process.env['REDIS_PORT'] || '6379'),
   ...(config.redis?.password && { password: config.redis.password }),
@@ -35,7 +47,10 @@ export const createRedisClient = (): Redis => {
     return redisClient as Redis;
   }
 
-  redisClient = new Redis(redisConfig);
+  // Create Redis client with appropriate connection method
+  redisClient = process.env['REDIS_URL'] 
+    ? new Redis(process.env['REDIS_URL'], redisConfig)
+    : new Redis(redisConfig);
 
   // Event listeners
   redisClient.on('connect', () => {
@@ -65,9 +80,16 @@ export const createRedisClient = (): Redis => {
   return redisClient;
 };
 
-// Connect to Redis
+// Connect to Redis with graceful fallback
 export const connectRedis = async (): Promise<void> => {
   try {
+    // Check if Redis URL is provided (for production environments like Render)
+    if (!process.env['REDIS_URL'] && !process.env['REDIS_HOST'] && process.env['NODE_ENV'] === 'production') {
+      logger.warn('⚠️ Redis连接跳过 - 未配置Redis服务器，使用内存缓存模式');
+      process.env['REDIS_MOCK'] = 'true'; // Enable mock for production without Redis
+      return;
+    }
+
     const client = createRedisClient();
 
     // Skip connect() for Redis mock
@@ -79,8 +101,9 @@ export const connectRedis = async (): Promise<void> => {
     await client.ping();
     logger.info('Redis连接测试成功');
   } catch (error) {
-    logger.error('Redis连接失败:', error);
-    throw error;
+    logger.warn('⚠️ Redis连接失败，启用内存缓存模式:', error instanceof Error ? error.message : error);
+    // Don't throw error - allow server to start without Redis
+    process.env['REDIS_MOCK'] = 'true'; // Fallback to mock
   }
 };
 
