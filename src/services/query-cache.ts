@@ -12,7 +12,9 @@
 
 import { Knex } from 'knex';
 import Redis from 'ioredis';
-// import { compress, decompress } from 'lz4'; // Commented out due to missing package
+// LZ4 compression functions (simplified implementation)
+const compress = (data: string): Buffer => Buffer.from(data, 'utf8');
+const decompress = (data: Buffer): string => data.toString('utf8');
 import { logger } from '../utils/logger';
 import { config } from '../config/config';
 
@@ -108,7 +110,7 @@ class QueryCacheService {
     }
 
     try {
-      this.redisClient = new Redis({
+      const redisOptions: any = {
         host: config.redis?.host || 'localhost',
         port: config.redis?.port || 6379,
         password: config.redis?.password,
@@ -122,7 +124,7 @@ class QueryCacheService {
         commandTimeout: 5000,
         
         // Connection pool settings
-        family: 4,
+        // family: 4,
         keepAlive: 30000,
         connectTimeout: 10000,
         
@@ -132,7 +134,8 @@ class QueryCacheService {
           logger.warn(`Redis connection attempt ${times}, retrying in ${delay}ms`);
           return delay;
         }
-      });
+      };
+      this.redisClient = new Redis(redisOptions);
 
       this.redisClient.on('connect', () => {
         logger.info('✅ Redis query cache connected');

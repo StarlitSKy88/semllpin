@@ -61,7 +61,7 @@ export class QueryPerformanceMonitor {
       longRunningThreshold: 30000, // 30秒
       enableLogging: config.enableLogging !== false,
       enableMetrics: config.enableMetrics !== false,
-      sampleRate: config.sampleRate || (process.env['NODE_ENV'] === 'production' ? 0.1 : 1.0),
+      sampleRate: config.sampleRate || ((process.env as any)['NODE_ENV'] === 'production' ? 0.1 : 1.0),
       ...config,
     };
 
@@ -230,7 +230,7 @@ export class QueryPerformanceMonitor {
 
     // 按查询名称分组
     const grouped = new Map<string, QueryExecution[]>();
-    slowQueries.forEach(query => {
+    slowQueries.forEach((query: QueryExecution) => {
       if (!grouped.has(query.queryName)) {
         grouped.set(query.queryName, []);
       }

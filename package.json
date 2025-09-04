@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "nodemon --exec ts-node src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
-    "start:prod": "NODE_ENV=production node dist/server.js",
+    "start": "node -r ./register-paths.js dist/server.js",
+    "start:prod": "NODE_ENV=production node -r ./register-paths.js dist/server.js",
     "test": "npm run test:frontend && npm run test:backend",
     "test:backend": "jest --config jest.backend.config.js",
     "test:frontend": "jest --config jest.frontend.config.js",
